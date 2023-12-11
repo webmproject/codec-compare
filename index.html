@@ -1,0 +1,85 @@
+<!--
+ Copyright 2022 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Codec Compare</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <style>
+    :root {
+      font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      /* For raised mwc-buttons and the left menu bar. */
+      --mdc-theme-primary: #6A67BB;
+      /* For mwc-fabs. */
+      --mdc-theme-secondary: #6A67BB;
+      --mdc-theme-surface: #F0F3FA;
+      --mdc-theme-background: #FFFFFF;
+      --mdc-theme-text: #0A101F;
+    }
+
+    html,
+    body {
+      margin: 0;
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        color: var(--mdc-theme-text);
+        background: var(--mdc-theme-background);
+      }
+    }
+
+    #top_level_flex {
+      display: flex;
+      flex-flow: row nowrap;
+      overflow: hidden;
+      width: 100%;
+    }
+    codec-compare {
+      min-width: 600px;
+      overflow: auto;
+      flex: 0;
+    }
+    #plotly_div {
+      min-width: 400px;
+      min-height: 400px;
+      flex: 1 0;
+      /* For plot-overlay to work. */
+      position: relative;
+    }
+  </style>
+  <script type="module" src="/src/codec_compare.ts"></script>
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
+</head>
+
+<body>
+  <div id='top_level_flex'>
+    <codec-compare></codec-compare>
+    <div id='plotly_div'>
+      <plot-overlay-ui></plot-overlay-ui>
+    </div>
+  </div>
+</body>
+
+</html>

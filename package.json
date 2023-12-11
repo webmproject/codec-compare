@@ -1,0 +1,41 @@
+{
+  "name": "codec_compare",
+  "version": "0.1.2",
+  "description": "Codec performance comparison tool",
+  "publisher": "Google LLC",
+  "author": "Yannis Guyon",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview --open",
+    "test": "karma start"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^5.1.4",
+    "@types/node": "^20.10.4",
+    "@types/plotly.js-dist": "npm:@types/plotly.js@^2.12.30",
+    "jasmine-core": "^5.1.1",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-jasmine": "^5.1.0",
+    "karma-spec-reporter": "^0.0.36",
+    "karma-typescript": "^5.5.4",
+    "karma-typescript-es6-transform": "^5.5.4",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.6"
+  },
+  "dependencies": {
+    "@material/mwc-button": "^0.27.0",
+    "@material/mwc-fab": "^0.27.0",
+    "@material/mwc-icon": "^0.27.0",
+    "@material/mwc-icon-button": "^0.27.0",
+    "@material/mwc-linear-progress": "^0.27.0",
+    "@material/mwc-menu": "^0.27.0",
+    "@material/mwc-slider": "^0.27.0",
+    "@material/mwc-switch": "^0.27.0",
+    "@material/mwc-textfield": "^0.27.0",
+    "lit": "^3.1.0",
+    "plotly.js-dist": "^2.27.1"
+  }
+}
