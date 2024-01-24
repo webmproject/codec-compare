@@ -110,6 +110,9 @@ export class State {
       }
     }
 
+    [this.plotMetricHorizontal, this.plotMetricVertical] =
+        selectPlotMetrics(this.batches[0], this.metrics);
+
     // It would be better to count the matches rather than the data points but
     // it is more important to have a default setting value right now, before
     // reading the URL arguments, which happens before finding the matches.
@@ -172,10 +175,30 @@ export class State {
     });
   }
 
-  /** Part of initialize() to be done once URL params were parsed. */
+  /**
+   * Part of initialize() to be done once default URL parameters were recorded.
+   */
+  initializePostUrlStateDefaultValues() {
+    // Reset the plot axis to undefined to see if loading the URL parameters
+    // changes them.
+    this.plotMetricHorizontal = undefined;
+    this.plotMetricVertical = undefined;
+  }
+
+  /** Part of initialize() to be done once URL parameters were parsed. */
   initializePostUrlStateLoad() {
-    [this.plotMetricHorizontal, this.plotMetricVertical] =
+    // Adapt the default plot axis to the selected metrics, that may have
+    // changed because of URL parameters. Only set the plot axis to their
+    // default values if they were not explicitly set through URL parameters.
+    const [plotMetricHorizontal, plotMetricVertical] =
         selectPlotMetrics(this.batches[0], this.metrics);
+    if (this.plotMetricHorizontal === undefined) {
+      this.plotMetricHorizontal = plotMetricHorizontal;
+    }
+    if (this.plotMetricVertical === undefined) {
+      this.plotMetricVertical = plotMetricVertical;
+    }
+
     for (const batchSelection of this.batchSelections) {
       batchSelection.updateFilteredRows();
     }

@@ -108,13 +108,13 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
  * by decreasing preference of which matcher is enabled by default.
  */
 export const QUALITY_METRIC_FIELD_IDS = [
-  FieldId.SSIM, FieldId.MSSSIM, FieldId.PSNR, FieldId.BUTTERAUGLI,
-  FieldId.SSIMULACRA2, FieldId.SSIMULACRA, FieldId.CIEDE2000, FieldId.FLIP,
+  FieldId.SSIM, FieldId.SSIMULACRA2, FieldId.MSSSIM, FieldId.PSNR,
+  FieldId.BUTTERAUGLI, FieldId.SSIMULACRA, FieldId.CIEDE2000, FieldId.FLIP,
   FieldId.LPIPS, FieldId.P3NORM
 ];
 
 function fieldNameToFieldId(name: string): FieldId {
-  return NAME_TO_FIELD_ID.get(name.toLowerCase().replace('_', ' ')) ??
+  return NAME_TO_FIELD_ID.get(name.toLowerCase().replaceAll('_', ' ')) ??
       FieldId.CUSTOM;
 }
 
@@ -131,7 +131,7 @@ function fieldPrettyName(id: FieldId, name: string): string {
     }
   }
   // Custom properties are displayed too.
-  return name.replace('_', ' ');
+  return name.replaceAll('_', ' ');
 }
 
 /** Data column in a Batch. For example: source_image, encoding_time etc. */

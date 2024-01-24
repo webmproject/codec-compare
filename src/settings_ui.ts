@@ -29,29 +29,10 @@ import {State} from './state';
 export class SettingsUi extends LitElement {
   @property({attribute: false}) state!: State;
 
-  /** Called when this component is made visible. */
-  onOpen() {
-    this.style.display = 'block';
-    this.requestUpdate();
-  }
-
   override render() {
     if (!this.state) return html``;
 
-    const onClose = () => {
-      this.style.display = 'none';
-      this.requestUpdate();
-    };
-
     return html`
-      <div id="background" @click=${onClose}>
-      </div>
-      <div id="dialog" @click=${(e: Event) => {
-      e.stopImmediatePropagation();
-    }}>
-        <mwc-fab id="closeButton" icon="close" title="Close" @click=${onClose}>
-        </mwc-fab>
-        <h2>Settings</h2>
         <div class="settingGroup">
           <span>Hide data points</span>
           <mwc-switch ?selected=${this.state.showEachMatch}
@@ -73,53 +54,20 @@ export class SettingsUi extends LitElement {
     }}>
           </mwc-switch>
           <span>Geometric mean</span>
-        </div>
-      </div>`;
+        </div>`;
   }
 
   static override styles = css`
     :host {
-      display: none;
-      position: absolute;
-      z-index: 8;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      right: 0;
-    }
-
-    #background {
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-    }
-
-    #dialog {
-      background-color: var(--mdc-theme-surface);
-      position: absolute;
-      left: 40px;
-      top: 40px;
-      bottom: 40px;
-      width: 520px;
-      padding: 20px;
-      box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2);
-      border-radius: 16px;
+      margin-left: 70px;
       display: flex;
       flex-direction: column;
-      /* Rely on margin:auto for distributing the space. */
-      justify-content: flex-start;
       gap: 20px;
-      overflow: hidden;
-    }
-
-    #closeButton {
-      margin-left: auto;
     }
 
     .settingGroup {
       display: flex;
       gap: 20px;
-      justify-content: center;
     }
   `;
 }

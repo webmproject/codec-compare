@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {selectPlotMetrics} from './metric';
 import {State} from './state';
 
 /**
@@ -89,15 +90,28 @@ export function stateToMapping(state: State) {
     const field = state.batches[0].fields[metric.fieldIndices[0]];
     values.set('metric_' + field.name, metric.enabled ? 'on' : 'off');
   }
+
+  // The default plot axis are relative to the enabled metrics. Use "default" as
+  // a placeholder to signal that.
+  const [defaultPlotMetricHorizontal, defaultPlotMetricVertical] =
+      selectPlotMetrics(state.batches[0], state.metrics);
   if (state.plotMetricVertical !== undefined) {
-    const field =
-        state.batches[0].fields[state.plotMetricVertical.fieldIndices[0]];
-    values.set('ploty', field.name);
+    if (state.plotMetricVertical === defaultPlotMetricVertical) {
+      values.set('ploty', 'default');
+    } else {
+      const field =
+          state.batches[0].fields[state.plotMetricVertical.fieldIndices[0]];
+      values.set('ploty', field.name);
+    }
   }
   if (state.plotMetricHorizontal !== undefined) {
-    const field =
-        state.batches[0].fields[state.plotMetricHorizontal.fieldIndices[0]];
-    values.set('plotx', field.name);
+    if (state.plotMetricHorizontal === defaultPlotMetricHorizontal) {
+      values.set('plotx', 'default');
+    } else {
+      const field =
+          state.batches[0].fields[state.plotMetricHorizontal.fieldIndices[0]];
+      values.set('plotx', field.name);
+    }
   }
 
   // Global settings.

@@ -14,6 +14,7 @@
 
 import '@material/mwc-icon';
 import './mwc_button_fit';
+import './tooltip_ui';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
@@ -53,13 +54,19 @@ export class MetricUi extends LitElement {
   }
 
   override render() {
-    const description = html`
+    const tokens = this.description.split('Warning:', /*limit=*/ 2);
+    const description = tokens[0].trim();
+    const tooltip = tokens.length === 1 ?
+        '' :
+        html` <tooltip-ui icon="warning" .text="${
+            tokens[1].trim()}"></tooltip-ui>`;
+    const text = html`
         the <span title="geometric mean">average</span>
-      <strong title="${this.description}">
+      <strong title="${description}">
         ${this.displayName}
-      </strong>${this.isLast ? '' : ' and'}`;
+      </strong>${tooltip}${this.isLast ? '' : ' and'}`;
 
-    return html`${this.renderDeleteButton()} <p>${description}</p>`;
+    return html`${this.renderDeleteButton()} <p>${text}</p>`;
   }
 
   static override styles = css`

@@ -100,6 +100,9 @@ export function createMatchers(batches: Batch[]): FieldMatcher[] {
     if (field.id === FieldId.DECODED_IMAGE_NAME) continue;
     // Same source image, so these will always match. Remove them from the UI.
     if (field.id === FieldId.WIDTH || field.id === FieldId.HEIGHT) continue;
+    // If bpp values are available, encoded sizes probably are too.
+    // Skip the former which brings nothing as a matcher over the latter.
+    if (field.id === FieldId.ENCODED_BITS_PER_PIXEL) continue;
 
     // Try to guess a good default tolerance.
     let defaultTolerance = 0;
@@ -140,7 +143,9 @@ export function enableDefaultMatchers(
   }
 
   // Find any quality metric suggesting that it is not a lossless comparison and
-  // use it as a match criterion.
+  // use it as a match criterion. To be somewhat fairer, pick the first two in
+  // the QUALITY_METRIC_FIELD_IDS order, at the expense of fewer data points.
+  let numQualityMetrics = 0;
   for (const id of QUALITY_METRIC_FIELD_IDS) {
     const qualityMatcher = matchers.find(
         (matcher) => firstBatch.fields[matcher.fieldIndices[0]].id === id);
@@ -148,7 +153,8 @@ export function enableDefaultMatchers(
       const qualityField = firstBatch.fields[qualityMatcher.fieldIndices[0]];
       if (qualityField.isNumber && qualityField.uniqueValuesArray.length > 1) {
         qualityMatcher.enabled = true;
-        break;
+        ++numQualityMetrics;
+        if (numQualityMetrics === 2) break;
       }
     }
   }

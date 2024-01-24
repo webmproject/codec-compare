@@ -26,21 +26,18 @@ export class UrlState {
   private defaultValues = new URLSearchParams();
 
   /**
-   * To be called once, after batch loading and initial processing,
-   * but before result computation and graph rendering.
+   * Records what the default state values are, to only store the diff in the
+   * URL upon save().
    */
-  load(state: State) {
-    // Gather all possible arguments and their default values.
+  setDefaultValues(state: State) {
     this.defaultValues = stateToMapping(state);
     // this.defaultValues will never change again.
-
-    this.update(state);
   }
 
   /**
    * Modifies the state depending on the arguments explicitly set in the URL.
    */
-  update(state: State) {
+  load(state: State) {
     let hash = window.location.hash;  // URL trailing part after #.
     if (hash.length > 3) {
       hash = hash.slice(1);  // Remove trailing #.
