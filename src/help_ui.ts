@@ -151,13 +151,13 @@ export class HelpUi extends LitElement {
         others against.<br>
         The statistics relative to the reference batch for the fields selected
         as metrics are displayed in the right-most columns. The aggregation
-        method can be changed in the Settings page.
+        method can be changed in the Settings.
         </p>
       </div>
 
       <div class="descriptionHolder" id="graphDescription">
         <p>
-        The codecs are plotted on this graph as large circles, with the metric
+        The codecs are plotted on this graph as large disks, with the metric
         fields as axes. If any, batches sharing the same codec are linked with
         straight lines, usually to represent multiple encoding efforts.<br>
         If enabled in the Settings page, each matched pair is displayed as a

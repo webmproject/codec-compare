@@ -122,7 +122,7 @@ export class ImageVisualizer extends LitElement {
       background-color: #808080;
     }
     .slider img {
-      background-color: #808080; /* fallback in case the image below did not load */
+      background-color: #808080; /* fallback in case of image loading failure */
       background-image: url('/transparency_checkerboard.webp');
     }
     #backgroundImageContainerContainer {
@@ -196,6 +196,15 @@ export class ImageVisualizer extends LitElement {
 
     img {
       user-select: none;
+    }
+    #bottomImage,
+    #leftImage,
+    #rightImage {
+      /* Make sure the whole image is displayed by resizing it to at most 96% of
+       * the canvas. This works because all three images have the same original
+       * size and viewport dimensions are not parent-relative. */
+      max-width: 96vw;
+      max-height: 96vh;
     }
 
     #bottomText,

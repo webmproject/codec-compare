@@ -88,7 +88,7 @@ export class MatchImageUi extends LitElement {
 
   static override styles = css`
     :host {
-      overflow: auto;
+      overflow: hidden;
       display: flex;
       justify-content: center;
     }

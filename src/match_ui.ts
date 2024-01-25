@@ -193,7 +193,7 @@ export class MatchUi extends LitElement {
       /* Rely on margin:auto for distributing the space. */
       justify-content: flex-start;
       gap: 20px;
-      overflow: hidden;
+      overflow: auto;
     }
 
     #closeButton {
@@ -219,6 +219,9 @@ export class MatchUi extends LitElement {
     }
     constants-table-ui {
       max-width: 50%;
+    }
+    match-image-ui {
+      min-height: 78px;  /* 64px + 7px*2 margin as in match_image_ui.ts */
     }
   `;
 }

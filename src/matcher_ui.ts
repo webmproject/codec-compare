@@ -14,6 +14,7 @@
 
 import '@material/mwc-menu';
 import './mwc_button_fit';
+import './tooltip_ui';
 
 import {Button} from '@material/mwc-button';
 import {Menu} from '@material/mwc-menu';
@@ -104,12 +105,18 @@ export class MatcherUi extends LitElement {
   }
 
   override render() {
+    const tokens = this.description.split('Warning:', /*limit=*/ 2);
+    const description = tokens[0].trim();
+    const tooltip = tokens.length === 1 ?
+        '' :
+        html` <tooltip-ui icon="warning" .text="${
+            tokens[1].trim()}"></tooltip-ui>`;
     return html`
       ${this.renderDeleteButton()}
       <p>
         ${this.isFirst ? 'for' : ''} the same
-        <strong title="${this.description}">${this.displayName}</strong>${
-        this.renderToleranceButton()}${this.isLast ? ',' : ' and'}
+        <strong title="${description}">${this.displayName}</strong>${
+        this.renderToleranceButton()}${tooltip}${this.isLast ? ',' : ' and'}
       </p>`;
   }
 

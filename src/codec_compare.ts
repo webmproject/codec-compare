@@ -110,11 +110,11 @@ export class CodecCompare extends LitElement {
             <mwc-icon>share</mwc-icon> Copy URL to clipboard
           </mwc-button-fit>
 
-          <mwc-button-fit @click=${() => {
-      this.settingsUi.onOpen();
-    }}>
+          <mwc-button-fit disabled>
             <mwc-icon>settings</mwc-icon> Settings
           </mwc-button-fit>
+
+          <settings-ui .state=${this.state}></settings-ui>
 
           <mwc-button-fit id="helpButton" @click=${() => {
       this.helpUi.onOpen();
@@ -143,7 +143,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare beta version 0.1.2<br>
+            Codec Compare beta version 0.1.8<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -155,7 +155,6 @@ export class CodecCompare extends LitElement {
       <batch-selection-ui .state=${this.state}></batch-selection-ui>
       <matches-ui .state=${this.state}></matches-ui>
       <match-ui .state=${this.state}></match-ui>
-      <settings-ui .state=${this.state}></settings-ui>
       <help-ui></help-ui>
       ${this.isLoaded ? html`` : html`<loading-ui></loading-ui>`}
     `;
@@ -184,6 +183,8 @@ export class CodecCompare extends LitElement {
 
   private async onAllBatchesLoaded() {
     this.state.initialize();
+    this.urlState.setDefaultValues(this.state);
+    this.state.initializePostUrlStateDefaultValues();
     this.urlState.load(this.state);
     this.state.initializePostUrlStateLoad();
     listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
@@ -259,7 +260,11 @@ export class CodecCompare extends LitElement {
       flex-direction: column;
       gap: 12px;
       padding: 0px 20px 0px 74px;
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    batch-selections-ui {
+      overflow-x: auto;
     }
     #truncatedResults {
       background: orange;
