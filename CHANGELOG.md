@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.9
+
+- Use bits-per-pixel instead of bytes-per-pixel for the "bpp" metric.
+
 ## v0.1.8
 
 - Add matcher warning display capability.

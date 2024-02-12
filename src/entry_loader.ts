@@ -215,11 +215,11 @@ function jsonToBatch(
       batch.fields.push(field);
       uniqueValuesSets.push(new Set<string>());
       for (const row of batch.rows) {
-        const value = (row[encodedSizeFieldIndex] as number) /
+        const bpp = (row[encodedSizeFieldIndex] as number) * 8 /
             ((row[widthFieldIndex] as number) *
              (row[heightFieldIndex] as number));
-        row.push(value);
-        field.addValue(String(value), uniqueValuesSets[fieldIndex]);
+        row.push(bpp);
+        field.addValue(String(bpp), uniqueValuesSets[fieldIndex]);
       }
       processField(field, fieldIndex);
     }

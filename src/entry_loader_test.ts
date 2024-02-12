@@ -76,6 +76,28 @@ describe('loadBatchJson', () => {
       expect(field.isInteger).toBeFalse();
       expect(field.uniqueValuesArray).not.toHaveSize(0);
       expect(field.rangeStart).toBeLessThan(field.rangeEnd);
+
+      // Make sure the computation is correct.
+      const encodedSizeFieldIndex =
+          batch.fields.findIndex((field) => field.id === FieldId.ENCODED_SIZE);
+      const widthFieldIndex =
+          batch.fields.findIndex((field) => field.id === FieldId.WIDTH);
+      const heightFieldIndex =
+          batch.fields.findIndex((field) => field.id === FieldId.HEIGHT);
+      expect(encodedSizeFieldIndex).not.toBe(-1);
+      expect(widthFieldIndex).not.toBe(-1);
+      expect(heightFieldIndex).not.toBe(-1);
+      if (encodedSizeFieldIndex !== -1 && widthFieldIndex !== -1 &&
+          heightFieldIndex !== -1) {
+        for (const row of batch.rows) {
+          expect(row[bppFieldIndex])
+              .toBeCloseTo(
+                  (row[encodedSizeFieldIndex] as number) * 8 /
+                      ((row[widthFieldIndex] as number) *
+                       (row[heightFieldIndex] as number)),
+                  0.001);
+        }
+      }
     }
   });
 
