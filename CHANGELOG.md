@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.10
+
+- Fix swapped data point display toggle setting when off by default.
+- Improve matches table presentation.
+
 ## v0.1.9
 
 - Use bits-per-pixel instead of bytes-per-pixel for the "bpp" metric.

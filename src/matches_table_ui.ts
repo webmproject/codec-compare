@@ -14,9 +14,10 @@
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {styleMap} from 'lit/directives/style-map.js';
 
 import {BatchSelection} from './batch_selection';
-import {areFieldsComparable, Batch, Field} from './entry';
+import {areFieldsComparable, Batch, Field, FieldId} from './entry';
 import {dispatch, EventType} from './events';
 import {FieldMatcher, Match} from './matcher';
 import {FieldMetric, getRatio} from './metric';
@@ -47,20 +48,37 @@ export class MatchesTableUi extends LitElement {
       selection: Batch, selectionFieldIndex: number, selectionRowIndex: number,
       reference: Batch, referenceFieldIndex: number,
       referenceRowIndex: number) {
+    const selectionField = selection.fields[selectionFieldIndex];
     const selectionValue =
         selection.rows[selectionRowIndex][selectionFieldIndex];
     const referenceValue =
         reference.rows[referenceRowIndex][referenceFieldIndex];
-    if (selection.fields[selectionFieldIndex].isNumber &&
-        reference.fields[referenceFieldIndex].isNumber) {
+    if (selectionField.id === FieldId.EFFORT ||
+        selectionField.id === FieldId.QUALITY) {
+      const referenceStyle = {'color': reference.color};
+      const selectionStyle = {'color': selection.color};
+      return html`
+          <td class="encodingSettingCell">
+            <span style=${styleMap(referenceStyle)}>${referenceValue}</span>
+            <span style=${styleMap(selectionStyle)}>${selectionValue}</span>
+          </td>`;
+    }
+
+    const referenceField = reference.fields[referenceFieldIndex];
+    const isNumber = selectionField.isNumber && referenceField.isNumber;
+    const cssClass = isNumber ? 'numberCell' : '';
+
+    if (isNumber && selectionField.id !== FieldId.WIDTH &&
+        selectionField.id !== FieldId.HEIGHT) {
       const ratio =
           getRatio(selectionValue as number, referenceValue as number);
-      return html`<td>${getRelativePercent(ratio)}</td>`;
+      return html`<td class="${cssClass}">${getRelativePercent(ratio)}</td>`;
     }
     if (selectionValue === referenceValue) {
-      return html`<td>${selectionValue}</td>`;
+      return html`<td class="${cssClass}">${selectionValue}</td>`;
     }
-    return html`<td>${selectionValue} ≠ ${referenceValue}</td>`;
+    return html`
+        <td class="${cssClass}">${selectionValue} ≠ ${referenceValue}</td>`;
   }
 
   // Header rows (two needed because some cells use a rowspan)
@@ -201,7 +219,7 @@ export class MatchesTableUi extends LitElement {
           ${metricIndices.map((metricIndex) => {
       const mean =
           this.batchSelection.stats[metricIndex].getMean(/*geometric=*/ false);
-      return html`<td>${getRelativePercent(mean)}</td>`;
+      return html`<td class="numberCell">${getRelativePercent(mean)}</td>`;
     })}
           <td colspan=${selectionSharedFieldIndices.length} class="missing">
           </td>
@@ -215,7 +233,7 @@ export class MatchesTableUi extends LitElement {
           ${metricIndices.map((metricIndex) => {
       const mean =
           this.batchSelection.stats[metricIndex].getMean(/*geometric=*/ true);
-      return html`<td>${getRelativePercent(mean)}</td>`;
+      return html`<td class="numberCell">${getRelativePercent(mean)}</td>`;
     })}
           <td colspan=${selectionSharedFieldIndices.length} class="missing">
           </td>
@@ -257,6 +275,12 @@ export class MatchesTableUi extends LitElement {
       border-color: var(--mdc-theme-surface);
       font-family: monospace;
       font-size: 10px;
+    }
+    .numberCell {
+      text-align: right;
+    }
+    .encodingSettingCell {
+      text-align: center;
     }
 
     tr {

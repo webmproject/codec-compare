@@ -143,7 +143,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare beta version 0.1.9<br>
+            Codec Compare beta version 0.1.10<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -191,6 +191,7 @@ export class CodecCompare extends LitElement {
       this.urlState.save(this.state);
       this.requestUpdate();
     });
+    this.settingsUi.requestUpdate();  // Settings may have changed.
     // Trigger the computation of matches and stats.
     dispatch(EventType.REFERENCE_CHANGED);
 
