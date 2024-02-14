@@ -15,6 +15,15 @@ page can understand what is shown, but also useful to experts, by offering a
 convenient interactive user interface with matcher, metric and filter settings.
 The presented data should be easily reproducible and up-to-date.
 
+In contrast to more traditional
+[comparative benchmarks](https://storage.googleapis.com/avif-comparison/index.html),
+Codec-Compare aims to aggregate statistics after comparing pairs of two
+similarly encoded images, to avoid some of the bias brought by comparing already
+aggregated metrics. Most absolute metrics heavily depend on the dimensions and
+content of the source image and may not reflect the strengths of a codec when
+averaged; relative metrics can bring another perspective, at the expense of a
+reduced data point count due to discarded unmatched encoded images.
+
 Feel free to file an issue for any question, suggestion or bug report.
 Contributions are also welcome, see [CONTRIBUTING](CONTRIBUTING.md).
 
