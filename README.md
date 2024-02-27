@@ -137,6 +137,13 @@ JSON pattern:
 Serve these alongside the generated web files and point to
 `index.html?load=path/to/json_list.json`.
 
+### Generate data
+
+See the wiki for an example bash script that generates data for AVIF, WebP and
+JPEG XL to be displayed in Codec-Compare:
+
+https://github.com/webmproject/codec-compare/wiki/Generate-AVIF,-WebP,-JPEG-XL-data-(bash-script)
+
 ## License
 
 See the [Apache v2.0 license](LICENSE) file.
