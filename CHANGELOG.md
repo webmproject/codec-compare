@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.0
+
+- Show a simple sentence by default. Keep the advanced interface in another tab.
+- Add the source asset gallery in a tab.
+
 ## v0.1.10
 
 - Fix swapped data point display toggle setting when off by default.

@@ -18,7 +18,7 @@ import {setColors} from './color_setter';
 import {Batch, FieldId} from './entry';
 import {dispatch, EventType, listen} from './events';
 import {createMatchers, enableDefaultMatchers, FieldMatcher, getDataPointsSymmetric, isLossless} from './matcher';
-import {computeStats, createMetrics, enableDefaultMetrics, FieldMetric, selectPlotMetrics} from './metric';
+import {computeHistogram, computeStats, createMetrics, enableDefaultMetrics, FieldMetric, selectPlotMetrics} from './metric';
 
 /** The root data object containing the full state. */
 export class State {
@@ -130,6 +130,12 @@ export class State {
       batchSelection.stats = computeStats(
           batchSelection.batch, referenceBatchSelection.batch,
           batchSelection.matchedDataPoints.rows, this.metrics);
+      batchSelection.histogram = computeHistogram(
+          batchSelection.batch,
+          // Avoid self-matches to be part of the asset usage counts.
+          batchSelection.batch.index === this.referenceBatchSelectionIndex ?
+              [] :
+              batchSelection.matchedDataPoints.rows);
     };
 
     listen(EventType.FILTERED_DATA_CHANGED, (event) => {

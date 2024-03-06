@@ -23,9 +23,11 @@ export enum FieldId {
   CODEC_NAME,
   CODEC_VERSION,
   DATE,
+  SOURCE_DATA_SET,  // For example the URL to access the corpus.
   SOURCE_IMAGE_PATH,
   ENCODED_IMAGE_PATH,
   DECODED_IMAGE_PATH,
+  PREVIEW_PATH,  // Thumbnail.
   ENCODING_COMMAND,
   DECODING_COMMAND,
   // Batch values (usually fields).
@@ -55,7 +57,7 @@ export enum FieldId {
 }
 
 /**
- * Maps common field keys as seen in raw JSON data to a FieldId.
+ * Maps common constant/field keys as seen in raw JSON data to a FieldId.
  * The key is case-sensitive and compared to lower caps input, so make sure to
  * have at least one lower cap key per FieldId.
  */
@@ -67,16 +69,21 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
                            // than "time" but "time" is shown to the user
                            // because it also contains the hour so it is more
                            // accurate than "date".
+  ['source data set', FieldId.SOURCE_DATA_SET],
   ['source image path', FieldId.SOURCE_IMAGE_PATH],
+  ['original path', FieldId.SOURCE_IMAGE_PATH],
   ['encoded image', FieldId.ENCODED_IMAGE_PATH],
   ['encoded path', FieldId.ENCODED_IMAGE_PATH],
   ['decoded image', FieldId.DECODED_IMAGE_PATH],
   ['decoded path', FieldId.DECODED_IMAGE_PATH],
+  ['preview', FieldId.PREVIEW_PATH],
+  ['thumbnail', FieldId.PREVIEW_PATH],
   ['encoding command', FieldId.ENCODING_COMMAND],
   ['encoding cmd', FieldId.ENCODING_COMMAND],
   ['decoding command', FieldId.DECODING_COMMAND],
   ['decoding cmd', FieldId.DECODING_COMMAND],
   ['source image', FieldId.SOURCE_IMAGE_NAME],
+  ['original name', FieldId.SOURCE_IMAGE_NAME],
   ['encoded name', FieldId.ENCODED_IMAGE_NAME],
   ['encoded image name', FieldId.ENCODED_IMAGE_NAME],
   ['decoded name', FieldId.DECODED_IMAGE_NAME],
@@ -99,8 +106,6 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
   ['bpp', FieldId.ENCODED_BITS_PER_PIXEL],
   ['encoding time', FieldId.ENCODING_DURATION],
   ['decoding time', FieldId.DECODING_DURATION],
-  ['original path', FieldId.SOURCE_IMAGE_PATH],
-  ['original name', FieldId.SOURCE_IMAGE_NAME],
 ]);
 
 /**

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {getFinalValue} from './constant';
 import {areFieldsComparable, Batch, Field, FieldId} from './entry';
 import {GeometricMean} from './geometric_mean';
 import {Match} from './matcher';
@@ -37,6 +38,15 @@ export class FieldMetricStats {
   getMean(geometric: boolean) {
     return geometric ? this.geometricMean : this.arithmeticMean;
   }
+}
+
+/** Aggregated stats for a unique source media. */
+export class SourceCount {
+  sourceName: string = '';                    // FieldId.SOURCE_IMAGE_NAME
+  sourcePath: string|undefined = undefined;   // FieldId.SOURCE_IMAGE_PATH
+  previewPath: string|undefined = undefined;  // FieldId.PREVIEW_PATH
+
+  count = 0;  // The number of data points with this value for the fieldId.
 }
 
 /** Returns all possible metrics given two batches. */
@@ -181,4 +191,46 @@ export function computeStats(
     stats.push(fieldStats);
   }
   return stats;
+}
+
+/** Returns the histogram of unique source media. */
+export function computeHistogram(
+    batch: Batch, dataPoints: Match[]): SourceCount[] {
+  const sourceNameFieldIndex =
+      batch.fields.findIndex(field => field.id === FieldId.SOURCE_IMAGE_NAME);
+  if (sourceNameFieldIndex === -1) return [];
+
+  // Maps FieldId.SOURCE_IMAGE_NAME to SourceCount.
+  const histogram = new Map<string, SourceCount>();
+
+  // Start by referencing all unique source media values.
+  for (const row of batch.rows) {
+    const sourceName = String(row[sourceNameFieldIndex]);
+
+    let sourceCount = histogram.get(sourceName);
+    if (sourceCount === undefined) {
+      sourceCount = new SourceCount();
+      sourceCount.sourceName = sourceName;
+      const sourcePath = getFinalValue(batch, row, FieldId.SOURCE_IMAGE_PATH);
+      sourceCount.sourcePath =
+          sourcePath === undefined ? undefined : String(sourcePath);
+      const previewPath = getFinalValue(batch, row, FieldId.PREVIEW_PATH);
+      sourceCount.previewPath =
+          previewPath === undefined ? undefined : String(previewPath);
+      sourceCount.count = 0;
+      histogram.set(sourceName, sourceCount);
+    }
+  }
+
+  // Just count matches now.
+  for (const dataPoint of dataPoints) {
+    let sourceCount = histogram.get(
+        String(batch.rows[dataPoint.leftIndex][sourceNameFieldIndex]));
+    if (sourceCount === undefined) {
+      return [];  // Should not happen.
+    }
+    sourceCount.count++;
+  }
+
+  return Array.from(histogram.values());
 }

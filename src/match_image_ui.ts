@@ -22,8 +22,8 @@ import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
-import {getFinalConstantValues} from './constant';
-import {Batch, FieldId} from './entry';
+import {getFinalValue} from './constant';
+import {FieldId} from './entry';
 import {State} from './state';
 
 /** Component displaying the source image of one selected Match. */
@@ -42,43 +42,49 @@ export class MatchImageUi extends LitElement {
             .batch;
     const match = this.batchSelection.matchedDataPoints.rows[this.matchIndex];
 
-    const sourceImagePath = findInFieldsOrConstants(
-        FieldId.SOURCE_IMAGE_PATH, reference, match.rightIndex);
-    if (sourceImagePath === '') return html``;
+    const sourceImagePath = getFinalValue(
+        reference, reference.rows[match.rightIndex], FieldId.SOURCE_IMAGE_PATH);
+    if (sourceImagePath === undefined) return html``;
 
-    let referenceImagePath = findInFieldsOrConstants(
-        FieldId.DECODED_IMAGE_PATH, reference, match.rightIndex);
-    if (referenceImagePath === '') {
-      referenceImagePath = findInFieldsOrConstants(
-          FieldId.ENCODED_IMAGE_PATH, reference, match.rightIndex);
+    let referenceImagePath = getFinalValue(
+        reference, reference.rows[match.rightIndex],
+        FieldId.DECODED_IMAGE_PATH);
+    if (referenceImagePath === undefined) {
+      referenceImagePath = getFinalValue(
+          reference, reference.rows[match.rightIndex],
+          FieldId.ENCODED_IMAGE_PATH);
     }
 
-    let selectionImagePath = findInFieldsOrConstants(
-        FieldId.DECODED_IMAGE_PATH, this.batchSelection.batch, match.leftIndex);
-    if (selectionImagePath === '') {
-      selectionImagePath = findInFieldsOrConstants(
-          FieldId.ENCODED_IMAGE_PATH, this.batchSelection.batch,
-          match.leftIndex);
+    let selectionImagePath = getFinalValue(
+        this.batchSelection.batch,
+        this.batchSelection.batch.rows[match.leftIndex],
+        FieldId.DECODED_IMAGE_PATH);
+    if (selectionImagePath === undefined) {
+      selectionImagePath = getFinalValue(
+          this.batchSelection.batch,
+          this.batchSelection.batch.rows[match.leftIndex],
+          FieldId.ENCODED_IMAGE_PATH);
     }
 
     let link;
-    const compare = referenceImagePath !== '' && selectionImagePath !== '';
+    const compare =
+        referenceImagePath !== undefined && selectionImagePath !== undefined;
     if (compare) {
       const params = new URLSearchParams();
-      params.set('bimg', sourceImagePath);
+      params.set('bimg', String(sourceImagePath));
       params.set('btxt', 'original');
-      params.set('rimg', referenceImagePath);
+      params.set('rimg', String(referenceImagePath));
       params.set('rtxt', reference.name);
-      params.set('limg', selectionImagePath);
+      params.set('limg', String(selectionImagePath));
       params.set('ltxt', this.batchSelection.batch.name);
       link = `visualizer.html?${params.toString()}`;
     } else {
-      link = sourceImagePath;
+      link = String(sourceImagePath);
     }
 
     return html`
       <a href="${link}" target="_blank">
-        <img src="${sourceImagePath}"/>
+        <img src="${String(sourceImagePath)}"/>
         <div id="imageOverlay">
           <mwc-icon>${compare ? 'compare' : 'image'}</mwc-icon>
           <mwc-icon>open_in_new</mwc-icon>
@@ -132,21 +138,4 @@ export class MatchImageUi extends LitElement {
       font-size: 26px;
     }
   `;
-}
-
-function findInFieldsOrConstants(
-    fieldId: FieldId, batch: Batch, rowIndex: number): string {
-  const fieldIndex = batch.fields.findIndex((field) => field.id === fieldId);
-  if (fieldIndex !== -1) {
-    return String(batch.rows[rowIndex][fieldIndex]);
-  }
-  const constantIndex =
-      batch.constants.findIndex((constant) => constant.id === fieldId);
-  if (constantIndex !== -1) {
-    const finalValues = getFinalConstantValues(batch, batch.rows[rowIndex]);
-    if (constantIndex < finalValues.length) {
-      return finalValues[constantIndex];
-    }
-  }
-  return '';
 }
