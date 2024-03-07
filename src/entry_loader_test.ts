@@ -125,7 +125,6 @@ describe('loadJsonContainingBatchJsonPaths', () => {
         await loadJsonContainingBatchJsonPaths('/assets/demo_batches.json');
     expect(paths).toEqual(jasmine.arrayWithExactContents([
       '/assets/demo_batch_some_codec_exp.json',
-      '/assets/demo_batch_some_codec_effort0.json',
       '/assets/demo_batch_some_codec_effort1.json',
       '/assets/demo_batch_some_codec_effort2.json',
       '/assets/demo_batch_other_codec_settingA.json',

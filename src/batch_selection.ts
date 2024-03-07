@@ -16,7 +16,7 @@ import {Batch} from './entry';
 import {dispatch, EventType, listen} from './events';
 import {enableDefaultFilters, FieldFilter, getFilteredRowIndices} from './filter';
 import {MatchedDataPoints} from './matcher';
-import {FieldMetricStats} from './metric';
+import {FieldMetricStats, SourceCount} from './metric';
 
 /** One Batch (~ codec experiment results) to compare with another. */
 export class BatchSelection {
@@ -37,6 +37,7 @@ export class BatchSelection {
 
   /** The statistics to display. */
   stats: FieldMetricStats[] = [];  // As many as State.metrics.
+  histogram: SourceCount[] = [];   // As many as distinct source media inputs.
 
   constructor(selectedBatch: Batch) {
     this.batch = selectedBatch;

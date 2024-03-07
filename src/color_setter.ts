@@ -25,9 +25,7 @@ function hslToHexString(
   const r = f(0, saturation, lightness);
   const g = f(8, saturation, lightness);
   const b = f(4, saturation, lightness);
-  return '#' + Math.round(r * 255).toString(16).padStart(2, '0') +
-      Math.round(g * 255).toString(16).padStart(2, '0') +
-      Math.round(b * 255).toString(16).padStart(2, '0');
+  return rgbToHexString(r * 255, g * 255, b * 255);
 }
 
 /**
@@ -57,4 +55,21 @@ export function setColors(state: State) {
           hslToHexString(hue, saturation, lightness);
     }
   }
+}
+
+/* Hex color to number array. */
+export function hexStringToRgb(hexString: string): [number, number, number] {
+  return [
+    parseInt(hexString.substring(1, 3), 16),
+    parseInt(hexString.substring(3, 5), 16),
+    parseInt(hexString.substring(5, 7), 16)
+  ];
+}
+
+/* Numbers to hex string. */
+export function rgbToHexString(r: number, g: number, b: number): string {
+  return '#' +
+      Math.min(Math.max(Math.round(r), 0), 255).toString(16).padStart(2, '0') +
+      Math.min(Math.max(Math.round(g), 0), 255).toString(16).padStart(2, '0') +
+      Math.min(Math.max(Math.round(b), 0), 255).toString(16).padStart(2, '0');
 }

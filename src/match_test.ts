@@ -72,6 +72,33 @@ describe('Matcher', () => {
     ]);
   });
 
+  it('pairs rows at most once each', () => {
+    // Add rows that can be matched in multiple valid ways.
+    state.batches[0].rows.push(['value A-10', 10]);
+    state.batches[0].rows.push(['value A-10', 10]);
+    state.batches[0].rows.push(['value A-11', 11]);
+    state.batches[0].rows.push(['value A-11', 11]);
+    state.batches[1].rows.push(['value A-10', 10]);
+    state.batches[1].rows.push(['value A-11', 11]);
+    state.batches[1].rows.push(['value A-11', 11]);
+    state.batches[1].rows.push(['value A-11', 11]);
+    for (const batchSelection of state.batchSelections) {
+      batchSelection.updateFilteredRows();
+    }
+
+    const matches = getDataPoints(
+        state.batchSelections[0], state.batchSelections[1], state.matchers);
+    expect(matches.rows).toEqual([
+      new Match(0, 1, 0),    // value A-1
+      new Match(1, 0, 0),    // value A-1
+      new Match(2, 2, 0.5),  // value A-2
+      new Match(3, 3, 0.5),  // value A-2
+      new Match(5, 6, 0),    // value A-10
+      new Match(7, 7, 0),    // value A-11
+      new Match(8, 8, 0)     // value A-11
+    ]);
+  });
+
   it('aggregates relative error', () => {
     const matches = getDataPoints(
         state.batchSelections[0], state.batchSelections[1], state.matchers);

@@ -4,17 +4,21 @@
     { "codec": "Name of the codec used to generate this data" },
     { "version": "Version of the codec used to generate this data" },
     { "time": "Timestamp of when this data was generated" },
+    { "source data set": "The origin of the images used as input" },
     { "original_path": "The path to the original image" },
+    { "preview": "The path to the original image preview" },
     { "encoded_path": "The path to the encoded image" },
     { "encoding_cmd": "The command used to encode the original image" },
     { "decoding_cmd": "The command used to decode the encoded image" }
   ],
   "constant_values": [
     "Some codec experiment",
-    "some_codec",
+    "some_codec_exp",
     "experiment",
     "2023-05-22T13:02:15.137053618Z",
+    "https://testimages.org/sampling/",
     "/rainbow.png",
+    "assets/rainbow_q0.webp",
     "/rainbow_q50.webp",
     "encode ${original_name} ${encoded_name}",
     "decode ${encoded_name} ${encoded_name}.png"

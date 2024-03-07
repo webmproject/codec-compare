@@ -14,7 +14,7 @@
 
 import {Batch, Entry, FieldId} from './entry';
 
-function getFinalName(
+function getFinalConstantValue(
     batch: Batch, entry: Entry, finalValues: string[],
     startedIndices: Set<number>, finishedIndices: Set<number>,
     constantIndex: number) {
@@ -45,7 +45,7 @@ function getFinalName(
           const subConstantIndex = batch.constants.findIndex(
               (potentialSubConstant) => potentialSubConstant.name === arg);
           if (subConstantIndex !== -1) {
-            return getFinalName(
+            return getFinalConstantValue(
                 batch, entry, finalValues, startedIndices, finishedIndices,
                 subConstantIndex);
           }
@@ -64,19 +64,29 @@ function getFinalName(
  * with its formatted string. Loops are handled by skipping some replacements.
  */
 export function getFinalConstantValues(batch: Batch, entry: Entry): string[] {
-  const finalValues: string[] = [];  // As many as Batch.constants.
+  const finalValues = batch.constants.map(constant => constant.value);
   const startedIndices = new Set<number>();
   const finishedIndices = new Set<number>();
-
-  // Prefill with raw values.
-  for (const [constantIndex, constant] of batch.constants.entries()) {
-    finalValues[constantIndex] = constant.value;
-  }
-
-  for (const [constantIndex, _] of batch.constants.entries()) {
-    getFinalName(
-        batch, entry, finalValues, startedIndices, finishedIndices,
-        constantIndex);
+  for (let constant = 0; constant < batch.constants.length; ++constant) {
+    getFinalConstantValue(
+        batch, entry, finalValues, startedIndices, finishedIndices, constant);
   }
   return finalValues;
+}
+
+/**
+ * Gets the field or constant value associated with the FieldId.
+ * Slow convenience function.
+ */
+export function getFinalValue(batch: Batch, entry: Entry, id: FieldId) {
+  const field = batch.fields.findIndex(field => field.id === id);
+  if (field !== -1) return entry[field];
+
+  const constant = batch.constants.findIndex(constant => constant.id === id);
+  if (constant !== -1) {
+    return getFinalConstantValue(
+        batch, entry, batch.constants.map(constant => constant.value),
+        new Set<number>(), new Set<number>(), constant);
+  }
+  return undefined;
 }

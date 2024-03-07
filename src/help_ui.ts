@@ -16,7 +16,7 @@ import '@material/mwc-fab';
 import '@material/mwc-icon';
 
 import {css, html, LitElement} from 'lit';
-import {customElement, query} from 'lit/decorators.js';
+import {customElement, property, query} from 'lit/decorators.js';
 
 /** Returns the element at domPath or null. */
 function getShadowElement(domPath: string[]): Element|null {
@@ -32,6 +32,8 @@ function getShadowElement(domPath: string[]): Element|null {
 /** Overlay element describing the other elements behind it. */
 @customElement('help-ui')
 export class HelpUi extends LitElement {
+  @property() displaySentence!: boolean;
+
   // Always returned by render() so cannot be null.
   @query('#closeButton') private readonly closeButton!: HTMLElement;
 
@@ -72,15 +74,24 @@ export class HelpUi extends LitElement {
     // The main interactive user interface elements are on the fixed left menu.
     // Position the "tooltips" on the right of them to keep them visible.
     // The "tooltips" cover parts of the graph but this works visually.
-    positionElementAtTheRightOf(
-        this.numComparisonsDescription, ['codec-compare', '#numComparisons']);
-    positionElementAtTheRightOf(
-        this.matchersDescription, ['codec-compare', 'matchers-ui']);
-    positionElementAtTheRightOf(
-        this.metricsDescription, ['codec-compare', 'metrics-ui']);
-    positionElementAtTheRightOf(
-        this.batchSelectionsDescription,
-        ['codec-compare', 'batch-selections-ui']);
+    if (this.displaySentence) {
+      positionElementAtTheRightOf(
+          this.matchersDescription,
+          ['codec-compare', 'sentence-ui', '#matchers']);
+      positionElementAtTheRightOf(
+          this.batchSelectionsDescription,
+          ['codec-compare', 'sentence-ui', '#batches']);
+    } else {
+      positionElementAtTheRightOf(
+          this.numComparisonsDescription, ['codec-compare', '#numComparisons']);
+      positionElementAtTheRightOf(
+          this.matchersDescription, ['codec-compare', 'matchers-ui']);
+      positionElementAtTheRightOf(
+          this.metricsDescription, ['codec-compare', 'metrics-ui']);
+      positionElementAtTheRightOf(
+          this.batchSelectionsDescription,
+          ['codec-compare', 'batch-selections-ui']);
+    }
 
     // This is not the description of the #referenceBatch <p> but it is used as
     // a convenient top anchor to fill the remaining graph area till the bottom
@@ -98,16 +109,34 @@ export class HelpUi extends LitElement {
     this.requestUpdate();
   }
 
-  override render() {
-    const onClose = () => {
-      this.style.display = 'none';
-      this.requestUpdate();
-    };
-
+  private renderSentenceHelp() {
     return html`
-      <div id="background" @click=${onClose}>
+      <div class="descriptionHolder" id="numComparisonsDescription">
       </div>
 
+      <div class="descriptionHolder" id="matchersDescription">
+        <div class="bracket"></div>
+        <p>
+        This page compares image formats and codecs by matching each data point
+        from a reference batch to a data point from another batch while
+        respecting these constraints.
+        </p>
+      </div>
+
+      <div class="descriptionHolder" id="metricsDescription">
+      </div>
+
+      <div class="descriptionHolder" id="batchSelectionsDescription">
+        <div class="bracket"></div>
+        <p>
+        Batches are aggregated by codec.<br>
+        The advanced interface can be enabled in the settings (left bar).
+        </p>
+      </div>`;
+  }
+
+  private renderTuneableComparisonHelp() {
+    return html`
       <div class="descriptionHolder" id="numComparisonsDescription">
         <div class="bracket"></div>
         <p>
@@ -153,7 +182,22 @@ export class HelpUi extends LitElement {
         as metrics are displayed in the right-most columns. The aggregation
         method can be changed in the Settings.
         </p>
+      </div>`;
+  }
+
+  override render() {
+    const onClose = () => {
+      this.style.display = 'none';
+      this.requestUpdate();
+    };
+
+    return html`
+      <div id="background" @click=${onClose}>
       </div>
+
+      ${
+        this.displaySentence ? this.renderSentenceHelp() :
+                               this.renderTuneableComparisonHelp()}
 
       <div class="descriptionHolder" id="graphDescription">
         <p>

@@ -14,16 +14,20 @@
 
 import '@material/mwc-icon';
 import '@material/mwc-fab';
+import '@material/mwc-tab-bar';
+import '@material/mwc-tab';
 import './batch_name_ui';
 import './batch_selection_ui';
 import './batch_selections_ui';
 import './batch_ui';
+import './gallery_ui';
 import './loading_ui';
 import './match_ui';
 import './matchers_ui';
 import './matches_ui';
 import './metrics_ui';
 import './mwc_button_fit';
+import './sentence_ui';
 import './settings_ui';
 import './help_ui';
 
@@ -40,6 +44,12 @@ import {SettingsUi} from './settings_ui';
 import {State} from './state';
 import {UrlState} from './url_state';
 
+enum Tab {
+  SUMMARY = 0,  // A simple sentence to describe the plot.
+  STATS = 1,    // Advanced interface with tunable comparison parameters.
+  GALLERY = 2,  // Source data set grid.
+}
+
 /** Main component of the codec comparison static viewer. */
 @customElement('codec-compare')
 export class CodecCompare extends LitElement {
@@ -52,6 +62,8 @@ export class CodecCompare extends LitElement {
   private failure = false;
   /** Set once the top-level JSON has been parsed. */
   private numExpectedBatches = 0;
+  /** Currently displayed component. */
+  private currentTab = Tab.SUMMARY;
   /** The object rendering the state into a plot. */
   private readonly plotUi = new PlotUi(this.state);
 
@@ -59,16 +71,53 @@ export class CodecCompare extends LitElement {
   @query('help-ui') private readonly helpUi!: HelpUi;
   @query('loading-ui') private readonly loadingUi!: LoadingUi;
 
+  private renderReference(referenceBatch: Batch) {
+    return html`
+      <p id="referenceBatch">
+        compared to <batch-name-ui .batch=${referenceBatch}></batch-name-ui>.
+      </p>`;
+  }
+
+  private renderSentence() {
+    // #sentenceContainer is an overlay of the whole #comparisons block.
+    return html`
+      <div id="sentenceContainer">
+        <sentence-ui .state=${this.state}></sentence-ui>
+      </div>`;
+  }
+
+  private renderGallery() {
+    // #galleryContainer is an overlay of the whole #comparisons block.
+    return html`
+      <div id="galleryContainer">
+        <gallery-ui .state=${this.state}></gallery-ui>
+      </div>`;
+  }
+
+  private renderTruncatedResults() {
+    return html`
+      <div id="truncatedResults">
+        <mwc-icon>warning</mwc-icon>
+        <p>
+        The results are partial because there are too many possible comparisons.
+        Consider filtering input rows out.
+        </p>
+      </div>`;
+  }
+
   override render() {
     let numComparisons = 0;
     let truncatedResults = false;
+    let hasHistograms = false;
     for (const [index, batchSelection] of this.state.batchSelections
              .entries()) {
       if (index !== this.state.referenceBatchSelectionIndex) {
         numComparisons += batchSelection.matchedDataPoints.rows.length;
         truncatedResults ||= batchSelection.matchedDataPoints.limited;
       }
+      hasHistograms ||= batchSelection.histogram.length > 0;
     }
+
     let referenceBatch: Batch|undefined = undefined;
     if (this.state.referenceBatchSelectionIndex >= 0 &&
         this.state.referenceBatchSelectionIndex <
@@ -77,30 +126,44 @@ export class CodecCompare extends LitElement {
           this.state.batchSelections[this.state.referenceBatchSelectionIndex]
               .batch;
     }
-    return html`
-      <div id="comparisons">
-        ${
-        truncatedResults ? html`
-        <div id="truncatedResults">
-          <mwc-icon>warning</mwc-icon>
-          <p>
-          The results are partial because there are too many possible comparisons.
-          Consider filtering input rows out.
-          </p>
-        </div>` :
-                           ''}
 
-        <p id="numComparisons">Based on ${numComparisons} comparisons,</p>
-        <matchers-ui .state=${this.state}></matchers-ui>
-        <metrics-ui .state=${this.state}></metrics-ui>
-        <batch-selections-ui .state=${this.state}></batch-selections-ui>
-        ${
-        referenceBatch ? html`
-        <p id="referenceBatch">
-          compared to <batch-name-ui .batch=${referenceBatch}></batch-name-ui>.
-        </p>` :
-                         ''}
+    const activeIndex: number = this.currentTab;
+    const displaySentence = this.currentTab === Tab.SUMMARY;
+    const displayGallery = this.currentTab === Tab.GALLERY;
+    // The advanced interface is always displayed, hidden by the other
+    // components, because drop-down menu anchors are messed up otherwise.
+
+    // The nested divs below seem necessary to have proper scroll bars.
+    // Feel free to fix them.
+
+    return html`
+      <div id="advancedInterfaceContainerContainer">
+        <div id="advancedInterfaceContainer">
+          <div id="advancedInterface">
+            <div class="scrollFriendlyPadding"></div>
+            ${truncatedResults ? this.renderTruncatedResults() : ''}
+            <p id="numComparisons">Based on ${numComparisons} comparisons,</p>
+            <matchers-ui .state=${this.state} id="matchers"></matchers-ui>
+            <metrics-ui .state=${this.state} id="metrics"></metrics-ui>
+            <batch-selections-ui .state=${this.state}></batch-selections-ui>
+            ${referenceBatch ? this.renderReference(referenceBatch) : ''}
+            <div class="scrollFriendlyPadding"></div>
+          </div>
+        </div>
       </div>
+      ${displaySentence ? this.renderSentence() : ''}
+      ${displayGallery ? this.renderGallery() : ''}
+
+      <mwc-tab-bar activeIndex=${activeIndex}
+        @MDCTabBar:activated=${(event: CustomEvent<{index: number}>) => {
+      this.currentTab = event.detail.index;
+      this.requestUpdate();
+    }}>
+        <mwc-tab label="Summary" icon="short_text" id="summaryTab"></mwc-tab>
+        <mwc-tab label="Advanced" icon="tune" id="advancedTab"></mwc-tab>
+        <mwc-tab label="Data set" icon="photo_library" id="galleryTab">
+        </mwc-tab>
+      </mwc-tab-bar>
 
       <div id="leftBar">
         <div id="leftBarContent">
@@ -116,7 +179,8 @@ export class CodecCompare extends LitElement {
 
           <settings-ui .state=${this.state}></settings-ui>
 
-          <mwc-button-fit id="helpButton" @click=${() => {
+          <mwc-button-fit id="helpButton"
+            ?disabled=${this.currentTab === Tab.GALLERY} @click=${() => {
       this.helpUi.onOpen();
     }}>
             <mwc-icon>help</mwc-icon> Help
@@ -143,7 +207,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare beta version 0.1.10<br>
+            Codec Compare beta version 0.2.0<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -155,7 +219,7 @@ export class CodecCompare extends LitElement {
       <batch-selection-ui .state=${this.state}></batch-selection-ui>
       <matches-ui .state=${this.state}></matches-ui>
       <match-ui .state=${this.state}></match-ui>
-      <help-ui></help-ui>
+      <help-ui .displaySentence=${this.currentTab === Tab.SUMMARY}></help-ui>
       ${this.isLoaded ? html`` : html`<loading-ui></loading-ui>`}
     `;
   }
@@ -243,10 +307,7 @@ export class CodecCompare extends LitElement {
   static override styles = css`
     :host {
       margin: 0;
-      padding: 20px 0;
-      background: var(--mdc-theme-surface);
-      /* Simulate the shadow of the plot on the right. */
-      box-shadow: inset -4px 0 8px 0 rgba(0, 0, 0, 0.2);
+      padding: 0 0;
       overflow: hidden;
     }
     p {
@@ -255,14 +316,51 @@ export class CodecCompare extends LitElement {
       font-size: 20px;
     }
 
-    #comparisons {
+    mwc-tab-bar {
+      position: absolute;
+      top: 0;
+      left: 60px;  /* Width of #leftBar. */
+      width: 540px; /* = 600px from index.html - 60px. */
+      height: 50px;
+    }
+
+    #sentenceContainer, #galleryContainer, #advancedInterfaceContainerContainer {
+      position: absolute;
+      top: 50px;
+      bottom: 0;
+      left: 0;
+    }
+    #sentenceContainer, #galleryContainer {
+      width: 506px;  /* = 600px (from index.html) - 20 - 74 (padding below).
+                      * width:100% would require host's position:relative
+                      * but it messes with the leftBar's overflow. */
+    }
+    #advancedInterfaceContainerContainer {
+      width: 600px;
+    }
+    #advancedInterfaceContainer {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    #advancedInterface {
+      width: 506px;
       min-height: 100%;
+    }
+    .scrollFriendlyPadding { height: 8px; }
+    #sentenceContainer, #galleryContainer, #advancedInterface {
+      padding: 0px 20px 0px 74px;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding: 0px 20px 0px 74px;
       overflow-y: auto;
       overflow-x: hidden;
+    }
+    mwc-tab-bar, #sentenceContainer, #galleryContainer, #advancedInterfaceContainerContainer {
+      background: var(--mdc-theme-surface);
+      /* Simulate the shadow of the plot on the right. */
+      box-shadow: inset -4px 0 8px 0 rgba(0, 0, 0, 0.2);
     }
     batch-selections-ui {
       overflow-x: auto;
