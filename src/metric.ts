@@ -91,15 +91,29 @@ export function createMetrics(batches: Batch[]): FieldMetric[] {
   return metrics;
 }
 
-/** Arbitrarily enable some metric (focusing on lossy image comparison). */
+/** Arbitrarily enable some metrics (focusing on lossy image comparison). */
 export function enableDefaultMetrics(
     firstBatch: Batch, metrics: FieldMetric[]) {
+  let foundDecodingDuration = false;
   for (const metric of metrics) {
     const field = firstBatch.fields[metric.fieldIndices[0]];
     if (field.id === FieldId.ENCODED_SIZE ||
         field.id === FieldId.ENCODING_DURATION ||
         field.id === FieldId.DECODING_DURATION) {
       metric.enabled = true;
+    }
+    if (field.id === FieldId.DECODING_DURATION) {
+      foundDecodingDuration = true;
+    }
+  }
+
+  if (!foundDecodingDuration) {
+    // If DECODING_DURATION is unavailable, maybe RAW_DECODING_DURATION is.
+    for (const metric of metrics) {
+      if (firstBatch.fields[metric.fieldIndices[0]].id ===
+          FieldId.RAW_DECODING_DURATION) {
+        metric.enabled = true;
+      }
     }
   }
 }
@@ -123,6 +137,11 @@ export function selectPlotMetrics(firstBatch: Batch, metrics: FieldMetric[]):
   if (yMetric === undefined) {
     yMetric = metrics.find(
         m => m.enabled && metricToFieldId(m) === FieldId.DECODING_DURATION);
+    if (yMetric === undefined) {
+      yMetric = metrics.find(
+          m => m.enabled &&
+              metricToFieldId(m) === FieldId.RAW_DECODING_DURATION);
+    }
   }
   if (xMetric !== undefined && yMetric !== undefined) {
     return [xMetric, yMetric];

@@ -135,12 +135,21 @@ export class FilterUi extends LitElement {
         @change=${onChangeSlider}
         id="numberSlider"></mwc-slider-range>`;
     }
+
+    // Hack to bypass the inconvenient check at
+    // https://github.com/simonziegler/material-components-web/blob/78305b6d547b07aa06db04ad47b765b8f92851fa/packages/mdc-slider/foundation.ts#L1017-L1025
+    const step = range / (256 * 256);
+    const min = this.field.rangeStart;
+    const valueStart =
+        min + Math.round((this.filter.rangeStart - min) / step) * step;
+    const valueEnd =
+        min + Math.round((this.filter.rangeEnd - min) / step) * step;
     return html`<mwc-slider-range
       min="${this.field.rangeStart}"
       max="${this.field.rangeEnd}"
-      valueStart="${this.filter.rangeStart}"
-      valueEnd="${this.filter.rangeEnd}"
-      step="${range / 100}"
+      valueStart="${valueStart}"
+      valueEnd="${valueEnd}"
+      step="${step}"
       @change=${onChangeSlider}
       id="numberSlider"></mwc-slider-range>`;
   }

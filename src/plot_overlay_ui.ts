@@ -21,7 +21,7 @@ import {Menu} from '@material/mwc-menu';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
-import {FieldId, QUALITY_METRIC_FIELD_IDS} from './entry';
+import {FieldId, DISTORTION_METRIC_FIELD_IDS} from './entry';
 import {dispatch, EventType} from './events';
 import {FieldMetric} from './metric';
 import {State} from './state';
@@ -37,10 +37,11 @@ function fieldIdToString(id: FieldId) {
   if (id === FieldId.FLIP) return 'better looking';
   if (id === FieldId.LPIPS) return 'better looking';
   if (id === FieldId.P3NORM) return 'better looking';
-  if (QUALITY_METRIC_FIELD_IDS.includes(id)) return null;  // Should not happen.
+  if (DISTORTION_METRIC_FIELD_IDS.includes(id)) return null;  // Should not happen.
   if (id === FieldId.ENCODED_SIZE) return 'smaller file';
   if (id === FieldId.ENCODING_DURATION) return 'faster encoding';
   if (id === FieldId.DECODING_DURATION) return 'faster decoding';
+  if (id === FieldId.RAW_DECODING_DURATION) return 'faster raw decoding';
   return null;
 }
 

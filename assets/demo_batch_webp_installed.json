@@ -28,8 +28,8 @@
     {"encoded_size": "Size of the encoded image file in bytes"},
     {"encoding_time": "Encoding duration in seconds"},
     {"decoding_time": "Decoding duration in seconds"},
-    {"psnr": "Quality metric Peak Signal-to-Noise Ratio. See https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio"},
-    {"ssim": "Quality metric Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity"}
+    {"psnr": "Distortion metric Peak Signal-to-Noise Ratio. See https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio"},
+    {"ssim": "Distortion metric Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity"}
   ],
   "field_values": [
     ["logo.png", 400, 265, 0, 0, 13860, 0.00967575, 0.00139627, 40.3415, 20.6103],

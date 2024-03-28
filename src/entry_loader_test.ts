@@ -36,6 +36,16 @@ describe('loadBatchJson', () => {
     expect(batch).toBeUndefined();
   });
 
+  it('fails to load a non-JSON file', async () => {
+    const batch = await loadBatchJson('/assets/favicon.ico').catch((error) => {
+      expect(error).toBeInstanceOf(SyntaxError);
+      expect(error.message).toContain('Unexpected token ');  // '', "@@"...
+      expect(error.message)
+          .toContain(' is not valid JSON in /assets/favicon.ico');
+    });
+    expect(batch).toBeUndefined();
+  });
+
   it('loads a JSON file with a bpp field', async () => {
     const response = await fetch('/assets/demo_batch_some_codec_effort0.json');
     expect(response.ok).toBeTrue();

@@ -29,19 +29,19 @@
     { "effort": "Compression effort parameter" },
     { "quality": "Compression quality parameter" },
     {
-      "psnr": "Quality metric Peak Signal-to-Noise Ratio. See https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio. Warning: There is no scientific consensus on which objective quality metric to use."
+      "psnr": "Distortion metric Peak Signal-to-Noise Ratio. See https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio. Warning: There is no scientific consensus on which objective distortion metric to use."
     },
     {
-      "ssim": "Quality metric Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity. Warning: There is no scientific consensus on which objective quality metric to use."
+      "ssim": "Distortion metric Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity. Warning: There is no scientific consensus on which objective distortion metric to use."
     },
     {
-      "msssim": "Quality metric Multi-Scale Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity#Multi-Scale_SSIM. Warning: There is no scientific consensus on which objective quality metric to use."
+      "msssim": "Distortion metric Multi-Scale Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity#Multi-Scale_SSIM. Warning: There is no scientific consensus on which objective distortion metric to use."
     },
     {
-      "butteraugli": "Quality metric Butteraugli. See https://en.wikipedia.org/wiki/Guetzli#Butteraugli. Warning: There is no scientific consensus on which objective quality metric to use."
+      "butteraugli": "Distortion metric Butteraugli. See https://en.wikipedia.org/wiki/Guetzli#Butteraugli. Warning: There is no scientific consensus on which objective distortion metric to use."
     },
     {
-      "ciede2000": "Quality metric CIEDE 2000. See https://en.wikipedia.org/wiki/Color_difference#CIEDE2000. Warning: There is no scientific consensus on which objective quality metric to use."
+      "ciede2000": "Distortion metric CIEDE 2000. See https://en.wikipedia.org/wiki/Color_difference#CIEDE2000. Warning: There is no scientific consensus on which objective distortion metric to use."
     },
     {
       "encoding_time": "Encoding duration in seconds. Warning: Timings are environment-dependent and inaccurate."
@@ -50,14 +50,14 @@
       "decoding_time": "Decoding duration in seconds. Warning: Timings are environment-dependent and inaccurate."
     },
     {
-      "ssimulacra": "Quality metric SSIMULACRA. See https://github.com/cloudinary/ssimulacra. Warning: There is no scientific consensus on which objective quality metric to use."
+      "ssimulacra": "Distortion metric SSIMULACRA. See https://github.com/cloudinary/ssimulacra. Warning: There is no scientific consensus on which objective distortion metric to use."
     },
     { "encoded_size": "Size of the encoded image file in bytes" },
     {
-      "lpips": "Learned Perceptual Image Patch Similarity. See https://arxiv.org/abs/1801.03924. Warning: There is no scientific consensus on which objective quality metric to use."
+      "lpips": "Learned Perceptual Image Patch Similarity. See https://arxiv.org/abs/1801.03924. Warning: There is no scientific consensus on which objective distortion metric to use."
     },
     {
-      "flip": "Difference evaluator for alternating images. See https://research.nvidia.com/publication/2020-07_lip-difference-evaluator-alternating-images. Warning: There is no scientific consensus on which objective quality metric to use."
+      "flip": "Difference evaluator for alternating images. See https://research.nvidia.com/publication/2020-07_lip-difference-evaluator-alternating-images. Warning: There is no scientific consensus on which objective distortion metric to use."
     }
   ],
   "field_values": [

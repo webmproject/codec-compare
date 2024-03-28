@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {BatchSelection} from './batch_selection';
-import {areFieldsComparable, Batch, Field, FieldId, QUALITY_METRIC_FIELD_IDS} from './entry';
+import {areFieldsComparable, Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId} from './entry';
 
 /** References two data points from two selected batches. */
 export class Match {
@@ -107,15 +107,16 @@ export function createMatchers(batches: Batch[]): FieldMatcher[] {
     // Try to guess a good default tolerance.
     let defaultTolerance = 0;
     if (isNumber) {
-      if (QUALITY_METRIC_FIELD_IDS.includes(field.id)) {
-        // Keep quality metrics close for accurate means.
+      if (DISTORTION_METRIC_FIELD_IDS.includes(field.id)) {
+        // Keep distortion metrics close for accurate means.
         defaultTolerance = 0.01;  // 1%
       } else if (field.id === FieldId.ENCODED_SIZE) {
-        // Be more permissive than for quality metrics as sizes vary more.
+        // Be more permissive than for distortion metrics as sizes vary more.
         defaultTolerance = 0.02;  // 2%
       } else if (
           field.id === FieldId.ENCODING_DURATION ||
-          field.id === FieldId.DECODING_DURATION) {
+          field.id === FieldId.DECODING_DURATION ||
+          field.id === FieldId.RAW_DECODING_DURATION) {
         // These are not even deterministic. Be very permissive.
         defaultTolerance = 0.05;  // 5%
       } else if (field.id === FieldId.EFFORT || field.id === FieldId.QUALITY) {
@@ -134,7 +135,11 @@ export function createMatchers(batches: Batch[]): FieldMatcher[] {
 
 /** Arbitrarily enables some matchers. */
 export function enableDefaultMatchers(
-    firstBatch: Batch, matchers: FieldMatcher[]) {
+    batches: Batch[], matchers: FieldMatcher[]) {
+  const firstBatch = batches[0];
+
+  // Comparing codec performance on different source images makes little sense.
+  // This matcher is mandatory if it exists.
   const sourceImageMatcher = matchers.find(
       (matcher) => firstBatch.fields[matcher.fieldIndices[0]].id ===
           FieldId.SOURCE_IMAGE_NAME);
@@ -142,20 +147,86 @@ export function enableDefaultMatchers(
     sourceImageMatcher.enabled = true;
   }
 
-  // Find any quality metric suggesting that it is not a lossless comparison and
-  // use it as a match criterion. To be somewhat fairer, pick the first two in
-  // the QUALITY_METRIC_FIELD_IDS order, at the expense of fewer data points.
-  let numQualityMetrics = 0;
-  for (const id of QUALITY_METRIC_FIELD_IDS) {
-    const qualityMatcher = matchers.find(
+  // Find distortion metrics suggesting that it is not a lossless comparison.
+  let isLossless = true;
+  for (const id of DISTORTION_METRIC_FIELD_IDS) {
+    const distortionMatcher = matchers.find(
         (matcher) => firstBatch.fields[matcher.fieldIndices[0]].id === id);
-    if (qualityMatcher !== undefined) {
-      const qualityField = firstBatch.fields[qualityMatcher.fieldIndices[0]];
-      if (qualityField.isNumber && qualityField.uniqueValuesArray.length > 1) {
-        qualityMatcher.enabled = true;
-        ++numQualityMetrics;
-        if (numQualityMetrics === 2) break;
+    if (distortionMatcher === undefined) continue;
+    const distortionField =
+        firstBatch.fields[distortionMatcher.fieldIndices[0]];
+    if (distortionField.isNumber &&
+        distortionField.uniqueValuesArray.length > 1) {
+      isLossless = false;
+      break;
+    }
+  }
+  if (isLossless) return;
+
+  // To be somewhat fair, enable the distortion metrics that the compared codecs
+  // usually optimize for.
+  const wantedDistortionMetrics = new Set<FieldId>();
+  for (const batch of batches) {
+    const codec = batch.codec.toLowerCase();
+    if (codec === 'jpg' || codec === 'jpeg' || codec === 'webp') {
+      wantedDistortionMetrics.add(FieldId.PSNR);
+    } else if (codec === 'avif') {
+      wantedDistortionMetrics.add(FieldId.SSIM);
+    } else if (codec === 'jxl' || codec === 'jpegxl') {
+      wantedDistortionMetrics.add(FieldId.BUTTERAUGLI);
+    }
+  }
+  // Enabling too many metrics will result in confusion and too few points.
+  if (wantedDistortionMetrics.size === 1 ||
+      wantedDistortionMetrics.size === 2) {
+    let anyMissingDistortionMetric = false;
+    for (const id of wantedDistortionMetrics) {
+      const distortionMatcher = matchers.find(
+          (matcher) => firstBatch.fields[matcher.fieldIndices[0]].id === id);
+      if (distortionMatcher === undefined ||
+          !firstBatch.fields[distortionMatcher.fieldIndices[0]].isNumber ||
+          !firstBatch.fields[distortionMatcher.fieldIndices[0]]
+               .uniqueValuesArray.length) {
+        anyMissingDistortionMetric = true;
+        break;
       }
+      const distortionField =
+          firstBatch.fields[distortionMatcher.fieldIndices[0]];
+      if (!distortionField.isNumber ||
+          distortionField.uniqueValuesArray.length < 2) {
+        anyMissingDistortionMetric = true;
+        break;
+      }
+    }
+    if (!anyMissingDistortionMetric) {
+      for (const matcher of matchers) {
+        if (wantedDistortionMetrics.has(
+                firstBatch.fields[matcher.fieldIndices[0]].id)) {
+          matcher.enabled = true;
+          if (wantedDistortionMetrics.size === 2) {
+            // Use a high enough tolerance so that the two matchers still select
+            // a good amount of data points, for better reprenstation at the
+            // expanse of precision.
+            matcher.tolerance = Math.max(matcher.tolerance, 0.05);  // 5%
+          }
+        }
+      }
+      return;
+    }
+  }
+
+  // Enabling metrics based on codecs did not work. Fall back to enabling some
+  // widely used metric.
+  for (const id of DISTORTION_METRIC_FIELD_IDS) {
+    const distortionMatcher = matchers.find(
+        (matcher) => firstBatch.fields[matcher.fieldIndices[0]].id === id);
+    if (distortionMatcher === undefined) continue;
+    const distortionField =
+        firstBatch.fields[distortionMatcher.fieldIndices[0]];
+    if (distortionField.isNumber &&
+        distortionField.uniqueValuesArray.length > 1) {
+      distortionMatcher.enabled = true;
+      break;
     }
   }
 }
@@ -164,7 +235,7 @@ export function enableDefaultMatchers(
 export function isLossless(firstBatch: Batch, matchers: FieldMatcher[]) {
   for (const matcher of matchers) {
     if (matcher.enabled &&
-        QUALITY_METRIC_FIELD_IDS.includes(
+        DISTORTION_METRIC_FIELD_IDS.includes(
             firstBatch.fields[matcher.fieldIndices[0]].id)) {
       return false;
     }
