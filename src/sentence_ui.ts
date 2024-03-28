@@ -20,8 +20,9 @@ import {customElement, property} from 'lit/decorators.js';
 
 import {mergeBatches} from './batch_merger';
 import {BatchSelection} from './batch_selection';
-import {Batch, FieldId, QUALITY_METRIC_FIELD_IDS} from './entry';
+import {Batch, Field, FieldId, DISTORTION_METRIC_FIELD_IDS} from './entry';
 import {EventType, listen} from './events';
+import {FieldFilter} from './filter';
 import {FieldMatcher} from './matcher';
 import {FieldMetric, FieldMetricStats} from './metric';
 import {State} from './state';
@@ -49,7 +50,7 @@ export class SentenceUi extends LitElement {
     for (const batch of this.state.batches) {
       const field = batch.fields[matcher.fieldIndices[batch.index]];
       if (field.displayName === '') continue;
-      if (QUALITY_METRIC_FIELD_IDS.includes(field.id)) {
+      if (DISTORTION_METRIC_FIELD_IDS.includes(field.id)) {
         displayName = 'distortion';
         subName = field.displayName;
       } else {
@@ -88,7 +89,48 @@ export class SentenceUi extends LitElement {
                 '')}`;
   }
 
-  // Batches and metrics
+  // Batches, filters and metrics
+
+  private renderFilter(field: Field, filter: FieldFilter) {
+    if (field.isNumber) {
+      if (field.isInteger) {
+        if (filter.rangeStart === filter.rangeEnd) {
+          return `${field.displayName} limited to ${filter.rangeStart}`;
+        }
+        return `${field.displayName} limited to [${filter.rangeStart}:${
+            filter.rangeEnd}]`;
+      }
+
+      if (filter.rangeStart === filter.rangeEnd) {
+        return `${field.displayName} limited to ${
+            filter.rangeStart.toFixed(1)}`;
+      }
+      return `${field.displayName} limited to [${
+          filter.rangeStart.toFixed(1)}:${filter.rangeEnd.toFixed(1)}]`;
+    }
+
+    if (filter.uniqueValues.size === 1) {
+      return `${field.displayName} limited to ${
+          filter.uniqueValues.values().next().value}`;
+    }
+    return `${field.displayName} limited`;
+  }
+
+  private renderFilters(batchSelection: BatchSelection) {
+    const batch = batchSelection.batch;
+    let numFilters = 0;
+    const filters = html`${
+        batchSelection.fieldFilters.map(
+            (filter: FieldFilter, fieldIndex: number) => {
+              const field = batch.fields[fieldIndex];
+              return filter.actuallyFiltersPointsOut(field) ?
+                  html`${numFilters++ > 0 ? ', ' : ''}${
+                      this.renderFilter(field, filter)}` :
+                  '';
+            })}`;
+    if (numFilters === 0) return html``;
+    return html`<br><span class="filters">(${filters})</span>`;
+  }
 
   private renderMetric(
       batch: Batch, metric: FieldMetric, stats: FieldMetricStats) {
@@ -104,6 +146,8 @@ export class SentenceUi extends LitElement {
           return html`as fast to encode`;
         case FieldId.DECODING_DURATION:
           return html`as slow to decode`;
+        case FieldId.RAW_DECODING_DURATION:
+          return html`as slow to decode (exclusive of color conversion)`;
         default:
           return html`of the same ${field.displayName}`;
       }
@@ -121,6 +165,10 @@ export class SentenceUi extends LitElement {
         return html`${xTimes} ${neg ? 'faster' : 'slower'} to encode`;
       case FieldId.DECODING_DURATION:
         return html`${xTimes} ${neg ? 'faster' : 'slower'} to decode`;
+      case FieldId.RAW_DECODING_DURATION:
+        return html`${xTimes} ${
+            neg ? 'faster' :
+                  'slower'} to decode (exclusive of color conversion)`;
       default:
         return html`${xTimes} ${neg ? 'lower' : 'higher'} on the ${
             field.displayName} scale`;
@@ -131,15 +179,16 @@ export class SentenceUi extends LitElement {
     const batch = batchSelection.batch;
     return html`
         <p>
-        images encoded with <batch-name-ui .batch=${batch}></batch-name-ui> are
-          ${
-        this.state.metrics.map((metric: FieldMetric, metricIndex: number) => {
-          return metric.enabled ?
-              html`<br>${
-                  this.renderMetric(
-                      batch, metric, batchSelection.stats[metricIndex])},` :
-              '';
-        })}
+        images encoded with <batch-name-ui .batch=${batch}></batch-name-ui>
+        ${this.renderFilters(batchSelection)}
+        are
+        ${this.state.metrics.map((metric: FieldMetric, metricIndex: number) => {
+      return metric.enabled ?
+          html`<br>${
+              this.renderMetric(
+                  batch, metric, batchSelection.stats[metricIndex])},` :
+          '';
+    })}
         </p>`;
   }
 
@@ -162,21 +211,22 @@ export class SentenceUi extends LitElement {
 
   // Reference
 
-  private renderReference(referenceBatch: Batch) {
+  private renderReference(referenceBatch: BatchSelection) {
+    const batch = referenceBatch.batch;
     return html`
       <p id="referenceBatch">
-        compared to <batch-name-ui .batch=${referenceBatch}></batch-name-ui>.
+        compared to <batch-name-ui .batch=${batch}></batch-name-ui>
+        ${this.renderFilters(referenceBatch)}.
       </p>`;
   }
 
   override render() {
-    let referenceBatch: Batch|undefined = undefined;
+    let referenceBatch: BatchSelection|undefined = undefined;
     if (this.state.referenceBatchSelectionIndex >= 0 &&
         this.state.referenceBatchSelectionIndex <
             this.state.batchSelections.length) {
       referenceBatch =
-          this.state.batchSelections[this.state.referenceBatchSelectionIndex]
-              .batch;
+          this.state.batchSelections[this.state.referenceBatchSelectionIndex];
     }
 
     return html`
@@ -197,6 +247,9 @@ export class SentenceUi extends LitElement {
       margin: 10px 0;
       color: var(--mdc-theme-text);
       font-size: 20px;
+    }
+    .filters{
+      font-size: 14px;
     }
   `;
 }

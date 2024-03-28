@@ -50,6 +50,21 @@ export function enableDefaultFilters(batch: Batch, filters: FieldFilter[]) {
       effortFilter.rangeStart = effortFilter.rangeEnd;
     }
   }
+
+  // Restrict JPEG XL to a "reasonable" encoder quality setting range.
+  if (batch.codec.toLowerCase() === 'jxl' ||
+      batch.codec.toLowerCase() === 'jpegxl') {
+    const qualityIndex =
+        batch.fields.findIndex((field: Field) => field.id === FieldId.QUALITY);
+    if (qualityIndex !== -1) {
+      const qualityField = batch.fields[qualityIndex];
+      if (qualityField.isInteger && qualityField.uniqueValuesArray.length > 1) {
+        filters[qualityIndex].enabled = true;
+        filters[qualityIndex].rangeStart =
+            Math.max(filters[qualityIndex].rangeStart, 75);
+      }
+    }
+  }
 }
 
 function rowPassesFilter(

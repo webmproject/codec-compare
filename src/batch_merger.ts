@@ -44,7 +44,6 @@ function mergeBatchesWithSameCodec(batches: BatchSelection[]): BatchSelection|
   mergedBatch.fields = batches[0].batch.fields;
   for (const batch of batches) {
     if (batch.batch.fields.length !== mergedBatch.fields.length) {
-      console.log(batch.batch.name);
       return undefined;
     }
     for (let i = 0; i < mergedBatch.fields.length; i++) {
@@ -65,8 +64,45 @@ function mergeBatchesWithSameCodec(batches: BatchSelection[]): BatchSelection|
   mergedBatch.color = rgbToHexString(
       rSum / batches.length, gSum / batches.length, bSum / batches.length);
 
-  // Ignore all BatchSelection fields but the stats.
   const mergedBatchSelection = new BatchSelection(mergedBatch);
+
+  // Shallow copy the filters and check their consistency accross the batches of
+  // the same codec.
+  mergedBatchSelection.fieldFilters = batches[0].fieldFilters;
+  for (const batch of batches) {
+    if (batch.fieldFilters.length !==
+        mergedBatchSelection.fieldFilters.length) {
+      return undefined;
+    }
+    for (let i = 0; i < mergedBatchSelection.fieldFilters.length; i++) {
+      const pointsAreFiltered =
+          batch.fieldFilters[i].actuallyFiltersPointsOut(batch.batch.fields[i]);
+      if (pointsAreFiltered !==
+          mergedBatchSelection.fieldFilters[i].actuallyFiltersPointsOut(
+              mergedBatch.fields[i])) {
+        return undefined;
+      }
+      if (pointsAreFiltered) {
+        if (batch.batch.fields[i].isNumber !== mergedBatch.fields[i].isNumber) {
+          return undefined;
+        }
+        if (mergedBatch.fields[i].isNumber) {
+          if (batch.fieldFilters[i].rangeStart !==
+                  mergedBatchSelection.fieldFilters[i].rangeStart ||
+              batch.fieldFilters[i].rangeEnd !==
+                  mergedBatchSelection.fieldFilters[i].rangeEnd) {
+            return undefined;
+          }
+        } else if (
+            batch.fieldFilters[i].uniqueValues !==
+            mergedBatchSelection.fieldFilters[i].uniqueValues) {
+          return undefined;
+        }
+      }
+    }
+  }
+
+  // Ignore all BatchSelection fields but the filters and the stats.
   for (const batch of batches) {
     if (batch.stats.length !== batches[0].stats.length) return undefined;
   }

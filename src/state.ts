@@ -82,7 +82,7 @@ export class State {
 
     this.matchers = createMatchers(this.batches);
     if (this.matchers.filter((matcher) => matcher.enabled).length === 0) {
-      enableDefaultMatchers(this.batches[0], this.matchers);
+      enableDefaultMatchers(this.batches, this.matchers);
     }
     this.metrics = createMetrics(this.batches);
     if (this.metrics.filter((metric) => metric.enabled).length === 0) {

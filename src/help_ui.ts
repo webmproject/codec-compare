@@ -143,8 +143,8 @@ export class HelpUi extends LitElement {
         This page compares image formats and codecs by matching each data point
         from a reference batch to a data point from another batch. Each data
         point is an image compressed then decompressed, with some codec settings
-        and some measured information such as encoding duration, visual quality
-        loss etc. The number of comparisons is the number of matched pairs
+        and some measured information such as encoding duration, visual
+        distortion etc. The number of comparisons is the number of matched pairs
         across all batches.
         </p>
       </div>
@@ -153,7 +153,7 @@ export class HelpUi extends LitElement {
         <div class="bracket"></div>
         <p>
         Pairs are selected so that these constraints are respected. Objective
-        visual quality metrics such as PSNR and SSIM can be used as matchers
+        visual distortion metrics such as PSNR and SSIM can be used as matchers
         to compare formats and codecs on other metrics such as compression rate
         and encoding duration.<br>
         Numerical fields can be matched with a relative tolerance. If so, pairs

@@ -18,24 +18,24 @@
     { "effort": "Compression effort parameter" },
     { "quality": "Compression quality parameter" },
     {
-      "psnr": "Quality metric Peak Signal-to-Noise Ratio. See https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio"
+      "psnr": "Distortion metric Peak Signal-to-Noise Ratio. See https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio"
     },
     {
-      "ssim": "Quality metric Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity"
+      "ssim": "Distortion metric Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity"
     },
     {
-      "msssim": "Quality metric Multi-Scale Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity#Multi-Scale_SSIM"
+      "msssim": "Distortion metric Multi-Scale Structural Similarity Index Measure. See https://en.wikipedia.org/wiki/Structural_similarity#Multi-Scale_SSIM"
     },
     {
-      "butteraugli": "Quality metric Butteraugli. See https://en.wikipedia.org/wiki/Guetzli#Butteraugli"
+      "butteraugli": "Distortion metric Butteraugli. See https://en.wikipedia.org/wiki/Guetzli#Butteraugli"
     },
     {
-      "ciede2000": "Quality metric CIEDE 2000. See https://en.wikipedia.org/wiki/Color_difference#CIEDE2000"
+      "ciede2000": "Distortion metric CIEDE 2000. See https://en.wikipedia.org/wiki/Color_difference#CIEDE2000"
     },
     { "encoding_time": "Encoding duration in seconds (approximate)" },
     { "decoding_time": "Decoding duration in seconds (approximate)" },
     {
-      "ssimulacra": "Quality metric SSIMULACRA. See https://github.com/cloudinary/ssimulacra"
+      "ssimulacra": "Distortion metric SSIMULACRA. See https://github.com/cloudinary/ssimulacra"
     },
     { "encoded_size": "Size of the encoded image file in bytes" },
     { "bpp": "Encoded bits per pixel" },

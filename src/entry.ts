@@ -52,6 +52,8 @@ export enum FieldId {
   ENCODED_BITS_PER_PIXEL,  // Should be ENCODED_SIZE / (WIDTH * HEIGHT).
   ENCODING_DURATION,       // In seconds.
   DECODING_DURATION,       // In seconds.
+  RAW_DECODING_DURATION,   // Should be DECODING_DURATION exclusive of the color
+                           // conversion time.
   // Unknown.
   CUSTOM,
 }
@@ -106,14 +108,15 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
   ['bpp', FieldId.ENCODED_BITS_PER_PIXEL],
   ['encoding time', FieldId.ENCODING_DURATION],
   ['decoding time', FieldId.DECODING_DURATION],
+  ['raw decoding time', FieldId.RAW_DECODING_DURATION],
 ]);
 
 /**
  * The set of FieldIds corresponding to visual quality metrics. This is ordered
  * by decreasing preference of which matcher is enabled by default.
  */
-export const QUALITY_METRIC_FIELD_IDS = [
-  FieldId.SSIM, FieldId.SSIMULACRA2, FieldId.MSSSIM, FieldId.PSNR,
+export const DISTORTION_METRIC_FIELD_IDS = [
+  FieldId.SSIM, FieldId.PSNR, FieldId.SSIMULACRA2, FieldId.MSSSIM,
   FieldId.BUTTERAUGLI, FieldId.SSIMULACRA, FieldId.CIEDE2000, FieldId.FLIP,
   FieldId.LPIPS, FieldId.P3NORM
 ];
@@ -128,8 +131,8 @@ function fieldPrettyName(id: FieldId, name: string): string {
   // human-readable property name.
   for (const entry of Array.from(NAME_TO_FIELD_ID.entries())) {
     if (entry[1] === id) {
-      if (QUALITY_METRIC_FIELD_IDS.includes(id)) {
-        // Display quality metrics as uppercase.
+      if (DISTORTION_METRIC_FIELD_IDS.includes(id)) {
+        // Display distortion metrics as uppercase.
         return entry[0].toUpperCase();
       }
       return entry[0];

@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.2.1
+
+- Display the URL of the batch JSON on load failure.
+- Display a warning when using effort or quality encoding setting as a match
+  criterion.
+- Display enabled filters in the Summary tab.
+- Do not group batches with different filters in the Summary tab.
+- Add built-in support for raw decoding duration (same as decoding duration but
+  exclusive of any color conversion).
+- Limit JPEG XL input quality range to [75:99] by default.
+- Rename "quality metric" to "distortion metric" in the code to avoid confusing
+  it with "encoder quality setting".
+- Select default distortion metrics based on what the codecs optimize for.
+- Fix NaN issue with mwc-slider handling non-integer ranges.
+
 ## v0.2.0
 
 - Show a simple sentence by default. Keep the advanced interface in another tab.

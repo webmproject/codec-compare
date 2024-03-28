@@ -107,10 +107,21 @@ export class MatcherUi extends LitElement {
   override render() {
     const tokens = this.description.split('Warning:', /*limit=*/ 2);
     const description = tokens[0].trim();
-    const tooltip = tokens.length === 1 ?
-        '' :
-        html` <tooltip-ui icon="warning" .text="${
-            tokens[1].trim()}"></tooltip-ui>`;
+
+    let tooltip = html``;
+    for (let i = 1; i < tokens.length; ++i) {
+      tooltip = html`
+        ${tooltip}
+        <tooltip-ui icon="warning" .text="${tokens[1].trim()}"></tooltip-ui>`;
+    }
+    if (this.fieldId === FieldId.EFFORT || this.fieldId === FieldId.QUALITY) {
+      const text =
+          'Codec-specific settings should not be used as match criteria when there are different codecs.';
+      tooltip = html`
+        ${tooltip}
+        <tooltip-ui icon="warning" .text="${text}"></tooltip-ui>`;
+    }
+
     return html`
       ${this.renderDeleteButton()}
       <p>

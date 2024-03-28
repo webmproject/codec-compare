@@ -24,14 +24,21 @@ function getFormattedFailureString(response: Response): string {
  * @param batchJsonPath The path to the JSON to fetch.
  */
 export async function loadBatchJson(batchJsonPath: string): Promise<Batch> {
-  const response = await fetch(batchJsonPath);
-  if (!response.ok) {
-    throw new Error(getFormattedFailureString(response));
+  try {
+    const response = await fetch(batchJsonPath);
+    if (!response.ok) {
+      throw new Error(getFormattedFailureString(response));
+    }
+    const json = await response.json();
+    const folderPath =
+        batchJsonPath.substring(0, batchJsonPath.lastIndexOf('/') + 1);
+    return jsonToBatch(batchJsonPath, folderPath, json);
+  } catch (error) {
+    if (error instanceof Error && !error.message.includes(batchJsonPath)) {
+      error.message += ' in ' + batchJsonPath;
+    }
+    throw error;
   }
-  const json = await response.json();
-  const folderPath =
-      batchJsonPath.substring(0, batchJsonPath.lastIndexOf('/') + 1);
-  return jsonToBatch(batchJsonPath, folderPath, json);
 }
 
 /**
