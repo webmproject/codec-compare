@@ -29,6 +29,7 @@ import {State} from './state';
 function fieldIdToString(id: FieldId) {
   if (id === FieldId.PSNR) return 'worse looking';
   if (id === FieldId.SSIM) return 'worse looking';
+  if (id === FieldId.DSSIM) return 'better looking';
   if (id === FieldId.MSSSIM) return 'worse looking';
   if (id === FieldId.BUTTERAUGLI) return 'better looking';
   if (id === FieldId.SSIMULACRA) return 'better looking';

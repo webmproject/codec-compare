@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.2
+
+- Add DSSIM distortion metric recognition.
+
 ## v0.2.1
 
 - Display the URL of the batch JSON on load failure.
