@@ -40,6 +40,7 @@ export enum FieldId {
   QUALITY,                 // Encoding setting.
   PSNR,                    // Difference between original and decoded images.
   SSIM,                    // Difference between original and decoded images.
+  DSSIM,                   // Difference between original and decoded images.
   MSSSIM,                  // Difference between original and decoded images.
   BUTTERAUGLI,             // Difference between original and decoded images.
   SSIMULACRA,              // Difference between original and decoded images.
@@ -96,6 +97,7 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
   ['quality', FieldId.QUALITY],
   ['psnr', FieldId.PSNR],
   ['ssim', FieldId.SSIM],
+  ['dssim', FieldId.DSSIM],
   ['msssim', FieldId.MSSSIM],
   ['butteraugli', FieldId.BUTTERAUGLI],
   ['ssimulacra', FieldId.SSIMULACRA],
@@ -116,9 +118,9 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
  * by decreasing preference of which matcher is enabled by default.
  */
 export const DISTORTION_METRIC_FIELD_IDS = [
-  FieldId.SSIM, FieldId.PSNR, FieldId.SSIMULACRA2, FieldId.MSSSIM,
-  FieldId.BUTTERAUGLI, FieldId.SSIMULACRA, FieldId.CIEDE2000, FieldId.FLIP,
-  FieldId.LPIPS, FieldId.P3NORM
+  FieldId.SSIM, FieldId.PSNR, FieldId.SSIMULACRA2, FieldId.DSSIM,
+  FieldId.MSSSIM, FieldId.BUTTERAUGLI, FieldId.SSIMULACRA, FieldId.CIEDE2000,
+  FieldId.FLIP, FieldId.LPIPS, FieldId.P3NORM
 ];
 
 function fieldNameToFieldId(name: string): FieldId {

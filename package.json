@@ -1,6 +1,6 @@
 {
   "name": "codec_compare",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Codec performance comparison tool",
   "publisher": "Google LLC",
   "author": "Yannis Guyon",
