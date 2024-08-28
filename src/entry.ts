@@ -36,6 +36,7 @@ export enum FieldId {
   DECODED_IMAGE_NAME,
   WIDTH,                   // Number of pixel columns in SOURCE_IMAGE_NAME.
   HEIGHT,                  // Number of pixel rows in SOURCE_IMAGE_NAME.
+  FRAME_COUNT,             // Number of frames in SOURCE_IMAGE_NAME.
   EFFORT,                  // Encoding setting.
   QUALITY,                 // Encoding setting.
   PSNR,                    // Difference between original and decoded images.
@@ -93,6 +94,7 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
   ['decoded image name', FieldId.DECODED_IMAGE_NAME],
   ['width', FieldId.WIDTH],
   ['height', FieldId.HEIGHT],
+  ['frame count', FieldId.FRAME_COUNT],
   ['effort', FieldId.EFFORT],
   ['quality', FieldId.QUALITY],
   ['psnr', FieldId.PSNR],

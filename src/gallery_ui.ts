@@ -65,7 +65,8 @@ export class GalleryUi extends LitElement {
       if (asset.sourcePath !== undefined) {
         // Use a link to open the image in a new tab.
         return html`
-          <a href="${asset.sourcePath}" target="_blank" title="${title}">
+          <a href="${asset.sourcePath}" target="_blank" title="${title}"
+            class="${asset.count == 0 ? 'unused' : ''}">
             <img src="${asset.previewPath}" class="constrainedSize"
               alt="${asset.sourceName}">
             <span class="countBubble">${asset.count}</span>
@@ -192,6 +193,10 @@ export class GalleryUi extends LitElement {
     .linkOverlay > mwc-icon {
       color: var(--mdc-theme-background);
       font-size: 16px;
+    }
+
+    .unused {
+      opacity: 0.2;
     }
 
     .countBubble {

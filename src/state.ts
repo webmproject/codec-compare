@@ -59,6 +59,9 @@ export class State {
    */
   useGeometricMean = true;
 
+  /** If true, each row is shown in the tables. NOT stored in URL params. */
+  showAllRows = false;
+
   /** Sets all other fields up based on the contents of the batches field. */
   initialize() {
     if (this.batches.length === 0) return;
@@ -113,13 +116,17 @@ export class State {
     [this.plotMetricHorizontal, this.plotMetricVertical] =
         selectPlotMetrics(this.batches[0], this.metrics);
 
-    // It would be better to count the matches rather than the data points but
-    // it is more important to have a default setting value right now, before
-    // reading the URL arguments, which happens before finding the matches.
-    const numDataPoints =
-        this.batches.reduce((n, batch) => n + batch.rows.length, 0);
-    if (numDataPoints > 50000) {
-      this.showEachMatch = false;  // Avoids plot sluggishness by default.
+    if (this.batches.length > 2) {
+      this.showEachMatch = false;  // Avoids visual confusion.
+    } else {
+      // It would be better to count the matches rather than the data points but
+      // it is more important to have a default setting value right now, before
+      // reading the URL arguments, which happens before finding the matches.
+      const numDataPoints =
+          this.batches.reduce((n, batch) => n + batch.rows.length, 0);
+      if (numDataPoints > 50000) {
+        this.showEachMatch = false;  // Avoids plot sluggishness by default.
+      }
     }
 
     const computeMatchesAndStats = (batchSelection: BatchSelection) => {

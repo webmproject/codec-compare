@@ -45,6 +45,9 @@ export enum EventType {
 
   // The state changed and the UI needs to reflect them.
   MATCHED_DATA_POINTS_CHANGED = 'MATCHED_DATA_POINTS_CHANGED',
+
+  // Some setting was toggled.
+  SETTINGS_CHANGED = 'SETTINGS_CHANGED',
 }
 
 /**
@@ -63,6 +66,7 @@ declare global {
     REFERENCE_CHANGED: Event;
     MATCHER_OR_METRIC_CHANGED: Event;
     MATCHED_DATA_POINTS_CHANGED: Event;
+    SETTINGS_CHANGED: Event;
   }
 }
 
