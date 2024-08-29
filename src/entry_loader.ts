@@ -210,6 +210,8 @@ function jsonToBatch(
         batch.fields.findIndex(field => field.id === FieldId.WIDTH);
     const heightFieldIndex =
         batch.fields.findIndex(field => field.id === FieldId.HEIGHT);
+    const frameCountFieldIndex =
+        batch.fields.findIndex(field => field.id === FieldId.FRAME_COUNT);
     const encodedSizeFieldIndex =
         batch.fields.findIndex(field => field.id === FieldId.ENCODED_SIZE);
     if (widthFieldIndex !== -1 && heightFieldIndex !== -1 &&
@@ -222,9 +224,13 @@ function jsonToBatch(
       batch.fields.push(field);
       uniqueValuesSets.push(new Set<string>());
       for (const row of batch.rows) {
-        const bpp = (row[encodedSizeFieldIndex] as number) * 8 /
+        let bpp = (row[encodedSizeFieldIndex] as number) * 8 /
             ((row[widthFieldIndex] as number) *
              (row[heightFieldIndex] as number));
+        if (frameCountFieldIndex !== -1 &&
+            batch.fields[frameCountFieldIndex].isInteger) {
+          bpp /= (row[frameCountFieldIndex] as number);
+        }
         row.push(bpp);
         field.addValue(String(bpp), uniqueValuesSets[fieldIndex]);
       }

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.3
+
+- No longer limit JPEG XL input quality range to [75:99] by default (introduced
+  at v0.2.1). Expect custom bpp or quality filters to be defined in the presets
+  instead.
+- Add lazy row loading setting for more reactive table panels.
+- Add animation frame count support.
+- Fade unused images in the gallery tab.
+- Hide matched pairs in the graph by default if there are more than two
+  experiments.
+
 ## v0.2.2
 
 - Add DSSIM distortion metric recognition.

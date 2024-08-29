@@ -80,6 +80,7 @@ export function createMetrics(batches: Batch[]): FieldMetric[] {
     if (!isNumber) continue;
     // Same source image, so same source image features. No need to compare.
     if (field.id === FieldId.WIDTH || field.id === FieldId.HEIGHT) continue;
+    if (field.id === FieldId.FRAME_COUNT) continue;
     // Encoder settings should not be compared.
     if (field.id === FieldId.EFFORT || field.id === FieldId.QUALITY) continue;
     // If bpp values are available, encoded sizes probably are too.

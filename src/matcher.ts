@@ -100,6 +100,7 @@ export function createMatchers(batches: Batch[]): FieldMatcher[] {
     if (field.id === FieldId.DECODED_IMAGE_NAME) continue;
     // Same source image, so these will always match. Remove them from the UI.
     if (field.id === FieldId.WIDTH || field.id === FieldId.HEIGHT) continue;
+    if (field.id === FieldId.FRAME_COUNT) continue;
     // If bpp values are available, encoded sizes probably are too.
     // Skip the former which brings nothing as a matcher over the latter.
     if (field.id === FieldId.ENCODED_BITS_PER_PIXEL) continue;

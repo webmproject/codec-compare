@@ -21,7 +21,7 @@ import './filters_ui';
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {dispatch, EventType} from './events';
+import {dispatch, EventType, listen} from './events';
 import {State} from './state';
 
 /** Pop-up settings menu. */
@@ -29,31 +29,62 @@ import {State} from './state';
 export class SettingsUi extends LitElement {
   @property({attribute: false}) state!: State;
 
+  override firstUpdated() {
+    listen(EventType.SETTINGS_CHANGED, () => {
+      this.requestUpdate();
+    });
+  }
+
   override render() {
     if (!this.state) return html``;
+    const slownessWarning = 'warning: may cause graphical interface slowness';
 
     return html`
         <div class="settingGroup">
-          <span>Hide data points</span>
+          <span title="Hide the matched pairs in the graph">
+            Hide data points
+          </span>
           <mwc-switch ?selected=${this.state.showEachMatch}
             @click=${() => {
       this.state.showEachMatch = !this.state.showEachMatch;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
-      this.requestUpdate();
+      dispatch(EventType.SETTINGS_CHANGED);
     }}>
           </mwc-switch>
-          <span>Show data points</span>
+          <span title="Show each matched pair as a small dot in the graph (${
+        slownessWarning})">
+            Show data points
+          </span>
         </div>
         <div class="settingGroup">
-          <span>Arithmetic mean</span>
+          <span title="Aggregate the metrics using the arithmetic mean of the values of the matched data points">
+            Arithmetic mean
+          </span>
           <mwc-switch ?selected=${this.state.useGeometricMean}
             @click=${() => {
       this.state.useGeometricMean = !this.state.useGeometricMean;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
-      this.requestUpdate();
+      dispatch(EventType.SETTINGS_CHANGED);
     }}>
           </mwc-switch>
-          <span>Geometric mean</span>
+          <span title="Aggregate the metrics using the geometric mean of the ratios of the matched pairs">
+            Geometric mean
+          </span>
+        </div>
+        <div class="settingGroup">
+          <span title="Only display the first rows of the filtered or matched data point tables">
+            Show some rows
+          </span>
+          <mwc-switch ?selected=${this.state.showAllRows}
+            @click=${() => {
+      this.state.showAllRows = !this.state.showAllRows;
+      dispatch(EventType.SETTINGS_CHANGED);
+    }}>
+          </mwc-switch>
+          <span title="Display all rows of the filtered or matched data point tables (${
+        slownessWarning})">
+            Show all rows
+          </span>
         </div>`;
   }
 

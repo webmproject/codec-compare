@@ -69,7 +69,8 @@ export class MatchesTableUi extends LitElement {
     const cssClass = isNumber ? 'numberCell' : '';
 
     if (isNumber && selectionField.id !== FieldId.WIDTH &&
-        selectionField.id !== FieldId.HEIGHT) {
+        selectionField.id !== FieldId.HEIGHT &&
+        selectionField.id !== FieldId.FRAME_COUNT) {
       const ratio =
           getRatio(selectionValue as number, referenceValue as number);
       return html`<td class="${cssClass}">${getRelativePercent(ratio)}</td>`;
@@ -202,6 +203,23 @@ export class MatchesTableUi extends LitElement {
 
     const numColumns =
         matchers.length + metrics.length + selectionSharedFieldIndices.length;
+    let rows = this.batchSelection.matchedDataPoints.rows;
+    let truncatedRows = html``;
+    if (!this.state.showAllRows && rows.length > 100) {
+      const onDisplayHiddenRow = () => {
+        this.state.showAllRows = true;
+        dispatch(EventType.SETTINGS_CHANGED);
+        this.requestUpdate();
+      };
+      truncatedRows = html`
+        <tr>
+          <td @click=${onDisplayHiddenRow}
+              colspan=${numColumns} class="hiddenRow">
+            ${rows.length - 100} hidden rows. Click to expand.
+          </td>
+        </tr>`;
+      rows = rows.slice(0, 100);
+    }
 
     return html`
       <table>
@@ -209,7 +227,8 @@ export class MatchesTableUi extends LitElement {
         this.renderFirstHeaderRow(
             reference, matchers, metrics, referenceSharedFieldIndices)}
         ${this.renderSecondHeaderRow(reference, matchers, metrics)}
-        ${this.batchSelection.matchedDataPoints.rows.map(renderRow)}
+        ${rows.map(renderRow)}
+        ${truncatedRows}
 
         <tr>
           <th colspan=${numColumns}>Arithmetic means</th>
@@ -288,6 +307,14 @@ export class MatchesTableUi extends LitElement {
     }
     .matchRow:hover {
       background: var(--mdc-theme-surface);
+      cursor: pointer;
+    }
+    .hiddenRow {
+      color: grey;
+      font-style: italic;
+      text-align: center;
+    }
+    .hiddenRow:hover {
       cursor: pointer;
     }
 

@@ -21,6 +21,7 @@ import {customElement, property} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
 import {Entry} from './entry';
+import {dispatch, EventType} from './events';
 import {State} from './state';
 
 /** Component displaying filtered images in a table. */
@@ -44,6 +45,24 @@ export class FilteredImagesUi extends LitElement {
 
   override render() {
     const batch = this.batchSelection.batch;
+    let rows = batch.rows;
+    let truncatedRows = html``;
+    if (!this.state.showAllRows && rows.length > 100) {
+      const onDisplayHiddenRow = () => {
+        this.state.showAllRows = true;
+        dispatch(EventType.SETTINGS_CHANGED);
+        this.requestUpdate();
+      };
+      truncatedRows = html`
+        <tr>
+          <td @click=${onDisplayHiddenRow}
+              colspan=${batch.fields.length} class="hiddenRow">
+            ${rows.length - 100} hidden rows. Click to expand.
+          </td>
+        </tr>`;
+      rows = rows.slice(0, 100);
+    }
+
     return html`
         <div class="horizontalFlex">
           <div id="imageChip">
@@ -71,7 +90,8 @@ export class FilteredImagesUi extends LitElement {
             (field) => html`<th title="${field.description}">${
                 field.displayName}</th>`)}
             </tr>
-            ${batch.rows.map((row, rowIndex) => this.renderRow(row, rowIndex))}
+            ${rows.map((row, rowIndex) => this.renderRow(row, rowIndex))}
+            ${truncatedRows}
           </table>
         </div>`;
   }
@@ -149,6 +169,15 @@ export class FilteredImagesUi extends LitElement {
     }
     .excluded {
       color: grey;
+    }
+
+    .hiddenRow {
+      color: grey;
+      font-style: italic;
+      text-align: center;
+    }
+    .hiddenRow:hover {
+      cursor: pointer;
     }
 
     a {
