@@ -14,7 +14,7 @@
 
 import {Batch} from './entry';
 import {dispatch, EventType, listen} from './events';
-import {enableDefaultFilters, FieldFilter, getFilteredRowIndices} from './filter';
+import {FieldFilter, getFilteredRowIndices} from './filter';
 import {MatchedDataPoints} from './matcher';
 import {FieldMetricStats, SourceCount} from './metric';
 
@@ -54,8 +54,6 @@ export class BatchSelection {
       }
       this.fieldFilters.push(fieldFilter);
     }
-
-    enableDefaultFilters(this.batch, this.fieldFilters);
 
     listen(EventType.FILTER_CHANGED, (event) => {
       if (event.detail.batchIndex !== this.batch.index) return;

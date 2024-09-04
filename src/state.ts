@@ -17,6 +17,7 @@ import {BatchSelection} from './batch_selection';
 import {setColors} from './color_setter';
 import {Batch, FieldId} from './entry';
 import {dispatch, EventType, listen} from './events';
+import {enableDefaultFilters} from './filter';
 import {createMatchers, enableDefaultMatchers, FieldMatcher, getDataPointsSymmetric, isLossless} from './matcher';
 import {computeHistogram, computeStats, createMetrics, enableDefaultMetrics, FieldMetric, selectPlotMetrics} from './metric';
 
@@ -49,6 +50,8 @@ export class State {
   metrics: FieldMetric[] = [];
   plotMetricVertical: FieldMetric|undefined = undefined;    // among metrics
   plotMetricHorizontal: FieldMetric|undefined = undefined;  // among metrics
+  verticalLogScale = true;     // Use a linear scale if false.
+  horizontalLogScale = false;  // Use a linear scale if false.
 
   /** If true, each match is shown on the plot as a small dot. */
   showEachMatch = true;
@@ -93,7 +96,9 @@ export class State {
     }
 
     for (const batch of this.batches) {
-      this.batchSelections.push(new BatchSelection(batch));
+      const batchSelection = new BatchSelection(batch);
+      enableDefaultFilters(batchSelection.batch, batchSelection.fieldFilters);
+      this.batchSelections.push(batchSelection);
     }
 
     // Pick WebP at default speed if available, otherwise pick the first batch.

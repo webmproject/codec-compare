@@ -103,10 +103,17 @@ export class PlotUi {
 
     const xField = this.state.batches[0].fields[xMetric.fieldIndices[0]];
     const yField = this.state.batches[0].fields[yMetric.fieldIndices[0]];
-    const axisType: plotly.AxisType = 'log';
+    const linearAxisType: plotly.AxisType = 'linear';
+    const logAxisType: plotly.AxisType = 'log';
     const layout = {
-      xaxis: {title: xField.displayName},
-      yaxis: {title: yField.displayName, type: axisType},
+      xaxis: {
+        title: xField.displayName,
+        type: this.state.horizontalLogScale ? logAxisType : linearAxisType
+      },
+      yaxis: {
+        title: yField.displayName,
+        type: this.state.verticalLogScale ? logAxisType : linearAxisType
+      },
     };
     // In case the enabled metrics changed.
     plotly.relayout(PLOTLY_DIV_NAME, layout);

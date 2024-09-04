@@ -101,6 +101,7 @@ export function createMatchers(batches: Batch[]): FieldMatcher[] {
     // Same source image, so these will always match. Remove them from the UI.
     if (field.id === FieldId.WIDTH || field.id === FieldId.HEIGHT) continue;
     if (field.id === FieldId.FRAME_COUNT) continue;
+    if (field.id === FieldId.MEGAPIXELS) continue;
     // If bpp values are available, encoded sizes probably are too.
     // Skip the former which brings nothing as a matcher over the latter.
     if (field.id === FieldId.ENCODED_BITS_PER_PIXEL) continue;
@@ -241,6 +242,7 @@ export function isLossless(firstBatch: Batch, matchers: FieldMatcher[]) {
       return false;
     }
   }
+  // Assume other batches to be lossless too.
   return true;
 }
 

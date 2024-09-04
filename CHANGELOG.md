@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.4
+
+- Add the megapixels field.
+- Fix Help text.
+- Add axis scale mode in Settings.
+
 ## v0.2.3
 
 - No longer limit JPEG XL input quality range to [75:99] by default (introduced

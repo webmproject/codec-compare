@@ -41,6 +41,36 @@ export class SettingsUi extends LitElement {
 
     return html`
         <div class="settingGroup">
+          <span title="Use a linear scale for the horizontal axis">
+            Linear x axis
+          </span>
+          <mwc-switch ?selected=${this.state.horizontalLogScale}
+            @click=${() => {
+      this.state.horizontalLogScale = !this.state.horizontalLogScale;
+      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+      dispatch(EventType.SETTINGS_CHANGED);
+    }}>
+          </mwc-switch>
+          <span title="Use a logarithmic scale for the horizontal axis">
+            Logarithmic x axis
+          </span>
+        </div>
+        <div class="settingGroup">
+          <span title="Use a linear scale for the vertical axis">
+            Linear y axis
+          </span>
+          <mwc-switch ?selected=${this.state.verticalLogScale}
+            @click=${() => {
+      this.state.verticalLogScale = !this.state.verticalLogScale;
+      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+      dispatch(EventType.SETTINGS_CHANGED);
+    }}>
+          </mwc-switch>
+          <span title="Use a logarithmic scale for the vertical axis">
+            Logarithmic y axis
+          </span>
+        </div>
+        <div class="settingGroup">
           <span title="Hide the matched pairs in the graph">
             Hide data points
           </span>
@@ -93,7 +123,7 @@ export class SettingsUi extends LitElement {
       margin-left: 70px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
     }
 
     .settingGroup {

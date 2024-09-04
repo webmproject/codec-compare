@@ -237,6 +237,31 @@ function jsonToBatch(
       processField(field, fieldIndex);
     }
   }
+
+  // Compute megapixels if possible.
+  const megapixelsField =
+      batch.fields.find(field => field.id === FieldId.MEGAPIXELS);
+  if (megapixelsField === undefined) {
+    const widthFieldIndex =
+        batch.fields.findIndex(field => field.id === FieldId.WIDTH);
+    const heightFieldIndex =
+        batch.fields.findIndex(field => field.id === FieldId.HEIGHT);
+    if (widthFieldIndex !== -1 && heightFieldIndex !== -1 &&
+        batch.fields[widthFieldIndex].isInteger &&
+        batch.fields[heightFieldIndex].isInteger) {
+      const fieldIndex = batch.fields.length;
+      const field = new Field('megapixels', 'millions of pixels');
+      batch.fields.push(field);
+      uniqueValuesSets.push(new Set<string>());
+      for (const row of batch.rows) {
+        const megapixels = (row[widthFieldIndex] as number) *
+            (row[heightFieldIndex] as number) / 1000000;
+        row.push(megapixels);
+        field.addValue(String(megapixels), uniqueValuesSets[fieldIndex]);
+      }
+      processField(field, fieldIndex);
+    }
+  }
   return batch;
 }
 
