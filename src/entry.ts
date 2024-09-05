@@ -52,6 +52,7 @@ export enum FieldId {
   P3NORM,                  // Difference between original and decoded images.
   ENCODED_SIZE,            // In bytes.
   ENCODED_BITS_PER_PIXEL,  // Should be ENCODED_SIZE / (WIDTH * HEIGHT).
+  MEGAPIXELS,              // Should be (WIDTH * HEIGHT) / 1,000,000.
   ENCODING_DURATION,       // In seconds.
   DECODING_DURATION,       // In seconds.
   RAW_DECODING_DURATION,   // Should be DECODING_DURATION exclusive of the color
@@ -110,6 +111,7 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
   ['p3-norm', FieldId.P3NORM],
   ['encoded size', FieldId.ENCODED_SIZE],
   ['bpp', FieldId.ENCODED_BITS_PER_PIXEL],
+  ['megapixels', FieldId.MEGAPIXELS],
   ['encoding time', FieldId.ENCODING_DURATION],
   ['decoding time', FieldId.DECODING_DURATION],
   ['raw decoding time', FieldId.RAW_DECODING_DURATION],

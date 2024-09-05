@@ -42,13 +42,8 @@ import {LoadingUi} from './loading_ui';
 import {PlotUi} from './plot_ui';
 import {SettingsUi} from './settings_ui';
 import {State} from './state';
+import {Tab} from './tab';
 import {UrlState} from './url_state';
-
-enum Tab {
-  SUMMARY = 0,  // A simple sentence to describe the plot.
-  STATS = 1,    // Advanced interface with tunable comparison parameters.
-  GALLERY = 2,  // Source data set grid.
-}
 
 /** Main component of the codec comparison static viewer. */
 @customElement('codec-compare')
@@ -179,8 +174,7 @@ export class CodecCompare extends LitElement {
 
           <settings-ui .state=${this.state}></settings-ui>
 
-          <mwc-button-fit id="helpButton"
-            ?disabled=${this.currentTab === Tab.GALLERY} @click=${() => {
+          <mwc-button-fit id="helpButton" @click=${() => {
       this.helpUi.onOpen();
     }}>
             <mwc-icon>help</mwc-icon> Help
@@ -207,7 +201,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare beta version 0.2.3<br>
+            Codec Compare beta version 0.2.4<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -219,7 +213,7 @@ export class CodecCompare extends LitElement {
       <batch-selection-ui .state=${this.state}></batch-selection-ui>
       <matches-ui .state=${this.state}></matches-ui>
       <match-ui .state=${this.state}></match-ui>
-      <help-ui .displaySentence=${this.currentTab === Tab.SUMMARY}></help-ui>
+      <help-ui .displayedTab=${this.currentTab}></help-ui>
       ${this.isLoaded ? html`` : html`<loading-ui></loading-ui>`}
     `;
   }

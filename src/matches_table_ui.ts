@@ -70,7 +70,8 @@ export class MatchesTableUi extends LitElement {
 
     if (isNumber && selectionField.id !== FieldId.WIDTH &&
         selectionField.id !== FieldId.HEIGHT &&
-        selectionField.id !== FieldId.FRAME_COUNT) {
+        selectionField.id !== FieldId.FRAME_COUNT &&
+        selectionField.id !== FieldId.MEGAPIXELS) {
       const ratio =
           getRatio(selectionValue as number, referenceValue as number);
       return html`<td class="${cssClass}">${getRelativePercent(ratio)}</td>`;

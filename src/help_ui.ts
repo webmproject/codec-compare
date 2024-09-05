@@ -18,6 +18,8 @@ import '@material/mwc-icon';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
+import {Tab} from './tab';
+
 /** Returns the element at domPath or null. */
 function getShadowElement(domPath: string[]): Element|null {
   let element: Element|null|undefined = null;
@@ -32,13 +34,12 @@ function getShadowElement(domPath: string[]): Element|null {
 /** Overlay element describing the other elements behind it. */
 @customElement('help-ui')
 export class HelpUi extends LitElement {
-  @property() displaySentence!: boolean;
+  @property() displayedTab!: Tab;
 
   // Always returned by render() so cannot be null.
   @query('#closeButton') private readonly closeButton!: HTMLElement;
 
   // Containers of descriptive text blocks.
-  // Always returned by render() so cannot be null.
   @query('#numComparisonsDescription')
   private readonly numComparisonsDescription!: HTMLElement;
   @query('#matchersDescription')
@@ -48,6 +49,8 @@ export class HelpUi extends LitElement {
   @query('#batchSelectionsDescription')
   private readonly batchSelectionsDescription!: HTMLElement;
   @query('#graphDescription') private readonly graphDescription!: HTMLElement;
+  @query('#galleryDescription')
+  private readonly galleryDescription!: HTMLElement;
 
   onOpen() {
     // Position the closing button on top of the home page's help button
@@ -74,14 +77,14 @@ export class HelpUi extends LitElement {
     // The main interactive user interface elements are on the fixed left menu.
     // Position the "tooltips" on the right of them to keep them visible.
     // The "tooltips" cover parts of the graph but this works visually.
-    if (this.displaySentence) {
+    if (this.displayedTab === Tab.SUMMARY) {
       positionElementAtTheRightOf(
           this.matchersDescription,
           ['codec-compare', 'sentence-ui', '#matchers']);
       positionElementAtTheRightOf(
           this.batchSelectionsDescription,
           ['codec-compare', 'sentence-ui', '#batches']);
-    } else {
+    } else if (this.displayedTab === Tab.STATS) {
       positionElementAtTheRightOf(
           this.numComparisonsDescription, ['codec-compare', '#numComparisons']);
       positionElementAtTheRightOf(
@@ -91,6 +94,10 @@ export class HelpUi extends LitElement {
       positionElementAtTheRightOf(
           this.batchSelectionsDescription,
           ['codec-compare', 'batch-selections-ui']);
+    } else if (this.displayedTab === Tab.GALLERY) {
+      positionElementAtTheRightOf(
+          this.galleryDescription,
+          ['codec-compare', 'gallery-ui', '#sourceDataSet']);
     }
 
     // This is not the description of the #referenceBatch <p> but it is used as
@@ -109,7 +116,7 @@ export class HelpUi extends LitElement {
     this.requestUpdate();
   }
 
-  private renderSentenceHelp() {
+  private renderSummaryHelp() {
     return html`
       <div class="descriptionHolder" id="numComparisonsDescription">
       </div>
@@ -130,12 +137,13 @@ export class HelpUi extends LitElement {
         <div class="bracket"></div>
         <p>
         Batches are aggregated by codec.<br>
-        The advanced interface can be enabled in the settings (left bar).
+        See the ADVANCED tab for more information and to change the comparison
+        reference, criteria and shown metrics.
         </p>
       </div>`;
   }
 
-  private renderTuneableComparisonHelp() {
+  private renderAdvancedHelp() {
     return html`
       <div class="descriptionHolder" id="numComparisonsDescription">
         <div class="bracket"></div>
@@ -152,10 +160,11 @@ export class HelpUi extends LitElement {
       <div class="descriptionHolder" id="matchersDescription">
         <div class="bracket"></div>
         <p>
-        Pairs are selected so that these constraints are respected. Objective
-        visual distortion metrics such as PSNR and SSIM can be used as matchers
-        to compare formats and codecs on other metrics such as compression rate
-        and encoding duration.<br>
+        Pairs are selected so that these constraints are respected. When
+        comparing lossy compression methods, objective visual distortion metrics
+        such as PSNR and SSIM can be used as matchers to compare formats and
+        codecs on other metrics such as compression rate and encoding duration.
+        <br>
         Numerical fields can be matched with a relative tolerance. If so, pairs
         are selected to minimize the difference of the values of these fields.
         </p>
@@ -175,12 +184,31 @@ export class HelpUi extends LitElement {
         different codecs, or the same codec with different settings. Each batch
         has an associated color.<br>
         Click the info button to see batch metadata and data points. Some data
-        points may be filtered out.<br>
+        points may be filtered out. When comparing lossy compression methods, it
+        is recommended to filter based on
+        <a href="https://github.com/webmproject/codec-compare/wiki/Bits-per-pixel-of-Internet-images"
+          target="_blank">
+          bits-per-pixel usually seen on the web
+          <mwc-icon>open_in_new</mwc-icon></a>.<br>
         Click the focus button to set a batch as the reference to compare the
         others against.<br>
         The statistics relative to the reference batch for the fields selected
         as metrics are displayed in the right-most columns. The aggregation
         method can be changed in the Settings.
+        </p>
+      </div>`;
+  }
+
+  private renderDatasetHelp() {
+    return html`
+      <div class="descriptionHolder" id="galleryDescription">
+        <div class="bracket"></div>
+        <p>
+        These media assets were compressed and decompressed with the codecs
+        presented here to compare their relative performance.<br>
+        <br>
+        The count associated with each asset corresponds to the number of
+        matched pairs based on that asset.
         </p>
       </div>`;
   }
@@ -196,17 +224,18 @@ export class HelpUi extends LitElement {
       </div>
 
       ${
-        this.displaySentence ? this.renderSentenceHelp() :
-                               this.renderTuneableComparisonHelp()}
+        this.displayedTab === Tab.SUMMARY   ? this.renderSummaryHelp() :
+            this.displayedTab === Tab.STATS ? this.renderAdvancedHelp() :
+                                              this.renderDatasetHelp()}
 
       <div class="descriptionHolder" id="graphDescription">
         <p>
         The codecs are plotted on this graph as large disks, with the metric
         fields as axes. If any, batches sharing the same codec are linked with
         straight lines, usually to represent multiple encoding efforts.<br>
-        If enabled in the Settings page, each matched pair is displayed as a
-        tiny dot. Click on any to display the details of the reference batch and
-        of the compared batch.<br>
+        If enabled in the Settings, each matched pair is displayed as a tiny
+        dot. Click on any to display the details of the reference batch and of
+        the compared batch.<br>
         <br>
         For an introduction to image file formats, please see this
         <a href="https://en.wikipedia.org/wiki/Image_file_format"

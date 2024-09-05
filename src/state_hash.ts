@@ -115,6 +115,8 @@ export function stateToMapping(state: State) {
   }
 
   // Global settings.
+  values.set('x_scale', state.horizontalLogScale ? 'log' : 'lin');
+  values.set('y_scale', state.verticalLogScale ? 'log' : 'lin');
   values.set('each_match', state.showEachMatch ? 'show' : 'hide');
   values.set('mean', state.useGeometricMean ? 'geo' : 'arith');
   return values;
@@ -225,6 +227,24 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
     }
     if (ploty === field.name) {
       state.plotMetricVertical = metric;
+    }
+  }
+
+  const horizontalScale = values.get('x_scale');
+  if (horizontalScale) {
+    if (horizontalScale === 'log') {
+      state.horizontalLogScale = true;
+    } else if (horizontalScale === 'lin') {
+      state.horizontalLogScale = false;
+    }
+  }
+
+  const verticalScale = values.get('y_scale');
+  if (verticalScale) {
+    if (verticalScale === 'log') {
+      state.verticalLogScale = true;
+    } else if (verticalScale === 'lin') {
+      state.verticalLogScale = false;
     }
   }
 

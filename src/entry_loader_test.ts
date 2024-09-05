@@ -68,12 +68,19 @@ describe('loadBatchJson', () => {
     expect(response.ok).toBeTrue();
     if (!response.ok) return;
 
+    const batch = await loadBatchJson(response.url);
+    const widthFieldIndex =
+        batch.fields.findIndex((field) => field.id === FieldId.WIDTH);
+    const heightFieldIndex =
+        batch.fields.findIndex((field) => field.id === FieldId.HEIGHT);
+    expect(widthFieldIndex).not.toBe(-1);
+    expect(heightFieldIndex).not.toBe(-1);
+
     // No bits-per-pixel data in the input file.
     const text = await response.text();
     expect(text).not.toContain('bpp');
 
-    // The bits-per-pixel field still exists because it was computed.
-    const batch = await loadBatchJson(response.url);
+    // The bits-per-pixel field exists anyway because it was computed.
     const bppFieldIndex = batch.fields.findIndex(
         (field) => field.id === FieldId.ENCODED_BITS_PER_PIXEL);
     expect(bppFieldIndex).not.toBe(-1);
@@ -90,13 +97,7 @@ describe('loadBatchJson', () => {
       // Make sure the computation is correct.
       const encodedSizeFieldIndex =
           batch.fields.findIndex((field) => field.id === FieldId.ENCODED_SIZE);
-      const widthFieldIndex =
-          batch.fields.findIndex((field) => field.id === FieldId.WIDTH);
-      const heightFieldIndex =
-          batch.fields.findIndex((field) => field.id === FieldId.HEIGHT);
       expect(encodedSizeFieldIndex).not.toBe(-1);
-      expect(widthFieldIndex).not.toBe(-1);
-      expect(heightFieldIndex).not.toBe(-1);
       if (encodedSizeFieldIndex !== -1 && widthFieldIndex !== -1 &&
           heightFieldIndex !== -1) {
         for (const row of batch.rows) {
@@ -108,6 +109,21 @@ describe('loadBatchJson', () => {
                   0.001);
         }
       }
+    }
+
+    // Same for megapixels.
+    expect(text).not.toContain('megapixels');
+    const megapixelsFieldIndex =
+        batch.fields.findIndex((field) => field.id === FieldId.MEGAPIXELS);
+    expect(megapixelsFieldIndex).not.toBe(-1);
+    expect(megapixelsFieldIndex).toBeLessThan(batch.rows[0].length);
+    if (megapixelsFieldIndex !== -1 &&
+        megapixelsFieldIndex < batch.rows[0].length) {
+      // Make sure the computation is correct.
+      expect(batch.rows[0][megapixelsFieldIndex] as number)
+          .toBe(
+              (batch.rows[0][widthFieldIndex] as number) *
+              (batch.rows[0][heightFieldIndex] as number) / 1000000);
     }
   });
 
