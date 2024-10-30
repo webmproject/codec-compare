@@ -214,6 +214,11 @@ export function mergeHistograms(histograms: SourceCount[][]): SourceCount[] {
     }
   }
 
-  // Sort by decreasing occurrences.
-  return Array.from(aggHisto.values()).sort((a, b) => b.count - a.count);
+  // Sort by name to have a deterministic order that is independent of the
+  // histogram values which can change depending on the comparison parameters.
+  return Array.from(aggHisto.values())
+      .sort(
+          (a, b) => a.sourceName > b.sourceName ? 1 :
+              b.sourceName > a.sourceName       ? -1 :
+                                                  0);
 }

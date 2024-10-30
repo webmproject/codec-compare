@@ -50,15 +50,27 @@ export class BatchUi extends LitElement {
       this.requestUpdate();
     };
 
+    const refIndex = this.state.referenceBatchSelectionIndex;
     const batchIndex = this.batch.index;
     const onFilteredDataInfoRequest = () => {
       dispatch(EventType.FILTERED_DATA_INFO_REQUEST, {batchIndex});
       onClose();
     };
+    const onSetAsReference = () => {
+      this.state.referenceBatchSelectionIndex = batchIndex;
+      dispatch(EventType.REFERENCE_CHANGED);
+      this.requestUpdate();
+    };
     const onMatchesInfoRequest = () => {
       dispatch(EventType.MATCHES_INFO_REQUEST, {batchIndex});
       onClose();
     };
+
+    // Keep the batches in the same order.
+    const minIndex = Math.min(refIndex, batchIndex);
+    const maxIndex = Math.max(refIndex, batchIndex);
+    const twoBatchLink = `?batch=${this.state.batches[minIndex].url}&batch=${
+        this.state.batches[maxIndex].url}${window.location.hash}`;
 
     return html`
       <div id="background" @click=${onClose}></div>
@@ -83,6 +95,7 @@ export class BatchUi extends LitElement {
           </mwc-button>
 
           <mwc-button
+            id="showRows"
             raised
             icon="clear_all"
             label="Show rows"
@@ -91,7 +104,32 @@ export class BatchUi extends LitElement {
           </mwc-button>
 
           ${
-        batchIndex === this.state.referenceBatchSelectionIndex ?
+        batchIndex === refIndex ?
+            // disabled mwc-button title does not appear. Use a div.
+            html`
+          <div title="This batch is already the reference batch"
+            class="left-margin">
+            <mwc-button
+              raised
+              icon="center_focus_strong"
+              label="Set as reference"
+              disabled>
+            </mwc-button>
+          </div>
+        ` :
+            html`
+          <mwc-button
+            raised
+            icon="center_focus_weak"
+            label="Set as reference"
+            title="Use this batch as reference to compare other codecs with"
+            @click=${onSetAsReference}
+            class="left-margin">
+          </mwc-button>
+        `}
+
+          ${
+        batchIndex === refIndex ?
             // disabled mwc-button title does not appear. Use a div.
             html`
           <div title="The reference batch cannot be matched with itself">
@@ -105,12 +143,41 @@ export class BatchUi extends LitElement {
         ` :
             html`
           <mwc-button
+            id="showMatches"
             raised
             icon="join_inner"
             label="Show matches"
             title="Display the matches between this batch and the reference batch"
             @click=${onMatchesInfoRequest}>
           </mwc-button>
+        `}
+
+          ${
+        this.state.batches.length < 3 ?
+            html`` :
+            batchIndex === refIndex ?
+            // disabled mwc-button title does not appear. Use a div.
+            html`
+          <div title="Only available with another batch as reference">
+            <mwc-button
+              raised
+              icon="filter_2"
+              label="Two-batch view"
+              disabled>
+              <mwc-icon>open_in_new</mwc-icon>
+            </mwc-button>
+          </div>
+        ` :
+            html`
+          <a href="${twoBatchLink}" target="_blank">
+            <mwc-button
+              raised
+              icon="filter_2"
+              label="Two-batch view"
+              title="Compare only this batch and the reference batch">
+              <mwc-icon>open_in_new</mwc-icon>
+            </mwc-button>
+          </a>
         `}
         </div>
 
@@ -172,6 +239,16 @@ export class BatchUi extends LitElement {
       display: flex;
       flex-direction: row;
       justify-content: space-evenly;
+      gap: 20px;
+    }
+
+    .left-margin {
+      margin-left: auto;
+    }
+
+    mwc-icon {
+      margin-left: 8px;
+      font-size: 16px;
     }
   `;
 }

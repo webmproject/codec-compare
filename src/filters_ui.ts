@@ -27,7 +27,7 @@ import {customElement, property, query} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
 import {Field} from './entry';
-import {dispatch, EventType, listen} from './events';
+import {dispatch, EventType, FilterChanged, listen} from './events';
 import {FieldFilter} from './filter';
 import {State} from './state';
 
@@ -40,8 +40,10 @@ export class FiltersUi extends LitElement {
   @query('#addFilterMenu') private readonly addFilterMenu!: Menu;
   @query('#addFilterButton') private readonly addFilterButton!: Fab;
 
-  private readonly onFilterChanged = () => {
-    this.requestUpdate();
+  private readonly onFilterChanged = (event: CustomEvent<FilterChanged>) => {
+    if (event.detail.batchIndex === this.batchSelection.batch.index) {
+      this.requestUpdate();
+    }
   };
   override connectedCallback() {
     super.connectedCallback();

@@ -81,12 +81,12 @@ interface MatchInfoRequestEventData {
   matchIndex: number;
 }
 
-interface FilterChanged {
-  batchIndex: number;
+export interface FilterChanged {
+  batchIndex: number|undefined;  // Specific batch or CommonField filter.
 }
 
 interface FilteredDataChanged {
-  batchIndex: number;
+  batchIndex: number|undefined;  // Specific batch or CommonField filter.
 }
 
 // Helper functions

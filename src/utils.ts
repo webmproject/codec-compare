@@ -28,3 +28,43 @@ export function isNativelySupported(imagePath: string): boolean {
 export function getFilename(path: string): string {
   return path.substring(path.lastIndexOf('/') + 1);
 }
+
+/**
+ * Removes or add the array elements from/to the set depending on the bitmask.
+ * Returns false in case of invalid bitmask.
+ */
+export function applyBitmaskToStringArray(
+    elements: string[], bitmask: string, set: Set<string>): boolean {
+  for (const [i, element] of elements.entries()) {
+    const hexCharIndex = Math.floor(i / 4);
+
+    // "Code must not use parseInt except for non-base-10" but base-16 is
+    // not recognized by the linter.
+    // tslint:disable-next-line:ban
+    const hexChar = parseInt(bitmask[hexCharIndex], 16);
+    if (!isFinite(hexChar)) return false;
+
+    if ((hexChar & (1 << (i % 4))) === 0) {
+      set.delete(element);
+    } else {
+      set.add(element);
+    }
+  }
+  return true;
+}
+
+export function reverseMap(map: Map<string, Set<string>>):
+    Map<string, Set<string>> {
+  const reverseMap = new Map<string, Set<string>>();
+  for (const [key, value] of map.entries()) {
+    for (const element of value) {
+      const oldSet = reverseMap.get(element);
+      if (oldSet === undefined) {
+        reverseMap.set(element, new Set([key]));
+      } else {
+        oldSet.add(key);
+      }
+    }
+  }
+  return reverseMap;
+}

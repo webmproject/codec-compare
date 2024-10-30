@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {CommonField} from './common_field';
 import {Batch} from './entry';
-import {dispatch, EventType, listen} from './events';
-import {FieldFilter, getFilteredRowIndices} from './filter';
+import {FieldFilter} from './filter';
+import {getFilteredRowIndices} from './filter_row';
 import {MatchedDataPoints} from './matcher';
 import {FieldMetricStats, SourceCount} from './metric';
 
@@ -54,19 +55,11 @@ export class BatchSelection {
       }
       this.fieldFilters.push(fieldFilter);
     }
-
-    listen(EventType.FILTER_CHANGED, (event) => {
-      if (event.detail.batchIndex !== this.batch.index) return;
-      this.updateFilteredRows();
-      dispatch(
-          EventType.FILTERED_DATA_CHANGED,
-          {batchIndex: event.detail.batchIndex});
-    });
   }
 
   /** Updates the filteredRowIndices based on the batch and the fieldFilters. */
-  updateFilteredRows() {
+  updateFilteredRows(commonFields: CommonField[]) {
     this.filteredRowIndices =
-        getFilteredRowIndices(this.batch, this.fieldFilters);
+        getFilteredRowIndices(this.batch, this.fieldFilters, commonFields);
   }
 }

@@ -23,7 +23,8 @@ export enum FieldId {
   CODEC_NAME,
   CODEC_VERSION,
   DATE,
-  SOURCE_DATA_SET,  // For example the URL to access the corpus.
+  SOURCE_DATA_SET,  // For example the URL to access the corpus assets.
+  SOURCE_TAGS,      // Asset tags in the form "tag=[bitmask]&tag 2=[bitmask]".
   SOURCE_IMAGE_PATH,
   ENCODED_IMAGE_PATH,
   DECODED_IMAGE_PATH,
@@ -75,6 +76,7 @@ const NAME_TO_FIELD_ID = new Map<string, FieldId>([
                            // because it also contains the hour so it is more
                            // accurate than "date".
   ['source data set', FieldId.SOURCE_DATA_SET],
+  ['source tags', FieldId.SOURCE_TAGS],
   ['source image path', FieldId.SOURCE_IMAGE_PATH],
   ['original path', FieldId.SOURCE_IMAGE_PATH],
   ['encoded image', FieldId.ENCODED_IMAGE_PATH],

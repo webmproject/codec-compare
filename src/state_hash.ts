@@ -12,8 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {Field} from './entry';
+import {FieldFilter} from './filter';
 import {selectPlotMetrics} from './metric';
 import {State} from './state';
+import {applyBitmaskToStringArray} from './utils';
+
+function filterToMapping(
+    field: Field, fieldFilter: FieldFilter, key: string,
+    values: URLSearchParams) {
+  if (!fieldFilter.enabled) {
+    values.set(key, 'off');
+    return;
+  }
+
+  if (field.isNumber) {
+    values.set(key, `${fieldFilter.rangeStart}..${fieldFilter.rangeEnd}`);
+  } else {
+    // Serialize the bitset of filtered values as a hexadecimal string.
+    // Listing the set of actual values verbatim would take too many
+    // characters.
+    let hexValue = '';
+    let incompleteHexDigit = 0;
+    let i = 0;
+    for (const possibleFieldValue of field.uniqueValuesArray) {
+      if (fieldFilter.uniqueValues.has(possibleFieldValue)) {
+        incompleteHexDigit |= 1 << i;
+      }
+      ++i;
+      if (i === 4) {
+        hexValue += incompleteHexDigit.toString(16);
+        incompleteHexDigit = 0;
+        i = 0;
+      }
+    }
+    if (i !== 0) {
+      hexValue += incompleteHexDigit.toString(16);
+    }
+
+    values.set(key, hexValue);
+  }
+}
 
 /**
  * Traverses the whole state and returns the mapping from any possible element
@@ -39,39 +78,13 @@ export function stateToMapping(state: State) {
       // "batch-a"-"field" and "batch"-"a-field" but this should never happen in
       // practice.
       const key = `${batch.name}-${field.name}`;
-
-      if (!fieldFilter.enabled) {
-        values.set(key, 'off');
-        continue;
-      }
-
-      if (field.isNumber) {
-        values.set(key, `${fieldFilter.rangeStart}..${fieldFilter.rangeEnd}`);
-      } else {
-        // Serialize the bitset of filtered values as a hexadecimal string.
-        // Listing the set of actual values verbatim would take too many
-        // characters.
-        let hexValue = '';
-        let incompleteHexDigit = 0;
-        let i = 0;
-        for (const possibleFieldValue of field.uniqueValuesArray) {
-          if (fieldFilter.uniqueValues.has(possibleFieldValue)) {
-            incompleteHexDigit |= 1 << i;
-          }
-          ++i;
-          if (i === 4) {
-            hexValue += incompleteHexDigit.toString(16);
-            incompleteHexDigit = 0;
-            i = 0;
-          }
-        }
-        if (i !== 0) {
-          hexValue += incompleteHexDigit.toString(16);
-        }
-
-        values.set(key, hexValue);
-      }
+      filterToMapping(field, fieldFilter, key, values);
     }
+  }
+
+  for (const commonField of state.commonFields) {
+    const key = `${commonField.field.name}`;
+    filterToMapping(commonField.field, commonField.filter, key, values);
   }
 
   // Each matcher is stored as "off" if disabled, and as "on" or its tolerance
@@ -122,6 +135,32 @@ export function stateToMapping(state: State) {
   return values;
 }
 
+function applyMappingToFilter(
+    value: string, field: Field, fieldFilter: FieldFilter) {
+  if (value === 'off') {
+    fieldFilter.enabled = false;
+  } else if (field.isNumber) {
+    const range = value.split('..');
+    if (range.length !== 2) return;
+
+    const rangeStart = Number(range[0]);
+    const rangeEnd = Number(range[1]);
+    if (!isFinite(rangeStart) || !isFinite(rangeEnd)) return;
+    if (rangeStart > rangeEnd) return;
+
+    fieldFilter.enabled = true;
+    fieldFilter.rangeStart =
+        Math.min(Math.max(field.rangeStart, rangeStart), field.rangeEnd);
+    fieldFilter.rangeEnd =
+        Math.min(Math.max(field.rangeStart, rangeEnd), field.rangeEnd);
+  } else if (value.length === Math.ceil(field.uniqueValuesArray.length / 4)) {
+    fieldFilter.enabled = true;
+    // Deserialize the hexadecimal string to a bitset of filtered values.
+    applyBitmaskToStringArray(
+        field.uniqueValuesArray, value, fieldFilter.uniqueValues);
+  }
+}
+
 /**
  * Modifies the state according to the element values.
  * Ignores any unused element or invalid value.
@@ -145,49 +184,15 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
       const value = values.get(`${batch.name}-${field.name}`);
       if (value === null) continue;
 
-      if (value === 'off') {
-        fieldFilter.enabled = false;
-        continue;
-      }
-      fieldFilter.enabled = true;
-
-      if (field.isNumber) {
-        const range = value.split('..');
-        if (range.length !== 2) continue;
-
-        const rangeStart = Number(range[0]);
-        const rangeEnd = Number(range[1]);
-        if (!isFinite(rangeStart) || !isFinite(rangeEnd)) continue;
-        if (rangeStart > rangeEnd) continue;
-
-        fieldFilter.rangeStart =
-            Math.min(Math.max(field.rangeStart, rangeStart), field.rangeEnd);
-        fieldFilter.rangeEnd =
-            Math.min(Math.max(field.rangeStart, rangeEnd), field.rangeEnd);
-      } else {
-        if (value.length !== Math.ceil(field.uniqueValuesArray.length / 4)) {
-          continue;
-        }
-
-        // Deserialize the hexadecimal string to a bitset of filtered values.
-        for (const [i, possibleFieldValue] of field.uniqueValuesArray
-                 .entries()) {
-          const hexCharIndex = Math.floor(i / 4);
-
-          // "Code must not use parseInt except for non-base-10" but base-16 is
-          // not recognized by the linter.
-          // tslint:disable-next-line:ban
-          const hexChar = parseInt(value[hexCharIndex], 16);
-          if (!isFinite(hexChar)) continue;
-
-          if ((hexChar & (1 << (i % 4))) === 0) {
-            fieldFilter.uniqueValues.delete(possibleFieldValue);
-          } else {
-            fieldFilter.uniqueValues.add(possibleFieldValue);
-          }
-        }
-      }
+      applyMappingToFilter(value, field, fieldFilter);
     }
+  }
+
+  for (const commonField of state.commonFields) {
+    const value = values.get(`${commonField.field.name}`);
+    if (value === null) continue;
+
+    applyMappingToFilter(value, commonField.field, commonField.filter);
   }
 
   for (const matcher of state.matchers) {

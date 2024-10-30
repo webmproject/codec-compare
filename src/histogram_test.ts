@@ -35,8 +35,8 @@ function createMyData(
 
   const leftBatchSelection = new BatchSelection(leftBatch);
   const rightBatchSelection = new BatchSelection(rightBatch);
-  leftBatchSelection.updateFilteredRows();
-  rightBatchSelection.updateFilteredRows();
+  leftBatchSelection.updateFilteredRows([]);
+  rightBatchSelection.updateFilteredRows([]);
 
   const matcher = new FieldMatcher([0, 0], 0);
   matcher.enabled = true;
@@ -84,13 +84,17 @@ describe('mergeHistograms', () => {
     const histogram = mergeHistograms([histogram1, histogram2, histogram3]);
 
     expect(histogram).toHaveSize(6);
-    expect(histogram[0].sourceName).toBe('81');
-    expect(histogram[0].count).toBe(2 + 2);
-    expect(histogram[1].count).toBe(1);  // probably 1
-    expect(histogram[2].count).toBe(1);  // probably 2
-    expect(histogram[3].count).toBe(1);  // probably 3
-    expect(histogram[4].count).toBe(1);  // probably 23
-    expect(histogram[5].sourceName).toBe('62');
-    expect(histogram[5].count).toBe(0);
+    expect(histogram[0].sourceName).toBe('1');
+    expect(histogram[0].count).toBe(1);
+    expect(histogram[1].sourceName).toBe('2');
+    expect(histogram[1].count).toBe(1);
+    expect(histogram[2].sourceName).toBe('23');
+    expect(histogram[2].count).toBe(1);
+    expect(histogram[3].sourceName).toBe('3');
+    expect(histogram[3].count).toBe(1);
+    expect(histogram[4].sourceName).toBe('62');
+    expect(histogram[4].count).toBe(0);
+    expect(histogram[5].sourceName).toBe('81');
+    expect(histogram[5].count).toBe(2 + 2);
   });
 });

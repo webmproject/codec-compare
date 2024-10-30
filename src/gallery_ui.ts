@@ -20,8 +20,9 @@ import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 import {mergeHistograms} from './batch_merger';
-import {FieldId} from './entry';
-import {EventType, listen} from './events';
+import {Field, FieldId} from './entry';
+import {dispatch, EventType, listen} from './events';
+import {FieldFilter} from './filter';
 import {SourceCount} from './metric';
 import {State} from './state';
 
@@ -29,6 +30,8 @@ import {State} from './state';
 @customElement('gallery-ui')
 export class GalleryUi extends LitElement {
   @property({attribute: false}) state!: State;
+  @property({attribute: false}) tagToAssetNames!: Map<string, Set<string>>;
+  @property({attribute: false}) assetNameToTags!: Map<string, Set<string>>;
 
   override connectedCallback() {
     super.connectedCallback();
@@ -57,8 +60,111 @@ export class GalleryUi extends LitElement {
     return '';
   }
 
-  private renderAsset(asset: SourceCount) {
-    const title = `${asset.sourceName} used in ${asset.count} matches`;
+  private renderTags(field: Field|undefined, filter: FieldFilter|undefined) {
+    if (field === undefined || filter === undefined) {
+      return html``;
+    }
+
+    const addTag = (tag: string) => {
+      const taggedAssetNames = this.tagToAssetNames.get(tag);
+      if (taggedAssetNames === undefined) {
+        return;
+      }
+      for (const taggedAssetName of taggedAssetNames) {
+        filter.uniqueValues.add(taggedAssetName);
+      }
+      filter.enabled =
+          filter.uniqueValues.size !== field.uniqueValuesArray.length;
+      dispatch(EventType.FILTER_CHANGED, {batchIndex: undefined});
+    };
+    const removeTag = (tag: string) => {
+      const taggedAssetNames = this.tagToAssetNames.get(tag);
+      if (taggedAssetNames === undefined) {
+        return;
+      }
+      for (const taggedAssetName of taggedAssetNames) {
+        filter.uniqueValues.delete(taggedAssetName);
+      }
+      filter.enabled = true;
+      dispatch(EventType.FILTER_CHANGED, {batchIndex: undefined});
+    };
+    const addAll = () => {
+      for (const assetName of field.uniqueValuesArray) {
+        filter.uniqueValues.add(assetName);
+      }
+      filter.enabled = false;
+      dispatch(EventType.FILTER_CHANGED, {batchIndex: undefined});
+    };
+    const removeAll = () => {
+      filter.uniqueValues.clear();
+      filter.enabled = true;
+      dispatch(EventType.FILTER_CHANGED, {batchIndex: undefined});
+    };
+
+    return html`
+      <table id="tags">
+        <tr>
+          <th colspan=2>filter assets tagged as</th>
+        </tr>
+        ${Array.from(this.tagToAssetNames.keys()).map(tag => html`
+        <tr>
+          <td>
+            <mwc-button dense @click=${() => addTag(tag)}
+              title="Enable all assets tagged as ${tag}">
+              <mwc-icon>add</mwc-icon>
+              ${tag}
+            </mwc-button>
+          </td>
+          <td>
+            <mwc-button dense @click=${() => removeTag(tag)}
+              title="Disable all assets tagged as ${tag}">
+              <mwc-icon>remove</mwc-icon>
+              ${tag}
+            </mwc-button>
+          </td>
+        </tr>`)}
+        <tr>
+          <td>
+            <mwc-button dense @click=${addAll}
+              title="Enable all assets">
+              <mwc-icon>add</mwc-icon>
+              All
+            </mwc-button>
+          </td>
+          <td>
+            <mwc-button dense @click=${removeAll}
+              title="Disable all assets">
+              <mwc-icon>remove</mwc-icon>
+              All
+            </mwc-button>
+          </td>
+        </tr>
+      </table>`;
+  }
+
+  private renderAsset(
+      asset: SourceCount, field: Field|undefined,
+      filter: FieldFilter|undefined) {
+    const tags = this.assetNameToTags.get(asset.sourceName);
+    const tagList = tags !== undefined ?
+        ' (tags: ' + Array.from(tags).join(', ') + ')' :
+        '';
+    const title =
+        `${asset.sourceName} used in ${asset.count} matches${tagList}`;
+    const checked = filter === undefined || !filter.enabled ||
+        filter.uniqueValues.has(asset.sourceName);
+    const onCheckboxClick = () => {
+      if (field === undefined || filter === undefined) {
+        return;
+      }
+      if (!filter.uniqueValues.delete(asset.sourceName)) {
+        filter.uniqueValues.add(asset.sourceName);
+      }
+      filter.enabled =
+          filter.uniqueValues.size !== field.uniqueValuesArray.length;
+      dispatch(EventType.FILTER_CHANGED, {batchIndex: undefined});
+    };
+
     if (asset.previewPath !== undefined) {
       // Use a preview image tag.
 
@@ -71,6 +177,8 @@ export class GalleryUi extends LitElement {
               alt="${asset.sourceName}">
             <span class="countBubble">${asset.count}</span>
             <div class="linkOverlay"><mwc-icon>open_in_new</mwc-icon></div>
+            <mwc-checkbox ?checked=${checked} @click=${onCheckboxClick}>
+            </mwc-checkbox>
           </a>`;
       }
 
@@ -89,6 +197,7 @@ export class GalleryUi extends LitElement {
           ${asset.sourceName}
           <span class="countBubble">${asset.count}</span>
           <div class="linkOverlay"><mwc-icon>open_in_new</mwc-icon></div>
+          <mwc-checkbox ?checked=${checked}></mwc-checkbox>
         </a>`;
     }
     return html`
@@ -102,10 +211,16 @@ export class GalleryUi extends LitElement {
     const histogram = mergeHistograms(this.state.batchSelections.map(
         batchSelection => batchSelection.histogram));
 
+    const commonField = this.state.commonFields.find(
+        (common) => common.field.id === FieldId.SOURCE_IMAGE_NAME);
+    const field = commonField !== undefined ? commonField.field : undefined;
+    const filter = commonField !== undefined ? commonField.filter : undefined;
+
     return html`
       ${this.renderSourceDataSet()}
+      ${this.renderTags(field, filter)}
       <div id="gallery">
-        ${histogram.map(source => this.renderAsset(source))}
+        ${histogram.map(source => this.renderAsset(source, field, filter))}
       </div>`;
   }
 
@@ -139,6 +254,10 @@ export class GalleryUi extends LitElement {
     }
     tr {
       background: var(--mdc-theme-background);
+    }
+
+    #tags td {
+      text-align: center;
     }
 
     #gallery {
@@ -193,6 +312,12 @@ export class GalleryUi extends LitElement {
     .linkOverlay > mwc-icon {
       color: var(--mdc-theme-background);
       font-size: 16px;
+    }
+
+    mwc-checkbox {
+      position: absolute;
+      top: 0;
+      left: 0;
     }
 
     .unused {
