@@ -1,6 +1,6 @@
 {
   "name": "codec_compare",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Codec performance comparison tool",
   "publisher": "Google LLC",
   "author": "Yannis Guyon",
@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@material/mwc-button": "^0.27.0",
+    "@material/mwc-checkbox": "^0.27.0",
     "@material/mwc-fab": "^0.27.0",
     "@material/mwc-icon": "^0.27.0",
     "@material/mwc-icon-button": "^0.27.0",

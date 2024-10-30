@@ -83,7 +83,7 @@ describe('Matcher', () => {
     state.batches[1].rows.push(['value A-11', 11]);
     state.batches[1].rows.push(['value A-11', 11]);
     for (const batchSelection of state.batchSelections) {
-      batchSelection.updateFilteredRows();
+      batchSelection.updateFilteredRows(state.commonFields);
     }
 
     const matches = getDataPoints(
@@ -113,7 +113,7 @@ describe('Matcher', () => {
     state.batches[1].rows.push(['value A-4', 10]);
     state.batches[1].rows.push(['value A-4', 40]);
     for (const batchSelection of state.batchSelections) {
-      batchSelection.updateFilteredRows();
+      batchSelection.updateFilteredRows(state.commonFields);
     }
 
     const matches = getDataPointsSymmetric(
@@ -136,7 +136,7 @@ describe('Matcher', () => {
       state.batches[1].rows.push(['value A-∞', 123]);
     }
     for (const batchSelection of state.batchSelections) {
-      batchSelection.updateFilteredRows();
+      batchSelection.updateFilteredRows(state.commonFields);
     }
 
     const matches = getDataPoints(
@@ -153,7 +153,7 @@ describe('Matcher', () => {
       state.batches[1].rows.push([`value A-${i}`, 123]);
     }
     for (const batchSelection of state.batchSelections) {
-      batchSelection.updateFilteredRows();
+      batchSelection.updateFilteredRows(state.commonFields);
     }
 
     const matches = getDataPoints(

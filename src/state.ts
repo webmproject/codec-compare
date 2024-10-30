@@ -15,7 +15,8 @@
 import {createGroups} from './batch_groups';
 import {BatchSelection} from './batch_selection';
 import {setColors} from './color_setter';
-import {Batch, FieldId} from './entry';
+import {CommonField, createCommonFields} from './common_field';
+import {Batch, Field, FieldId} from './entry';
 import {dispatch, EventType, listen} from './events';
 import {enableDefaultFilters} from './filter';
 import {createMatchers, enableDefaultMatchers, FieldMatcher, getDataPointsSymmetric, isLossless} from './matcher';
@@ -36,6 +37,9 @@ export class State {
    */
   batchSelections: BatchSelection[] = [];
   referenceBatchSelectionIndex = -1;
+
+  /** Fields common to all batches. */
+  commonFields: CommonField[] = [];
 
   /**
    * Criteria to match each point from the referenceBatchSelection to each of
@@ -86,6 +90,8 @@ export class State {
     createGroups(this);
     setColors(this);
 
+    this.commonFields = createCommonFields(this.batches);
+
     this.matchers = createMatchers(this.batches);
     if (this.matchers.filter((matcher) => matcher.enabled).length === 0) {
       enableDefaultMatchers(this.batches, this.matchers);
@@ -134,6 +140,23 @@ export class State {
       }
     }
 
+    listen(EventType.FILTER_CHANGED, (event) => {
+      if (event.detail.batchIndex === undefined) {
+        // A common field filter changed.
+        for (const batchSelection of this.batchSelections) {
+          batchSelection.updateFilteredRows(this.commonFields);
+        }
+        dispatch(EventType.FILTERED_DATA_CHANGED, {batchIndex: undefined});
+      } else if (event.detail.batchIndex < this.batchSelections.length) {
+        // A specific batch changed.
+        const batchSelection = this.batchSelections[event.detail.batchIndex];
+        batchSelection.updateFilteredRows(this.commonFields);
+        dispatch(
+            EventType.FILTERED_DATA_CHANGED,
+            {batchIndex: event.detail.batchIndex});
+      }
+    });
+
     const computeMatchesAndStats = (batchSelection: BatchSelection) => {
       const referenceBatchSelection =
           this.batchSelections[this.referenceBatchSelectionIndex];
@@ -151,21 +174,19 @@ export class State {
     };
 
     listen(EventType.FILTERED_DATA_CHANGED, (event) => {
-      if (event.detail.batchIndex < 0 ||
-          event.detail.batchIndex >= this.batchSelections.length) {
-        return;
-      }
-
-      if (event.detail.batchIndex === this.referenceBatchSelectionIndex) {
-        // Recompute everything because the reference batch changed.
+      if (event.detail.batchIndex === undefined ||
+          event.detail.batchIndex === this.referenceBatchSelectionIndex) {
+        // Recompute everything because a common field filter or the reference
+        // batch changed.
         for (const batchSelection of this.batchSelections) {
           computeMatchesAndStats(batchSelection);
         }
-      } else {
+        dispatch(EventType.MATCHED_DATA_POINTS_CHANGED);
+      } else if (event.detail.batchIndex < this.batchSelections.length) {
         // Only recompute the changed batch.
         computeMatchesAndStats(this.batchSelections[event.detail.batchIndex]);
+        dispatch(EventType.MATCHED_DATA_POINTS_CHANGED);
       }
-      dispatch(EventType.MATCHED_DATA_POINTS_CHANGED);
     });
 
     listen(EventType.REFERENCE_CHANGED, () => {
@@ -218,7 +239,7 @@ export class State {
     }
 
     for (const batchSelection of this.batchSelections) {
-      batchSelection.updateFilteredRows();
+      batchSelection.updateFilteredRows(this.commonFields);
     }
   }
 }

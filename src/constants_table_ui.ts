@@ -33,7 +33,16 @@ export class ConstantsTableUi extends LitElement {
   private renderConstant(
       batch: Batch, constant: Constant, showDescriptionAsTitle: boolean,
       constantValue: string) {
+    // Already displayed by parent component BatchUi.
     if (constant.id === FieldId.BATCH_NAME) return html``;
+
+    // Save screen space by hiding some fields that can be found elsewhere.
+    if (constant.id === FieldId.SOURCE_TAGS) return html``;
+    if (constant.id === FieldId.SOURCE_IMAGE_PATH) return html``;
+    if (constant.id === FieldId.ENCODED_IMAGE_PATH) return html``;
+    if (constant.id === FieldId.DECODED_IMAGE_PATH) return html``;
+    if (constant.id === FieldId.PREVIEW_PATH) return html``;
+
     return html`
         <tr>
           ${

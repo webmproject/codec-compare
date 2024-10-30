@@ -37,7 +37,7 @@ describe('BatchSelection', () => {
     expect(batch.fields[1].isNumber).toBeTrue();
 
     selection = new BatchSelection(batch);
-    selection.updateFilteredRows();
+    selection.updateFilteredRows([]);
   });
 
   it('filters rows', () => {
@@ -55,28 +55,13 @@ describe('BatchSelection', () => {
     // Filter out one image.
     selection.fieldFilters[0].enabled = true;
     selection.fieldFilters[0].uniqueValues.delete('path/to/image');
-    dispatch(EventType.FILTER_CHANGED, {batchIndex: batch.index});
+    selection.updateFilteredRows([]);
     expect(selection.filteredRowIndices).toEqual([1, 2]);
 
     // Reduce the range of numeric values.
     selection.fieldFilters[1].enabled = true;
     selection.fieldFilters[1].rangeEnd = 4.6;
-    dispatch(EventType.FILTER_CHANGED, {batchIndex: batch.index});
+    selection.updateFilteredRows([]);
     expect(selection.filteredRowIndices).toEqual([2]);
-  });
-
-  it('dispatches an event back', () => {
-    batch.index = 42;
-
-    let eventBatchIndex: number|undefined = undefined;
-    window.addEventListener(EventType.FILTERED_DATA_CHANGED, (event) => {
-      eventBatchIndex = event.detail.batchIndex;
-    }, {once: true});
-    expect(eventBatchIndex).toBeUndefined();
-    dispatch(EventType.FILTER_CHANGED, {batchIndex: batch.index});
-    expect(eventBatchIndex).not.toBeUndefined();
-    if (eventBatchIndex !== undefined) {
-      expect(eventBatchIndex).toBe(batch.index);
-    }
   });
 });

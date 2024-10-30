@@ -41,6 +41,7 @@ export class BatchSelectionActionsUi extends LitElement {
 
     return html`
       <mwc-icon-button
+          class="batchInfo"
           icon="info"
           title="Show details"
           @click=${() => {

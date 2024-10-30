@@ -14,6 +14,7 @@
 
 import {BatchSelection} from './batch_selection';
 import {areFieldsComparable, Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId} from './entry';
+import {FieldFilter} from './filter';
 
 /** References two data points from two selected batches. */
 export class Match {

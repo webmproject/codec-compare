@@ -34,6 +34,7 @@ import './help_ui';
 import {css, html, LitElement} from 'lit';
 import {customElement, query} from 'lit/decorators.js';
 
+import {sourceTagsFromBatchesAndCommonFields} from './common_field';
 import {Batch} from './entry';
 import {loadBatchJson, loadJsonContainingBatchJsonPaths} from './entry_loader';
 import {dispatch, EventType, listen} from './events';
@@ -44,6 +45,7 @@ import {SettingsUi} from './settings_ui';
 import {State} from './state';
 import {Tab} from './tab';
 import {UrlState} from './url_state';
+import {reverseMap} from './utils';
 
 /** Main component of the codec comparison static viewer. */
 @customElement('codec-compare')
@@ -51,6 +53,9 @@ export class CodecCompare extends LitElement {
   /** The root data object containing the full state. */
   private readonly state = new State();
   private readonly urlState = new UrlState();
+  /** Maps asset tags to the set of source asset names that have them. */
+  private tagToAssetNames = new Map<string, Set<string>>();
+  private assetNameToTags = new Map<string, Set<string>>();
   /** True if all batches are loaded into the state. */
   private isLoaded = false;
   /** True if at least one batch failed to load. */
@@ -74,7 +79,6 @@ export class CodecCompare extends LitElement {
   }
 
   private renderSentence() {
-    // #sentenceContainer is an overlay of the whole #comparisons block.
     return html`
       <div id="sentenceContainer">
         <sentence-ui .state=${this.state}></sentence-ui>
@@ -82,10 +86,13 @@ export class CodecCompare extends LitElement {
   }
 
   private renderGallery() {
-    // #galleryContainer is an overlay of the whole #comparisons block.
     return html`
       <div id="galleryContainer">
-        <gallery-ui .state=${this.state}></gallery-ui>
+        <gallery-ui
+          .state=${this.state}
+          .tagToAssetNames=${this.tagToAssetNames}
+          .assetNameToTags=${this.assetNameToTags}>
+        </gallery-ui>
       </div>`;
   }
 
@@ -201,7 +208,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare beta version 0.2.4<br>
+            Codec Compare beta version 0.2.5<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -241,6 +248,9 @@ export class CodecCompare extends LitElement {
 
   private async onAllBatchesLoaded() {
     this.state.initialize();
+    this.tagToAssetNames = sourceTagsFromBatchesAndCommonFields(
+        this.state.batches, this.state.commonFields);
+    this.assetNameToTags = reverseMap(this.tagToAssetNames);
     this.urlState.setDefaultValues(this.state);
     this.state.initializePostUrlStateDefaultValues();
     this.urlState.load(this.state);
