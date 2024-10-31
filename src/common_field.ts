@@ -101,7 +101,8 @@ export function createCommonFields(batches: Batch[]): CommonField[] {
 
 function sourceTagsFromBatchesAndAssetNames(
     batches: Batch[], assetNames: string[]): Map<string, Set<string>> {
-  const sourceTags = new Map<string, Set<string>>();
+  const tagToAssetNames = new Map<string, Set<string>>();
+  const tagToBitmask = new Map<string, string>();
 
   for (const batch of batches) {
     const constant =
@@ -117,24 +118,22 @@ function sourceTagsFromBatchesAndAssetNames(
       const tag = tagAndBitmaskSplit[0];
       const bitmask = tagAndBitmaskSplit[1];
 
-      const taggedAssetNames = new Set<string>();
-      if (!applyBitmaskToStringArray(assetNames, bitmask, taggedAssetNames)) {
-        // Mismatch between the asset names and a bitmask.
-        return new Map<string, Set<string>>();
-      }
-
-      const oldTaggedAssetNames = sourceTags.get(tag);
-      if (oldTaggedAssetNames !== undefined) {
-        if (oldTaggedAssetNames !== taggedAssetNames) {
-          // Mismatch between batches about the meaning of a tag.
+      const otherBitmask = tagToBitmask.get(tag);
+      if (otherBitmask === undefined) {
+        const taggedAssetNames = new Set<string>();
+        if (!applyBitmaskToStringArray(assetNames, bitmask, taggedAssetNames)) {
+          // Mismatch between the asset names and a bitmask.
           return new Map<string, Set<string>>();
         }
-      } else {
-        sourceTags.set(tag, taggedAssetNames);
+        tagToAssetNames.set(tag, taggedAssetNames);
+        tagToBitmask.set(tag, bitmask);
+      } else if (otherBitmask !== bitmask) {
+        // Mismatch between batches about the meaning of a tag.
+        return new Map<string, Set<string>>();
       }
     }
   }
-  return sourceTags;
+  return tagToAssetNames;
 }
 
 /**

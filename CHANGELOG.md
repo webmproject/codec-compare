@@ -1,9 +1,13 @@
 # Changelog
 
+## v0.2.6
+
+- Fix cross-batch source asset filtering by tag.
+
 ## v0.2.5
 
 - Add support for cross-batch individual source asset filtering.
-- Add support for cross-batch batch source asset filtering by tag.
+- Add support for cross-batch source asset filtering by tag.
 - Add button to set the batch as the reference batch in the batch info panel.
 - Add link to view only two batches in the batch info panel.
 
