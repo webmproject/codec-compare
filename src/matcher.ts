@@ -422,8 +422,11 @@ export function getDataPoints(
     }
 
     if (bestMatch !== undefined) {
+      // Do not match a data point more than once for a given batch pair.
+      // TODO: Add a setting for matching a data point multiple times.
       bucket[bestIndexInBucket] = bucket[bucket.length - 1];
       bucket.pop();
+
       matches.push(bestMatch);
     }
   }

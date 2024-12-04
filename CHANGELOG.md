@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.0
+
+- Add absolute metrics mode. Default mode remains relative ratios.
+
 ## v0.2.6
 
 - Fix cross-batch source asset filtering by tag.

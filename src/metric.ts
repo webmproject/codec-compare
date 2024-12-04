@@ -30,13 +30,20 @@ export class FieldMetric {
 
 /** Aggregated stats for a FieldMetric. */
 export class FieldMetricStats {
+  // Absolute values
+  absoluteArithmeticMean = 0;
+
+  // Relative ratios
   geometricMean = 1;
   minRatio = 1;
   maxRatio = 1;
-  arithmeticMean = 1;
+  relativeArithmeticMean = 1;
 
-  getMean(geometric: boolean) {
-    return geometric ? this.geometricMean : this.arithmeticMean;
+  getAbsoluteMean() {
+    return this.absoluteArithmeticMean;
+  }
+  getRelativeMean(geometric: boolean) {
+    return geometric ? this.geometricMean : this.relativeArithmeticMean;
   }
 }
 
@@ -206,8 +213,9 @@ export function computeStats(
       ++numDataPoints;
     }
     if (numDataPoints > 0) {
+      fieldStats.absoluteArithmeticMean = leftSum / numDataPoints;
       fieldStats.geometricMean = geometricMean.get();
-      fieldStats.arithmeticMean = getRatio(leftSum, rightSum);
+      fieldStats.relativeArithmeticMean = getRatio(leftSum, rightSum);
     }
     stats.push(fieldStats);
   }

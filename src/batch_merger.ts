@@ -110,7 +110,8 @@ function mergeBatchesWithSameCodec(batches: BatchSelection[]): BatchSelection|
     const mergedStats = new FieldMetricStats();
     mergedStats.minRatio = batches[0].stats[stat].minRatio;
     mergedStats.maxRatio = batches[0].stats[stat].maxRatio;
-    mergedStats.arithmeticMean = 0;
+    mergedStats.absoluteArithmeticMean = 0;
+    mergedStats.relativeArithmeticMean = 0;
 
     const geometricMean = new GeometricMean();
     let weightSum = 0;
@@ -118,6 +119,8 @@ function mergeBatchesWithSameCodec(batches: BatchSelection[]): BatchSelection|
       // Weigh each batch by its match count.
       const weight = batch.matchedDataPoints.rows.length;
       // TODO: Check the validity of the aggregation methods.
+      mergedStats.absoluteArithmeticMean +=
+          batch.stats[stat].absoluteArithmeticMean * weight;
       for (let p = 0; p < batch.matchedDataPoints.rows.length; ++p) {
         geometricMean.add(batch.stats[stat].geometricMean);
       }
@@ -125,13 +128,15 @@ function mergeBatchesWithSameCodec(batches: BatchSelection[]): BatchSelection|
           Math.min(mergedStats.minRatio, batch.stats[stat].minRatio);
       mergedStats.maxRatio =
           Math.max(mergedStats.maxRatio, batch.stats[stat].maxRatio);
-      mergedStats.arithmeticMean += batch.stats[stat].arithmeticMean * weight;
+      mergedStats.relativeArithmeticMean +=
+          batch.stats[stat].relativeArithmeticMean * weight;
       weightSum += weight;
     }
 
     if (weightSum === 0) return undefined;
+    mergedStats.absoluteArithmeticMean /= weightSum;
     mergedStats.geometricMean = geometricMean.get();
-    mergedStats.arithmeticMean /= weightSum;
+    mergedStats.relativeArithmeticMean /= weightSum;
 
     mergedBatchSelection.stats.push(mergedStats);
   }
