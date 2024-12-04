@@ -150,6 +150,30 @@ function fieldPrettyName(id: FieldId, name: string): string {
   return name.replaceAll('_', ' ');
 }
 
+export function fieldUnit(id: FieldId): string {
+  if (DISTORTION_METRIC_FIELD_IDS.includes(id)) {
+    // Display distortion metrics as uppercase.
+    return 'dB';
+  }
+  switch (id) {
+    case FieldId.WIDTH:
+    case FieldId.HEIGHT:
+      return 'px';
+    case FieldId.ENCODED_SIZE:
+      return 'B';
+    case FieldId.ENCODED_BITS_PER_PIXEL:
+      return 'bpp';
+    case FieldId.MEGAPIXELS:
+      return 'MP';
+    case FieldId.ENCODING_DURATION:
+    case FieldId.DECODING_DURATION:
+    case FieldId.RAW_DECODING_DURATION:
+      return 's';
+    default:
+      return '';
+  }
+}
+
 /** Data column in a Batch. For example: source_image, encoding_time etc. */
 export class Field {
   id: FieldId;

@@ -18,7 +18,7 @@ import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
-import {Field} from './entry';
+import {Field, fieldUnit} from './entry';
 import {dispatch, EventType, listen} from './events';
 import {FieldFilter} from './filter';
 import {FieldMetric, FieldMetricStats} from './metric';
@@ -47,7 +47,8 @@ export class BatchSelectionsUi extends LitElement {
     const referenceBatch =
         this.state.batchSelections[this.state.referenceBatchSelectionIndex]
             .batch;
-    if (batchSelectionIndex === this.state.referenceBatchSelectionIndex) {
+    if (this.state.showRelativeRatios &&
+        batchSelectionIndex === this.state.referenceBatchSelectionIndex) {
       const title = referenceBatch.name + ' is used as reference';
       return html`
         <td class="stat" title="${title}">
@@ -65,14 +66,34 @@ export class BatchSelectionsUi extends LitElement {
       `;
     }
 
-    const mean = stats.getMean(this.state.useGeometricMean);
-    const title = field.displayName + ' of ' + batch.name + ' is ' +
-        String(mean.toFixed(4)) + '× ' + referenceBatch.name;
-    return html`
-      <td class="stat" title="${title}">
-        ${getRelativePercent(mean)}
-      </td>
-    `;
+    if (this.state.showRelativeRatios) {
+      const mean = stats.getRelativeMean(this.state.useGeometricMean);
+      const title = `${field.displayName} of ${batch.name} is ${
+          mean.toFixed(4)}× ${referenceBatch.name}`;
+      return html`
+        <td class="stat" title="${title}">
+          ${getRelativePercent(mean)}
+        </td>`;
+    } else {
+      let mean = stats.getAbsoluteMean();
+      let multiple = '';
+      const unit = fieldUnit(field.id);
+      const title = `average ${field.displayName} of ${batch.name} is ${
+          mean} ${unit}`;
+
+      if (mean > 1000000 && unit === 'B') {
+        mean /= 1000000;
+        multiple = 'M';
+      } else if (mean > 1000 && unit === 'B') {
+        mean /= 1000;
+        multiple = 'k';
+      }
+      const meanStr = mean < 1 ? mean.toFixed(4) :
+          mean < 100           ? mean.toFixed(2) :
+                                 mean.toFixed(0);
+      return html`
+        <td class="stat" title="${title}">${meanStr}${multiple}${unit}</td>`;
+    }
   }
 
   private filterChipText(field: Field, fieldFilter: FieldFilter) {

@@ -57,12 +57,19 @@ export class State {
   verticalLogScale = true;     // Use a linear scale if false.
   horizontalLogScale = false;  // Use a linear scale if false.
 
-  /** If true, each match is shown on the plot as a small dot. */
-  showEachMatch = true;
+  /**
+   * If true, each absolute data point or relative match is shown on the plot
+   * as a small dot.
+   */
+  showEachPoint = true;
+
+  /** If false, show absolute metrics. */
+  showRelativeRatios = true;
 
   /**
    * If true, the geometric mean is used to aggregate the matches.
    * If false, the arithmetic mean is used to aggregate the matches.
+   * Only applies if showRelativeRatios is true.
    */
   useGeometricMean = true;
 
@@ -128,7 +135,7 @@ export class State {
         selectPlotMetrics(this.batches[0], this.metrics);
 
     if (this.batches.length > 2) {
-      this.showEachMatch = false;  // Avoids visual confusion.
+      this.showEachPoint = false;  // Avoids visual confusion.
     } else {
       // It would be better to count the matches rather than the data points but
       // it is more important to have a default setting value right now, before
@@ -136,7 +143,7 @@ export class State {
       const numDataPoints =
           this.batches.reduce((n, batch) => n + batch.rows.length, 0);
       if (numDataPoints > 50000) {
-        this.showEachMatch = false;  // Avoids plot sluggishness by default.
+        this.showEachPoint = false;  // Avoids plot sluggishness by default.
       }
     }
 

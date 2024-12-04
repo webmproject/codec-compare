@@ -44,8 +44,8 @@ export class SettingsUi extends LitElement {
           <span title="Use a linear scale for the horizontal axis">
             Linear x axis
           </span>
-          <mwc-switch ?selected=${this.state.horizontalLogScale}
-            @click=${() => {
+          <mwc-switch id="settingHorizontalLogScale"
+            ?selected=${this.state.horizontalLogScale} @click=${() => {
       this.state.horizontalLogScale = !this.state.horizontalLogScale;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
@@ -59,8 +59,8 @@ export class SettingsUi extends LitElement {
           <span title="Use a linear scale for the vertical axis">
             Linear y axis
           </span>
-          <mwc-switch ?selected=${this.state.verticalLogScale}
-            @click=${() => {
+          <mwc-switch id="settingVerticalLogScale"
+            ?selected=${this.state.verticalLogScale} @click=${() => {
       this.state.verticalLogScale = !this.state.verticalLogScale;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
@@ -74,9 +74,9 @@ export class SettingsUi extends LitElement {
           <span title="Hide the matched pairs in the graph">
             Hide data points
           </span>
-          <mwc-switch ?selected=${this.state.showEachMatch}
-            @click=${() => {
-      this.state.showEachMatch = !this.state.showEachMatch;
+          <mwc-switch id="settingShowEachPoint"
+            ?selected=${this.state.showEachPoint} @click=${() => {
+      this.state.showEachPoint = !this.state.showEachPoint;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
@@ -87,10 +87,27 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
+          <span title="Display the absolute values of the matched data points">
+            Absolute metrics
+          </span>
+          <mwc-switch id="settingShowRelativeRatios"
+            ?selected=${this.state.showRelativeRatios} @click=${() => {
+      this.state.showRelativeRatios = !this.state.showRelativeRatios;
+      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+      dispatch(EventType.SETTINGS_CHANGED);
+    }}>
+          </mwc-switch>
+          <span title="Display the relative ratios of the matched pairs">
+            Relative ratios
+          </span>
+        </div>
+        <div class="settingGroup">
           <span title="Aggregate the metrics using the arithmetic mean of the values of the matched data points">
             Arithmetic mean
           </span>
-          <mwc-switch ?selected=${this.state.useGeometricMean}
+          <mwc-switch id="settingUseGeometricMean" ?selected=${
+        this.state.showRelativeRatios && this.state.useGeometricMean}
+            ?disabled=${!this.state.showRelativeRatios}
             @click=${() => {
       this.state.useGeometricMean = !this.state.useGeometricMean;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
@@ -105,8 +122,8 @@ export class SettingsUi extends LitElement {
           <span title="Only display the first rows of the filtered or matched data point tables">
             Show some rows
           </span>
-          <mwc-switch ?selected=${this.state.showAllRows}
-            @click=${() => {
+          <mwc-switch id="settingShowAllRows"
+            ?selected=${this.state.showAllRows} @click=${() => {
       this.state.showAllRows = !this.state.showAllRows;
       dispatch(EventType.SETTINGS_CHANGED);
     }}>

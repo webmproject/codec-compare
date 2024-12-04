@@ -150,8 +150,10 @@ export class PlotUi {
     }
     const matchDotSize = Math.max(1, Math.min(5, 5000 / (numMatches + 1)));
     const MEAN_DOT_SIZE = 15;
+    const showRelativeRatios = this.state.showRelativeRatios;
+    const useGeometricMean = showRelativeRatios && this.state.useGeometricMean;
 
-    if (this.state.showEachMatch) {
+    if (this.state.showEachPoint) {
       for (const batchSelection of this.state.batchSelections) {
         if (batchSelection.matchedDataPoints.rows.length === 0) continue;
         const batch = batchSelection.batch;
@@ -167,7 +169,8 @@ export class PlotUi {
         const yAxis = yField.displayName;
 
         // No need to display a lot of points exactly at 1,1.
-        if (batch.index !== this.state.referenceBatchSelectionIndex) {
+        if (batch.index !== this.state.referenceBatchSelectionIndex ||
+            !showRelativeRatios) {
           // Map matched indices to relative values.
           const x: number[] = [];
           const y: number[] = [];
@@ -182,10 +185,15 @@ export class PlotUi {
             const yReferenceValue = referenceEntry[yReferenceFieldIndex];
 
             // Metrics only exist for Fields with isNumber=true.
-            const xRatio = (xValue as number) / (xReferenceValue as number);
-            const yRatio = (yValue as number) / (yReferenceValue as number);
-            x.push(xRatio);
-            y.push(yRatio);
+            if (showRelativeRatios) {
+              const xRatio = (xValue as number) / (xReferenceValue as number);
+              const yRatio = (yValue as number) / (yReferenceValue as number);
+              x.push(xRatio);
+              y.push(yRatio);
+            } else {
+              x.push(xValue as number);
+              y.push(yValue as number);
+            }
             text.push(entry[textFieldIndex] as string);
           }
 
@@ -242,10 +250,15 @@ export class PlotUi {
             this.state.metrics.findIndex((metric) => metric === xMetric);
         const yMetricIndex =
             this.state.metrics.findIndex((metric) => metric === yMetric);
-        xMeans.push(batchSelection.stats[xMetricIndex].getMean(
-            this.state.useGeometricMean));
-        yMeans.push(batchSelection.stats[yMetricIndex].getMean(
-            this.state.useGeometricMean));
+        if (showRelativeRatios) {
+          xMeans.push(batchSelection.stats[xMetricIndex].getRelativeMean(
+              useGeometricMean));
+          yMeans.push(batchSelection.stats[yMetricIndex].getRelativeMean(
+              useGeometricMean));
+        } else {
+          xMeans.push(batchSelection.stats[xMetricIndex].getAbsoluteMean());
+          yMeans.push(batchSelection.stats[yMetricIndex].getAbsoluteMean());
+        }
         meanTexts.push(batch.name);
         colors.push(batch.color);
         batchIndices.push(batchIndex);

@@ -130,7 +130,8 @@ export function stateToMapping(state: State) {
   // Global settings.
   values.set('x_scale', state.horizontalLogScale ? 'log' : 'lin');
   values.set('y_scale', state.verticalLogScale ? 'log' : 'lin');
-  values.set('each_match', state.showEachMatch ? 'show' : 'hide');
+  values.set('each_point', state.showEachPoint ? 'show' : 'hide');
+  values.set('metrics', state.showRelativeRatios ? 'rel' : 'abs');
   values.set('mean', state.useGeometricMean ? 'geo' : 'arith');
   return values;
 }
@@ -253,12 +254,21 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
     }
   }
 
-  const eachMatch = values.get('each_match');
-  if (eachMatch) {
-    if (eachMatch === 'show') {
-      state.showEachMatch = true;
-    } else if (eachMatch === 'hide') {
-      state.showEachMatch = false;
+  const eachPoint = values.get('each_point');
+  if (eachPoint) {
+    if (eachPoint === 'show') {
+      state.showEachPoint = true;
+    } else if (eachPoint === 'hide') {
+      state.showEachPoint = false;
+    }
+  }
+
+  const metrics = values.get('metrics');
+  if (metrics) {
+    if (metrics === 'rel') {
+      state.showRelativeRatios = true;
+    } else if (metrics === 'abs') {
+      state.showRelativeRatios = false;
     }
   }
 

@@ -61,7 +61,7 @@ describe('stateToMapping', () => {
   });
 
   it('outputs global settings', () => {
-    expect(stateToMapping(state).get('each_match')).toBeDefined();
+    expect(stateToMapping(state).get('each_point')).toBeDefined();
   });
 });
 

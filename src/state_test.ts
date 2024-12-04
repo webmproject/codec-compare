@@ -65,8 +65,13 @@ describe('State', () => {
     expect(state.referenceBatchSelectionIndex).toBe(0);
     dispatch(EventType.FILTERED_DATA_CHANGED, {batchIndex: 0});
 
+    expect(state.batchSelections[0].stats.length).toBe(1);
+    expect(state.batchSelections[0].stats[0].absoluteArithmeticMean).toBe(1);
+
     expect(state.batchSelections[1].stats.length).toBe(1);
-    expect(state.batchSelections[1].stats[0].arithmeticMean).toBe(6);
+    expect(state.batchSelections[1].stats[0].absoluteArithmeticMean).toBe(6);
+    expect(state.batchSelections[1].stats[0].geometricMean).toBe(6);
+    expect(state.batchSelections[1].stats[0].relativeArithmeticMean).toBe(6);
   });
 
   it('computes stats only for batches that changed according to event', () => {
@@ -74,8 +79,14 @@ describe('State', () => {
     expect(state.referenceBatchSelectionIndex).toBe(0);
     dispatch(EventType.FILTERED_DATA_CHANGED, {batchIndex: 0});
 
-    expect(state.batchSelections[1].stats[0].arithmeticMean).toBe(6);
-    expect(state.batchSelections[2].stats[0].arithmeticMean).toBe(11);
+    expect(state.batchSelections[0].stats[0].absoluteArithmeticMean).toBe(1);
+
+    expect(state.batchSelections[1].stats[0].absoluteArithmeticMean).toBe(6);
+    expect(state.batchSelections[1].stats[0].geometricMean).toBeCloseTo(6);
+    expect(state.batchSelections[1].stats[0].relativeArithmeticMean).toBe(6);
+    expect(state.batchSelections[2].stats[0].absoluteArithmeticMean).toBe(11);
+    expect(state.batchSelections[2].stats[0].geometricMean).toBeCloseTo(11);
+    expect(state.batchSelections[2].stats[0].relativeArithmeticMean).toBe(11);
 
     // Change the data points of both batches.
     state.batches[1].rows[0][1] = 123;
@@ -83,8 +94,12 @@ describe('State', () => {
     // Only notify the change of one batch.
     dispatch(EventType.FILTERED_DATA_CHANGED, {batchIndex: 1});
     // Only one stat changed.
-    expect(state.batchSelections[1].stats[0].arithmeticMean).toBe(123);
-    expect(state.batchSelections[2].stats[0].arithmeticMean).toBe(11);
+    expect(state.batchSelections[1].stats[0].absoluteArithmeticMean).toBe(123);
+    expect(state.batchSelections[1].stats[0].geometricMean).toBeCloseTo(123);
+    expect(state.batchSelections[1].stats[0].relativeArithmeticMean).toBe(123);
+    expect(state.batchSelections[2].stats[0].absoluteArithmeticMean).toBe(11);
+    expect(state.batchSelections[2].stats[0].geometricMean).toBeCloseTo(11);
+    expect(state.batchSelections[2].stats[0].relativeArithmeticMean).toBe(11);
   });
 
   it('dispatches an event back', () => {

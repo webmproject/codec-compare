@@ -20,7 +20,7 @@ import {customElement, property} from 'lit/decorators.js';
 
 import {mergeBatches} from './batch_merger';
 import {BatchSelection} from './batch_selection';
-import {Batch, Field, FieldId, DISTORTION_METRIC_FIELD_IDS} from './entry';
+import {Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId, fieldUnit} from './entry';
 import {EventType, listen} from './events';
 import {FieldFilter} from './filter';
 import {FieldMatcher} from './matcher';
@@ -65,15 +65,14 @@ export class SentenceUi extends LitElement {
     const tolerance: string|undefined = matcher.tolerance !== 0 ?
         `±${(matcher.tolerance * 100).toFixed(1)}%` :
         undefined;
-    const parenthesis = subName ?
-        tolerance ? ` (${subName} ${tolerance})` : ` (${subName})` :
-        tolerance ? ` (${tolerance})` :
-                    '';
+    const paren = subName ?
+        (tolerance ? ` (${subName} ${tolerance})` : ` (${subName})`) :
+        (tolerance ? ` (${tolerance})` : '');
+    const lineEnd = isLast ? this.state.showRelativeRatios ? ',' : '' : 'and';
 
     return html`
         <p>
-          ${isFirst ? 'For' : ''} the same ${displayName}${parenthesis}${
-        isLast ? ',' : ' and'}
+          ${isFirst ? 'For' : ''} the same ${displayName}${paren}${lineEnd}
         </p>`;
   }
 
@@ -132,10 +131,31 @@ export class SentenceUi extends LitElement {
     return html`<br><span class="filters">(${filters})</span>`;
   }
 
-  private renderMetric(
+  private renderAbsoluteMetric(
       batch: Batch, metric: FieldMetric, stats: FieldMetricStats) {
     const field = batch.fields[metric.fieldIndices[batch.index]];
-    const mean = stats.getMean(this.state.useGeometricMean);
+    const mean = stats.getAbsoluteMean().toFixed(2);
+
+    switch (field.id) {
+      case FieldId.ENCODED_SIZE:
+        return html`weigh ${mean} bytes`;
+      case FieldId.ENCODING_DURATION:
+        return html`take ${mean} seconds to encode`;
+      case FieldId.DECODING_DURATION:
+        return html`take ${mean} seconds to decode`;
+      case FieldId.RAW_DECODING_DURATION:
+        return html`take ${
+            mean} seconds to decode (exclusive of color conversion)`;
+      default:
+        const unit = fieldUnit(field.id);
+        return html`result in ${mean}${unit} as ${field.displayName}`;
+    }
+  }
+
+  private renderRelativeMetric(
+      batch: Batch, metric: FieldMetric, stats: FieldMetricStats) {
+    const field = batch.fields[metric.fieldIndices[batch.index]];
+    const mean = stats.getRelativeMean(this.state.useGeometricMean);
 
     if (mean === 1) {
       switch (field.id) {
@@ -181,12 +201,15 @@ export class SentenceUi extends LitElement {
         <p>
         images encoded with <batch-name-ui .batch=${batch}></batch-name-ui>
         ${this.renderFilters(batchSelection)}
-        are
+        ${this.state.showRelativeRatios ? 'are' : ''}
         ${this.state.metrics.map((metric: FieldMetric, metricIndex: number) => {
       return metric.enabled ?
           html`<br>${
-              this.renderMetric(
-                  batch, metric, batchSelection.stats[metricIndex])},` :
+              this.state.showRelativeRatios ?
+                  this.renderRelativeMetric(
+                      batch, metric, batchSelection.stats[metricIndex]) :
+                  this.renderAbsoluteMetric(
+                      batch, metric, batchSelection.stats[metricIndex])},` :
           '';
     })}
         </p>`;
@@ -211,13 +234,28 @@ export class SentenceUi extends LitElement {
 
   // Reference
 
-  private renderReference(referenceBatch: BatchSelection) {
+  private renderMatcherReference(referenceBatch: BatchSelection) {
+    if (this.state.showRelativeRatios) {
+      return html``;
+    }
     const batch = referenceBatch.batch;
     return html`
       <p id="referenceBatch">
-        compared to <batch-name-ui .batch=${batch}></batch-name-ui>
-        ${this.renderFilters(referenceBatch)}.
+        as <batch-name-ui .batch=${batch}></batch-name-ui>${
+        this.renderFilters(referenceBatch)},
       </p>`;
+  }
+
+  private renderReference(referenceBatch: BatchSelection) {
+    if (this.state.showRelativeRatios) {
+      const batch = referenceBatch.batch;
+      return html`
+        <p id="referenceBatch">
+          compared to <batch-name-ui .batch=${batch}></batch-name-ui>${
+          this.renderFilters(referenceBatch)}.
+        </p>`;
+    }
+    return html`<p id="referenceBatch">on average.</p>`;
   }
 
   override render() {
@@ -232,6 +270,7 @@ export class SentenceUi extends LitElement {
     return html`
       <div id="matchers">
         ${this.renderMatchers()}
+        ${referenceBatch ? this.renderMatcherReference(referenceBatch) : ''}
       </div>
       <div id="batches">
         ${this.renderBatches()}

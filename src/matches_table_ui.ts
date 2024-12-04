@@ -17,7 +17,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {styleMap} from 'lit/directives/style-map.js';
 
 import {BatchSelection} from './batch_selection';
-import {areFieldsComparable, Batch, Field, FieldId} from './entry';
+import {areFieldsComparable, Batch, Field, FieldId, fieldUnit} from './entry';
 import {dispatch, EventType} from './events';
 import {FieldMatcher, Match} from './matcher';
 import {FieldMetric, getRatio} from './metric';
@@ -38,8 +38,8 @@ export class MatchesTableUi extends LitElement {
 
   private renderFieldHeader(batch: Batch, fieldIndex: number, rowspan: number) {
     return html`
-      <th rowspan=${rowspan} title="${batch.fields[fieldIndex].description}"
-        class="headerRow">
+      <th colspan=2 rowspan=${rowspan}
+        title="${batch.fields[fieldIndex].description}" class="headerRow">
         ${batch.fields[fieldIndex].displayName}
       </th>`;
   }
@@ -53,34 +53,36 @@ export class MatchesTableUi extends LitElement {
         selection.rows[selectionRowIndex][selectionFieldIndex];
     const referenceValue =
         reference.rows[referenceRowIndex][referenceFieldIndex];
-    if (selectionField.id === FieldId.EFFORT ||
-        selectionField.id === FieldId.QUALITY) {
-      const referenceStyle = {'color': reference.color};
-      const selectionStyle = {'color': selection.color};
-      return html`
-          <td class="encodingSettingCell">
-            <span style=${styleMap(referenceStyle)}>${referenceValue}</span>
-            <span style=${styleMap(selectionStyle)}>${selectionValue}</span>
-          </td>`;
-    }
-
     const referenceField = reference.fields[referenceFieldIndex];
     const isNumber = selectionField.isNumber && referenceField.isNumber;
     const cssClass = isNumber ? 'numberCell' : '';
 
-    if (isNumber && selectionField.id !== FieldId.WIDTH &&
-        selectionField.id !== FieldId.HEIGHT &&
-        selectionField.id !== FieldId.FRAME_COUNT &&
-        selectionField.id !== FieldId.MEGAPIXELS) {
-      const ratio =
-          getRatio(selectionValue as number, referenceValue as number);
-      return html`<td class="${cssClass}">${getRelativePercent(ratio)}</td>`;
+    if (selectionField.id !== FieldId.EFFORT &&
+        selectionField.id !== FieldId.QUALITY) {
+      if (this.state.showRelativeRatios && isNumber &&
+          selectionField.id !== FieldId.WIDTH &&
+          selectionField.id !== FieldId.HEIGHT &&
+          selectionField.id !== FieldId.FRAME_COUNT &&
+          selectionField.id !== FieldId.MEGAPIXELS) {
+        const ratio =
+            getRatio(selectionValue as number, referenceValue as number);
+        return html`<td colspan=2 class="${cssClass}">${
+            getRelativePercent(ratio)}</td>`;
+      }
+      if (selectionValue === referenceValue) {
+        return html`<td colspan=2 class="${cssClass}">${selectionValue}</td>`;
+      }
     }
-    if (selectionValue === referenceValue) {
-      return html`<td class="${cssClass}">${selectionValue}</td>`;
-    }
+    const referenceStyle = {'color': reference.color};
+    const selectionStyle = {'color': selection.color};
+    // TODO: Align all floating point numbers in same column at decimal point.
     return html`
-        <td class="${cssClass}">${selectionValue} ≠ ${referenceValue}</td>`;
+        <td style=${styleMap(referenceStyle)} class="${cssClass}">
+          ${referenceValue}
+        </td>
+        <td style=${styleMap(selectionStyle)} class="${cssClass}">
+          ${selectionValue}
+        </td>`;
   }
 
   // Header rows (two needed because some cells use a rowspan)
@@ -89,8 +91,8 @@ export class MatchesTableUi extends LitElement {
       reference: Batch, matchers: FieldMatcher[], metrics: FieldMetric[],
       referenceSharedFieldIndices: number[]) {
     return html`<tr>
-      <th colspan=${matchers.length} class="headerRow">Matchers</th>
-      <th colspan=${metrics.length} class="headerRow">Metrics</th>
+      <th colspan=${matchers.length * 2} class="headerRow">Matchers</th>
+      <th colspan=${metrics.length * 2} class="headerRow">Metrics</th>
       ${referenceSharedFieldIndices.map((fieldIndex) => {
       return this.renderFieldHeader(reference, fieldIndex, /*rowspan=*/ 2);
     })}
@@ -110,6 +112,66 @@ export class MatchesTableUi extends LitElement {
           reference, metric.fieldIndices[reference.index], /*rowspan=*/ 1);
     })}
     </tr>`;
+  }
+
+  private renderAbsoluteMeanRows(
+      selection: Batch, numColumns: number, matchers: FieldMatcher[],
+      metricIndices: number[], selectionSharedFieldIndices: number[]) {
+    const selectionStyle = {'color': selection.color};
+    return html`
+      <tr>
+        <th colspan=${numColumns * 2}>Arithmetic means</th>
+      </tr>
+      <tr>
+        <td colspan=${matchers.length * 2} class="missing"></td>
+        ${metricIndices.map((metricIndex) => {
+      const mean = this.batchSelection.stats[metricIndex].getAbsoluteMean();
+      const metric = this.state.metrics[metricIndex];
+      const fieldIndex = metric.fieldIndices[this.batchSelection.batch.index];
+      const field = this.batchSelection.batch.fields[fieldIndex];
+      return html`
+        <td colspan=2 class="numberCell" style=${styleMap(selectionStyle)}>
+          ${mean}${fieldUnit(field.id)}
+        </td>`;
+    })}
+        <td colspan=${selectionSharedFieldIndices.length * 2} class="missing">
+        </td>
+      </tr>`;
+  }
+
+  private renderRelativeMeanRows(
+      numColumns: number, matchers: FieldMatcher[], metricIndices: number[],
+      selectionSharedFieldIndices: number[]) {
+    return html`
+      <tr>
+        <th colspan=${numColumns * 2}>Arithmetic means</th>
+      </tr>
+      <tr>
+        <td colspan=${matchers.length * 2} class="missing"></td>
+        ${metricIndices.map((metricIndex) => {
+      const mean = this.batchSelection.stats[metricIndex].getRelativeMean(
+          /*geometric=*/ false);
+      return html`
+        <td colspan=2 class="numberCell">${getRelativePercent(mean)}</td>`;
+    })}
+        <td colspan=${selectionSharedFieldIndices.length * 2} class="missing">
+        </td>
+      </tr>
+
+      <tr>
+        <th colspan=${numColumns * 2}>Geometric means</th>
+      </tr>
+      <tr>
+        <td colspan=${matchers.length * 2} class="missing"></td>
+        ${metricIndices.map((metricIndex) => {
+      const mean = this.batchSelection.stats[metricIndex].getRelativeMean(
+          /*geometric=*/ true);
+      return html`
+        <td colspan=2 class="numberCell">${getRelativePercent(mean)}</td>`;
+    })}
+        <td colspan=${selectionSharedFieldIndices.length * 2} class="missing">
+        </td>
+      </tr>`;
   }
 
   override render() {
@@ -215,7 +277,7 @@ export class MatchesTableUi extends LitElement {
       truncatedRows = html`
         <tr>
           <td @click=${onDisplayHiddenRow}
-              colspan=${numColumns} class="hiddenRow">
+              colspan=${numColumns * 2} class="hiddenRow">
             ${rows.length - 100} hidden rows. Click to expand.
           </td>
         </tr>`;
@@ -230,34 +292,14 @@ export class MatchesTableUi extends LitElement {
         ${this.renderSecondHeaderRow(reference, matchers, metrics)}
         ${rows.map(renderRow)}
         ${truncatedRows}
-
-        <tr>
-          <th colspan=${numColumns}>Arithmetic means</th>
-        </tr>
-        <tr>
-          <td colspan=${matchers.length} class="missing"></td>
-          ${metricIndices.map((metricIndex) => {
-      const mean =
-          this.batchSelection.stats[metricIndex].getMean(/*geometric=*/ false);
-      return html`<td class="numberCell">${getRelativePercent(mean)}</td>`;
-    })}
-          <td colspan=${selectionSharedFieldIndices.length} class="missing">
-          </td>
-        </tr>
-
-        <tr>
-          <th colspan=${numColumns}>Geometric means</th>
-        </tr>
-        <tr>
-          <td colspan=${matchers.length} class="missing"></td>
-          ${metricIndices.map((metricIndex) => {
-      const mean =
-          this.batchSelection.stats[metricIndex].getMean(/*geometric=*/ true);
-      return html`<td class="numberCell">${getRelativePercent(mean)}</td>`;
-    })}
-          <td colspan=${selectionSharedFieldIndices.length} class="missing">
-          </td>
-        </tr>
+        ${
+        this.state.showRelativeRatios ?
+            this.renderRelativeMeanRows(
+                numColumns, matchers, metricIndices,
+                selectionSharedFieldIndices) :
+            this.renderAbsoluteMeanRows(
+                selection, numColumns, matchers, metricIndices,
+                selectionSharedFieldIndices)}
       </table>`;
   }
 
@@ -298,9 +340,6 @@ export class MatchesTableUi extends LitElement {
     }
     .numberCell {
       text-align: right;
-    }
-    .encodingSettingCell {
-      text-align: center;
     }
 
     tr {

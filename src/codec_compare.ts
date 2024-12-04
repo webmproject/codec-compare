@@ -208,7 +208,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare beta version 0.2.6<br>
+            Codec Compare beta version 0.3.0<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -392,7 +392,8 @@ export class CodecCompare extends LitElement {
       box-shadow: 4px 0 8px rgba(0, 0, 0, 0.2);
       transition: width 0.1s;
     }
-    #leftBar:hover {
+    #leftBar:hover,
+    #leftBar:has(settings-ui:focus-within) {
       width: 500px;
     }
     #leftBarContent {
