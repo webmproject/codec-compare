@@ -54,8 +54,10 @@ export class State {
   metrics: FieldMetric[] = [];
   plotMetricVertical: FieldMetric|undefined = undefined;    // among metrics
   plotMetricHorizontal: FieldMetric|undefined = undefined;  // among metrics
-  verticalLogScale = true;     // Use a linear scale if false.
-  horizontalLogScale = false;  // Use a linear scale if false.
+  verticalLogScale = true;     // Use a linear scale on the Y axis if false.
+  horizontalLogScale = false;  // Use a linear scale on the X axis if false.
+  verticalQuantile = 0.5;      // Display Y error bars if in [0:0.5[.
+  horizontalQuantile = 0.5;    // Display X error bars if in [0:0.5[.
 
   /**
    * If true, each absolute data point or relative match is shown on the plot

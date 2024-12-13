@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1
+
+- Add setting for displaying 10th and 90th percentiles as error bars.
+
 ## v0.3.0
 
 - Add absolute metrics mode. Default mode remains relative ratios.

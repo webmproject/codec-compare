@@ -16,6 +16,7 @@ import {getFinalValue} from './constant';
 import {areFieldsComparable, Batch, Field, FieldId} from './entry';
 import {GeometricMean} from './geometric_mean';
 import {Match} from './matcher';
+import {Quantile} from './quantile';
 
 /** References two fields from two selected batches to compare data points. */
 export class FieldMetric {
@@ -32,18 +33,35 @@ export class FieldMetric {
 export class FieldMetricStats {
   // Absolute values
   absoluteArithmeticMean = 0;
+  absoluteArithmeticLowQuantile = 0;
+  absoluteArithmeticHighQuantile = 0;
 
   // Relative ratios
   geometricMean = 1;
   minRatio = 1;
   maxRatio = 1;
   relativeArithmeticMean = 1;
+  relativeArithmeticLowQuantile = 1;
+  relativeArithmeticHighQuantile = 1;
 
   getAbsoluteMean() {
     return this.absoluteArithmeticMean;
   }
+  getAbsoluteLowQuantile() {
+    return this.absoluteArithmeticLowQuantile;
+  }
+  getAbsoluteHighQuantile() {
+    return this.absoluteArithmeticHighQuantile;
+  }
+
   getRelativeMean(geometric: boolean) {
     return geometric ? this.geometricMean : this.relativeArithmeticMean;
+  }
+  getRelativeLowQuantile() {
+    return this.relativeArithmeticLowQuantile;
+  }
+  getRelativeHighQuantile() {
+    return this.relativeArithmeticHighQuantile;
   }
 }
 
@@ -187,6 +205,8 @@ export function computeStats(
 
     const fieldStats = new FieldMetricStats();
     let numDataPoints = 0;
+    const leftQuantile = new Quantile();
+    const rightQuantile = new Quantile();
     const geometricMean = new GeometricMean();
     let leftSum = 0;
     let rightSum = 0;
@@ -200,6 +220,8 @@ export function computeStats(
       //       it is safer to surface that in the final user interface than
       //       silently skipping that data point here.
 
+      leftQuantile.add(leftValue);
+      rightQuantile.add(rightValue);
       if (numDataPoints === 0) {
         fieldStats.minRatio = ratio;
         fieldStats.maxRatio = ratio;
@@ -214,8 +236,15 @@ export function computeStats(
     }
     if (numDataPoints > 0) {
       fieldStats.absoluteArithmeticMean = leftSum / numDataPoints;
+      // TODO(yguyon): Do not hardcode quantiles but use State fields.
+      fieldStats.absoluteArithmeticLowQuantile = leftQuantile.get(0.1);
+      fieldStats.absoluteArithmeticHighQuantile = leftQuantile.get(0.9);
       fieldStats.geometricMean = geometricMean.get();
       fieldStats.relativeArithmeticMean = getRatio(leftSum, rightSum);
+      fieldStats.relativeArithmeticLowQuantile =
+          getRatio(leftQuantile.get(0.1), rightQuantile.get(0.1));
+      fieldStats.relativeArithmeticHighQuantile =
+          getRatio(leftQuantile.get(0.9), rightQuantile.get(0.9));
     }
     stats.push(fieldStats);
   }

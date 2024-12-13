@@ -17,7 +17,7 @@
  * See https://en.wikipedia.org/wiki/Geometric_mean.
  */
 export class GeometricMean {
-  /** Add a value to be part of the geometric mean. */
+  /** Adds a value to be part of the geometric mean. */
   add(value: number) {
     this.product *= value;
     ++this.numValues;
