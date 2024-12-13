@@ -127,9 +127,15 @@ export function stateToMapping(state: State) {
     }
   }
 
+  function strOrOff(v: number, min_inclusive: number, max_exclusive: number) {
+    return (v >= min_inclusive && v < max_exclusive) ? String(v) : 'off';
+  }
+
   // Global settings.
   values.set('x_scale', state.horizontalLogScale ? 'log' : 'lin');
   values.set('y_scale', state.verticalLogScale ? 'log' : 'lin');
+  values.set('x_error', strOrOff(state.verticalQuantile, 0, 0.5));
+  values.set('y_error', strOrOff(state.horizontalQuantile, 0, 0.5));
   values.set('each_point', state.showEachPoint ? 'show' : 'hide');
   values.set('metrics', state.showRelativeRatios ? 'rel' : 'abs');
   values.set('mean', state.useGeometricMean ? 'geo' : 'arith');
@@ -251,6 +257,24 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
       state.verticalLogScale = true;
     } else if (verticalScale === 'lin') {
       state.verticalLogScale = false;
+    }
+  }
+
+  const horizontalQuantile = values.get('x_error');
+  if (horizontalQuantile) {
+    if (horizontalQuantile === 'off') {
+      state.horizontalQuantile = 0.5;
+    } else if (!isNaN(Number(horizontalQuantile))) {
+      state.horizontalQuantile = Number(horizontalQuantile);
+    }
+  }
+
+  const verticalQuantile = values.get('y_error');
+  if (verticalQuantile) {
+    if (verticalQuantile === 'off') {
+      state.verticalQuantile = 0.5;
+    } else if (!isNaN(Number(verticalQuantile))) {
+      state.verticalQuantile = Number(verticalQuantile);
     }
   }
 

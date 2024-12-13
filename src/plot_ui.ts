@@ -226,6 +226,10 @@ export class PlotUi {
     for (const group of this.state.groups) {
       const xMeans: number[] = [];
       const yMeans: number[] = [];
+      const xLowErrors: number[] = [];
+      const xHighErrors: number[] = [];
+      const yLowErrors: number[] = [];
+      const yHighErrors: number[] = [];
       const meanTexts: string[] = [];
       const colors: string[] = [];
       const batchIndices: number[] = [];
@@ -250,14 +254,37 @@ export class PlotUi {
             this.state.metrics.findIndex((metric) => metric === xMetric);
         const yMetricIndex =
             this.state.metrics.findIndex((metric) => metric === yMetric);
-        if (showRelativeRatios) {
-          xMeans.push(batchSelection.stats[xMetricIndex].getRelativeMean(
-              useGeometricMean));
-          yMeans.push(batchSelection.stats[yMetricIndex].getRelativeMean(
-              useGeometricMean));
-        } else {
-          xMeans.push(batchSelection.stats[xMetricIndex].getAbsoluteMean());
-          yMeans.push(batchSelection.stats[yMetricIndex].getAbsoluteMean());
+        const xMean = showRelativeRatios ?
+            batchSelection.stats[xMetricIndex].getRelativeMean(
+                useGeometricMean) :
+            batchSelection.stats[xMetricIndex].getAbsoluteMean();
+        const yMean = showRelativeRatios ?
+            batchSelection.stats[yMetricIndex].getRelativeMean(
+                useGeometricMean) :
+            batchSelection.stats[yMetricIndex].getAbsoluteMean();
+        xMeans.push(xMean);
+        yMeans.push(yMean);
+        if (!useGeometricMean) {
+          if (this.state.horizontalQuantile === 0.1) {
+            const xLowError = showRelativeRatios ?
+                batchSelection.stats[xMetricIndex].getRelativeLowQuantile() :
+                batchSelection.stats[xMetricIndex].getAbsoluteLowQuantile();
+            const xHighError = showRelativeRatios ?
+                batchSelection.stats[xMetricIndex].getRelativeHighQuantile() :
+                batchSelection.stats[xMetricIndex].getAbsoluteHighQuantile();
+            xLowErrors.push(xMean - xLowError);
+            xHighErrors.push(xHighError - xMean);
+          }
+          if (this.state.verticalQuantile === 0.1) {
+            const yLowError = showRelativeRatios ?
+                batchSelection.stats[yMetricIndex].getRelativeLowQuantile() :
+                batchSelection.stats[yMetricIndex].getAbsoluteLowQuantile();
+            const yHighError = showRelativeRatios ?
+                batchSelection.stats[yMetricIndex].getRelativeHighQuantile() :
+                batchSelection.stats[yMetricIndex].getAbsoluteHighQuantile();
+            yLowErrors.push(yMean - yLowError);
+            yHighErrors.push(yHighError - yMean);
+          }
         }
         meanTexts.push(batch.name);
         colors.push(batch.color);
@@ -269,7 +296,7 @@ export class PlotUi {
         let hovertemplate = '%{text} vs ' + referenceBatch.name + '<br>';
         hovertemplate += xAxis + ': %{x:.2f}<br>';
         hovertemplate += yAxis + ': %{y:.2f}';
-        const geomeans: PlotlyData = {
+        let geomeans: PlotlyData = {
           x: xMeans,
           y: yMeans,
           text: meanTexts,
@@ -284,6 +311,25 @@ export class PlotUi {
           isAggregated: true,
           batchIndices,
         };
+        // TODO(yguyon): Fix quantiles then enable them with showRelativeRatios.
+        if (!showRelativeRatios && !useGeometricMean &&
+            this.state.horizontalQuantile === 0.1) {
+          geomeans.error_x = {
+            type: 'data',
+            symmetric: false,
+            array: xLowErrors,
+            arrayminus: xHighErrors,
+          };
+        }
+        if (!showRelativeRatios && !useGeometricMean &&
+            this.state.verticalQuantile === 0.1) {
+          geomeans.error_y = {
+            type: 'data',
+            symmetric: false,
+            array: yLowErrors,
+            arrayminus: yHighErrors,
+          };
+        }
         this.plotlyData.push(geomeans);
       }
     }

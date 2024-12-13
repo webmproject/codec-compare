@@ -119,6 +119,48 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
+          <span title="Do not show horizontal error bars">
+            Hide X error bars
+          </span>
+          <mwc-switch id="settingUseHorizontalErrorBars" ?selected=${
+    !this.state.showRelativeRatios && !this.state.useGeometricMean &&
+        this.state.horizontalQuantile === 0.1}
+            ?disabled=${
+        this.state.showRelativeRatios ||
+        this.state.useGeometricMean}
+            @click=${() => {
+      this.state.horizontalQuantile =
+          this.state.horizontalQuantile === 0.1 ? 0.5 : 0.1;
+      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+      dispatch(EventType.SETTINGS_CHANGED);
+    }}>
+          </mwc-switch>
+          <span title="Display the 10th and 90th percentiles as horizontal error bars">
+            Show X error bars
+          </span>
+        </div>
+        <div class="settingGroup">
+          <span title="Do not show vertical error bars">
+            Hide Y error bars
+          </span>
+          <mwc-switch id="settingUseVerticalErrorBars" ?selected=${
+    !this.state.showRelativeRatios && !this.state.useGeometricMean &&
+        this.state.verticalQuantile === 0.1}
+            ?disabled=${
+        this.state.showRelativeRatios ||
+        this.state.useGeometricMean}
+            @click=${() => {
+      this.state.verticalQuantile =
+          this.state.verticalQuantile === 0.1 ? 0.5 : 0.1;
+      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+      dispatch(EventType.SETTINGS_CHANGED);
+    }}>
+          </mwc-switch>
+          <span title="Display the 10th and 90th percentiles as vertical error bars">
+            Show Y error bars
+          </span>
+        </div>
+        <div class="settingGroup">
           <span title="Only display the first rows of the filtered or matched data point tables">
             Show some rows
           </span>
