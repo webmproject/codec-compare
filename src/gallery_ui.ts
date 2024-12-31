@@ -197,7 +197,8 @@ export class GalleryUi extends LitElement {
           ${asset.sourceName}
           <span class="countBubble">${asset.count}</span>
           <div class="linkOverlay"><mwc-icon>open_in_new</mwc-icon></div>
-          <mwc-checkbox ?checked=${checked}></mwc-checkbox>
+          <mwc-checkbox ?checked=${checked} @click=${onCheckboxClick}>
+          </mwc-checkbox>
         </a>`;
     }
     return html`
