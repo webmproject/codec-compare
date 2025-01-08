@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-fab';
 import '@material/mwc-menu';
 import '@material/mwc-icon';
 import '@material/mwc-button';
-import './batch_name_ui';
 import './filter_ui';
 
-import {Fab} from '@material/mwc-fab';
+import {Button} from '@material/mwc-button';
 import {ActionDetail} from '@material/mwc-list';
 import {Menu} from '@material/mwc-menu';
 import {css, html, LitElement} from 'lit';
@@ -38,7 +36,7 @@ export class FiltersUi extends LitElement {
   @property() batchSelection!: BatchSelection;
 
   @query('#addFilterMenu') private readonly addFilterMenu!: Menu;
-  @query('#addFilterButton') private readonly addFilterButton!: Fab;
+  @query('#addFilterButton') private readonly addFilterButton!: Button;
 
   private readonly onFilterChanged = (event: CustomEvent<FilterChanged>) => {
     if (event.detail.batchIndex === this.batchSelection.batch.index) {
@@ -117,8 +115,7 @@ export class FiltersUi extends LitElement {
             <mwc-icon>filter_alt</mwc-icon>
             ${numEnabledFilters}
           </div>
-          <h2>filters applied to <batch-name-ui .batch=${
-        batch}></batch-name-ui></h2>
+          <h2>active filters</h2>
           ${this.renderAddFilterMenu()}
         </div>
         <div class="filter-uis-parent">
@@ -157,6 +154,7 @@ export class FiltersUi extends LitElement {
       font-size: 20px;
     }
     h2 {
+      margin: 0;
       color: var(--mdc-theme-text);
     }
 

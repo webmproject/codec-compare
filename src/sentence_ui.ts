@@ -21,7 +21,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {mergeBatches} from './batch_merger';
 import {BatchSelection} from './batch_selection';
 import {Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId, fieldUnit} from './entry';
-import {EventType, listen} from './events';
+import {dispatch, EventType, listen} from './events';
 import {FieldFilter} from './filter';
 import {FieldMatcher} from './matcher';
 import {FieldMetric, FieldMetricStats} from './metric';
@@ -199,7 +199,9 @@ export class SentenceUi extends LitElement {
     const batch = batchSelection.batch;
     return html`
         <p>
-        images encoded with <batch-name-ui .batch=${batch}></batch-name-ui>
+        images encoded with <batch-name-ui .batch=${batch} @click=${() => {
+      dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
+    }}></batch-name-ui>
         ${this.renderFilters(batchSelection)}
         ${this.state.showRelativeRatios ? 'are' : ''}
         ${this.state.metrics.map((metric: FieldMetric, metricIndex: number) => {
@@ -241,8 +243,9 @@ export class SentenceUi extends LitElement {
     const batch = referenceBatch.batch;
     return html`
       <p id="referenceBatch">
-        as <batch-name-ui .batch=${batch}></batch-name-ui>${
-        this.renderFilters(referenceBatch)},
+        as <batch-name-ui .batch=${batch} @click=${() => {
+      dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
+    }}></batch-name-ui>${this.renderFilters(referenceBatch)},
       </p>`;
   }
 
@@ -251,9 +254,9 @@ export class SentenceUi extends LitElement {
       const batch = referenceBatch.batch;
       return html`
         <p id="referenceBatch">
-          compared to <batch-name-ui .batch=${batch}></batch-name-ui>${
-          this.renderFilters(referenceBatch)}.
-        </p>`;
+          compared to <batch-name-ui .batch=${batch} @click=${() => {
+        dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
+      }}></batch-name-ui>${this.renderFilters(referenceBatch)}.</p>`;
     }
     return html`<p id="referenceBatch">on average.</p>`;
   }
@@ -286,6 +289,9 @@ export class SentenceUi extends LitElement {
       margin: 10px 0;
       color: var(--mdc-theme-text);
       font-size: 20px;
+    }
+    batch-name-ui:hover {
+      cursor: pointer;
     }
     .filters{
       font-size: 14px;

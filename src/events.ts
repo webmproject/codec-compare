@@ -78,7 +78,7 @@ interface BatchInfoRequestEventData {
 
 interface MatchInfoRequestEventData {
   batchIndex: number;
-  matchIndex: number;
+  matchIndex: number|undefined;
 }
 
 export interface FilterChanged {
