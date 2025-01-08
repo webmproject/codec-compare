@@ -13,23 +13,19 @@
 // limitations under the License.
 
 import '@material/mwc-icon';
-import '@material/mwc-fab';
 import '@material/mwc-tab-bar';
 import '@material/mwc-tab';
 import './batch_name_ui';
-import './batch_selection_ui';
 import './batch_selections_ui';
-import './batch_ui';
+import './help_ui';
 import './gallery_ui';
 import './loading_ui';
-import './match_ui';
 import './matchers_ui';
-import './matches_ui';
 import './metrics_ui';
 import './mwc_button_fit';
+import './panel_ui';
 import './sentence_ui';
 import './settings_ui';
-import './help_ui';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, query} from 'lit/decorators.js';
@@ -74,7 +70,10 @@ export class CodecCompare extends LitElement {
   private renderReference(referenceBatch: Batch) {
     return html`
       <p id="referenceBatch">
-        compared to <batch-name-ui .batch=${referenceBatch}></batch-name-ui>.
+        compared to <batch-name-ui .batch=${referenceBatch} @click=${() => {
+      dispatch(
+          EventType.BATCH_INFO_REQUEST, {batchIndex: referenceBatch.index});
+    }}></batch-name-ui>.
       </p>`;
   }
 
@@ -208,7 +207,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare version 0.3.1<br>
+            Codec Compare version 0.4.0<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -216,10 +215,7 @@ export class CodecCompare extends LitElement {
         </div>
       </div>
 
-      <batch-ui .state=${this.state}></batch-ui>
-      <batch-selection-ui .state=${this.state}></batch-selection-ui>
-      <matches-ui .state=${this.state}></matches-ui>
-      <match-ui .state=${this.state}></match-ui>
+      <panel-ui .state=${this.state}></panel-ui>
       <help-ui .displayedTab=${this.currentTab}></help-ui>
       ${this.isLoaded ? html`` : html`<loading-ui></loading-ui>`}
     `;
@@ -368,6 +364,9 @@ export class CodecCompare extends LitElement {
     }
     batch-selections-ui {
       overflow-x: auto;
+    }
+    batch-name-ui:hover {
+      cursor: pointer;
     }
     #truncatedResults {
       background: orange;

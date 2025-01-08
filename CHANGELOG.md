@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0
+
+- Improve navigation by refactoring the BatchUi, BatchSelectionUi, MatchesUi,
+  and MatchUi components into a single PanelUi with tabs Metadata, Filtered
+  rows, and Matches.
+
 ## v0.3.1
 
 - Add setting for displaying 10th and 90th percentiles as error bars.

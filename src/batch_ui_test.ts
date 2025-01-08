@@ -16,6 +16,7 @@ import 'jasmine';
 import './batch_ui';
 import './constants_table_ui';
 import './fields_table_ui';
+import './panel_ui';
 
 import {Batch, Constant, Field} from './entry';
 import {dispatch, EventType} from './events';
@@ -48,6 +49,7 @@ describe('BatchUi', () => {
     // Create an element displaying the metadata of a batch.
     const batchEl = document.createElement('batch-ui');
     batchEl.state = state;
+    batchEl.batch = state.batches[0];
     containerEl.appendChild(batchEl);
     await batchEl.updateComplete;
 
@@ -67,13 +69,6 @@ describe('BatchUi', () => {
             }
           }
         };
-
-    // The BatchUi panel is not yet displayed.
-    expectInnerTextsToBe(batchEl, 'h2', []);
-
-    dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: 0});
-    await batchEl.updateComplete;
-    expectInnerTextsToBe(batchEl, 'h2', ['Metadata of ', 'Fields of ']);
 
     // Check the child elements.
     const constantsEl = batchEl.shadowRoot?.querySelector('constants-table-ui');

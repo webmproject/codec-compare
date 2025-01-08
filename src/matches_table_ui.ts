@@ -31,14 +31,15 @@ import {State} from './state';
 @customElement('matches-table-ui')
 export class MatchesTableUi extends LitElement {
   @property({attribute: false}) state!: State;
-
+  @property({attribute: false}) referenceSelection!: BatchSelection;
   @property({attribute: false}) batchSelection!: BatchSelection;
+  @property({attribute: false}) matchIndex!: number|undefined;
 
   // Cells
 
   private renderFieldHeader(batch: Batch, fieldIndex: number, rowspan: number) {
     return html`
-      <th colspan=2 rowspan=${rowspan}
+      <th colspan=3 rowspan=${rowspan}
         title="${batch.fields[fieldIndex].description}" class="headerRow">
         ${batch.fields[fieldIndex].displayName}
       </th>`;
@@ -57,30 +58,45 @@ export class MatchesTableUi extends LitElement {
     const isNumber = selectionField.isNumber && referenceField.isNumber;
     const cssClass = isNumber ? 'numberCell' : '';
 
-    if (selectionField.id !== FieldId.EFFORT &&
+    const displayRatio = isNumber && selectionField.id !== FieldId.EFFORT &&
+        selectionField.id !== FieldId.QUALITY &&
+        selectionField.id !== FieldId.WIDTH &&
+        selectionField.id !== FieldId.HEIGHT &&
+        selectionField.id !== FieldId.FRAME_COUNT &&
+        selectionField.id !== FieldId.MEGAPIXELS;
+    if (!displayRatio && selectionValue === referenceValue &&
+        selectionField.id !== FieldId.EFFORT &&
         selectionField.id !== FieldId.QUALITY) {
-      if (this.state.showRelativeRatios && isNumber &&
-          selectionField.id !== FieldId.WIDTH &&
-          selectionField.id !== FieldId.HEIGHT &&
-          selectionField.id !== FieldId.FRAME_COUNT &&
-          selectionField.id !== FieldId.MEGAPIXELS) {
-        const ratio =
-            getRatio(selectionValue as number, referenceValue as number);
-        return html`<td colspan=2 class="${cssClass}">${
-            getRelativePercent(ratio)}</td>`;
-      }
-      if (selectionValue === referenceValue) {
-        return html`<td colspan=2 class="${cssClass}">${selectionValue}</td>`;
-      }
+      return html`<td colspan=3 class="${cssClass}">${selectionValue}</td>`;
     }
+
     const referenceStyle = {'color': reference.color};
+    if (selection.index === reference.index) {
+      return html`
+          <td colspan=3 style=${styleMap(referenceStyle)} class="${cssClass}">
+            ${referenceValue}
+          </td>`;
+    }
+
     const selectionStyle = {'color': selection.color};
     // TODO: Align all floating point numbers in same column at decimal point.
     return html`
         <td style=${styleMap(referenceStyle)} class="${cssClass}">
           ${referenceValue}
         </td>
-        <td style=${styleMap(selectionStyle)} class="${cssClass}">
+        ${
+        displayRatio ?
+            html`
+        <td class="${cssClass}">
+          ${
+                selectionValue === referenceValue ?
+                    '=' :
+                    getRelativePercent(getRatio(
+                        selectionValue as number, referenceValue as number))}
+        </td>` :
+            html``}
+        <td colspan=${displayRatio ? 1 : 2} style=${styleMap(selectionStyle)}
+          class="${cssClass}">
           ${selectionValue}
         </td>`;
   }
@@ -91,8 +107,8 @@ export class MatchesTableUi extends LitElement {
       reference: Batch, matchers: FieldMatcher[], metrics: FieldMetric[],
       referenceSharedFieldIndices: number[]) {
     return html`<tr>
-      <th colspan=${matchers.length * 2} class="headerRow">Matchers</th>
-      <th colspan=${metrics.length * 2} class="headerRow">Metrics</th>
+      <th colspan=${matchers.length * 3} class="headerRow">Matchers</th>
+      <th colspan=${metrics.length * 3} class="headerRow">Metrics</th>
       ${referenceSharedFieldIndices.map((fieldIndex) => {
       return this.renderFieldHeader(reference, fieldIndex, /*rowspan=*/ 2);
     })}
@@ -114,71 +130,87 @@ export class MatchesTableUi extends LitElement {
     </tr>`;
   }
 
-  private renderAbsoluteMeanRows(
-      selection: Batch, numColumns: number, matchers: FieldMatcher[],
+  private renderMeanRows(
+      reference: BatchSelection, numColumns: number, matchers: FieldMatcher[],
       metricIndices: number[], selectionSharedFieldIndices: number[]) {
-    const selectionStyle = {'color': selection.color};
+    const referenceStyle = {'color': reference.batch.color};
+    const selectionStyle = {'color': this.batchSelection.batch.color};
     return html`
       <tr>
-        <th colspan=${numColumns * 2}>Arithmetic means</th>
+        <th colspan=${numColumns * 3}>Arithmetic means</th>
       </tr>
       <tr>
-        <td colspan=${matchers.length * 2} class="missing"></td>
+        <td colspan=${matchers.length * 3} class="missing"></td>
+        ${metricIndices.map((metricIndex) => {
+      const relativeMean =
+          this.batchSelection.stats[metricIndex].getRelativeMean(
+              /*geometric=*/ false);
+      const referenceAbsoluteMean =
+          reference.stats[metricIndex].getAbsoluteMean();
+      const selectionAbsoluteMean =
+          this.batchSelection.stats[metricIndex].getAbsoluteMean();
+      const metric = this.state.metrics[metricIndex];
+      const fieldIndex = metric.fieldIndices[this.batchSelection.batch.index];
+      const field = this.batchSelection.batch.fields[fieldIndex];
+      return html`
+        <td class="numberCell" style=${styleMap(referenceStyle)}>
+          ${referenceAbsoluteMean}${fieldUnit(field.id)}
+        </td>
+        <td class="numberCell">
+          ${getRelativePercent(relativeMean)}
+        </td>
+        <td class="numberCell" style=${styleMap(selectionStyle)}>
+          ${selectionAbsoluteMean}${fieldUnit(field.id)}
+        </td>`;
+    })}
+        <td colspan=${selectionSharedFieldIndices.length * 3} class="missing">
+        </td>
+      </tr>
+
+      <tr>
+        <th colspan=${numColumns * 3}>Geometric means</th>
+      </tr>
+      <tr>
+        <td colspan=${matchers.length * 3} class="missing"></td>
+        ${metricIndices.map((metricIndex) => {
+      const mean = this.batchSelection.stats[metricIndex].getRelativeMean(
+          /*geometric=*/ true);
+      return html`
+        <td colspan=2 class="numberCell">${getRelativePercent(mean)}</td>
+        <td></td>`;
+    })}
+        <td colspan=${selectionSharedFieldIndices.length * 3} class="missing">
+        </td>
+      </tr>`;
+  }
+
+  private renderMeanRowsSingleBatch(
+      numColumns: number, matchers: FieldMatcher[], metricIndices: number[],
+      selectionSharedFieldIndices: number[]) {
+    const selectionStyle = {'color': this.batchSelection.batch.color};
+    return html`
+      <tr>
+        <th colspan=${numColumns * 3}>Arithmetic means</th>
+      </tr>
+      <tr>
+        <td colspan=${matchers.length * 3} class="missing"></td>
         ${metricIndices.map((metricIndex) => {
       const mean = this.batchSelection.stats[metricIndex].getAbsoluteMean();
       const metric = this.state.metrics[metricIndex];
       const fieldIndex = metric.fieldIndices[this.batchSelection.batch.index];
       const field = this.batchSelection.batch.fields[fieldIndex];
       return html`
-        <td colspan=2 class="numberCell" style=${styleMap(selectionStyle)}>
+        <td colspan=3 class="numberCell" style=${styleMap(selectionStyle)}>
           ${mean}${fieldUnit(field.id)}
         </td>`;
     })}
-        <td colspan=${selectionSharedFieldIndices.length * 2} class="missing">
-        </td>
-      </tr>`;
-  }
-
-  private renderRelativeMeanRows(
-      numColumns: number, matchers: FieldMatcher[], metricIndices: number[],
-      selectionSharedFieldIndices: number[]) {
-    return html`
-      <tr>
-        <th colspan=${numColumns * 2}>Arithmetic means</th>
-      </tr>
-      <tr>
-        <td colspan=${matchers.length * 2} class="missing"></td>
-        ${metricIndices.map((metricIndex) => {
-      const mean = this.batchSelection.stats[metricIndex].getRelativeMean(
-          /*geometric=*/ false);
-      return html`
-        <td colspan=2 class="numberCell">${getRelativePercent(mean)}</td>`;
-    })}
-        <td colspan=${selectionSharedFieldIndices.length * 2} class="missing">
-        </td>
-      </tr>
-
-      <tr>
-        <th colspan=${numColumns * 2}>Geometric means</th>
-      </tr>
-      <tr>
-        <td colspan=${matchers.length * 2} class="missing"></td>
-        ${metricIndices.map((metricIndex) => {
-      const mean = this.batchSelection.stats[metricIndex].getRelativeMean(
-          /*geometric=*/ true);
-      return html`
-        <td colspan=2 class="numberCell">${getRelativePercent(mean)}</td>`;
-    })}
-        <td colspan=${selectionSharedFieldIndices.length * 2} class="missing">
+        <td colspan=${selectionSharedFieldIndices.length * 3} class="missing">
         </td>
       </tr>`;
   }
 
   override render() {
-    if (!this.batchSelection) return html``;
-    const reference =
-        this.state.batchSelections[this.state.referenceBatchSelectionIndex]
-            .batch;
+    const reference = this.referenceSelection.batch;
     const selection = this.batchSelection.batch;
     const selectionIndex = selection.index;
 
@@ -239,12 +271,14 @@ export class MatchesTableUi extends LitElement {
 
     const renderRow = (match: Match, matchIndex: number) => {
       const onMatchInfoRequest = () => {
-        dispatch(
-            EventType.MATCH_INFO_REQUEST,
-            {batchIndex: selectionIndex, matchIndex});
+        dispatch(EventType.MATCH_INFO_REQUEST, {
+          batchIndex: selectionIndex,
+          matchIndex: matchIndex === this.matchIndex ? undefined : matchIndex
+        });
       };
       return html`
-          <tr @click=${onMatchInfoRequest} class="matchRow">
+          <tr @click=${onMatchInfoRequest} class="${
+          matchIndex === this.matchIndex ? 'matchRowSelected' : 'matchRow'}">
             ${matchers.map((matcher) => {
         return this.renderField(
             selection, matcher.fieldIndices[selection.index], match.leftIndex,
@@ -277,7 +311,7 @@ export class MatchesTableUi extends LitElement {
       truncatedRows = html`
         <tr>
           <td @click=${onDisplayHiddenRow}
-              colspan=${numColumns * 2} class="hiddenRow">
+              colspan=${numColumns * 3} class="hiddenRow">
             ${rows.length - 100} hidden rows. Click to expand.
           </td>
         </tr>`;
@@ -293,12 +327,12 @@ export class MatchesTableUi extends LitElement {
         ${rows.map(renderRow)}
         ${truncatedRows}
         ${
-        this.state.showRelativeRatios ?
-            this.renderRelativeMeanRows(
+        selection.index === reference.index ?
+            this.renderMeanRowsSingleBatch(
                 numColumns, matchers, metricIndices,
                 selectionSharedFieldIndices) :
-            this.renderAbsoluteMeanRows(
-                selection, numColumns, matchers, metricIndices,
+            this.renderMeanRows(
+                this.referenceSelection, numColumns, matchers, metricIndices,
                 selectionSharedFieldIndices)}
       </table>`;
   }
@@ -346,6 +380,10 @@ export class MatchesTableUi extends LitElement {
       background: var(--mdc-theme-background);
     }
     .matchRow:hover {
+      background: var(--mdc-theme-surface);
+      cursor: pointer;
+    }
+    .matchRowSelected {
       background: var(--mdc-theme-surface);
       cursor: pointer;
     }

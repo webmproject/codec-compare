@@ -40,15 +40,6 @@ export class BatchSelectionActionsUi extends LitElement {
                            'Use'} as reference to compare other codecs with`;
 
     return html`
-      <mwc-icon-button
-          class="batchInfo"
-          icon="info"
-          title="Show details"
-          @click=${() => {
-      dispatch(
-          EventType.BATCH_INFO_REQUEST, {batchIndex: this.batchSelectionIndex});
-    }}>
-      </mwc-icon-button>
       <span title="${focusTitle}">
         <mwc-icon-button
           ?disabled=${this.isReference}

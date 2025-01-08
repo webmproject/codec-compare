@@ -24,7 +24,7 @@ import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
 import {Field} from './entry';
-import {dispatch, EventType} from './events';
+import {dispatch, EventType, listen} from './events';
 import {FieldFilter} from './filter';
 
 /** Component displaying a FieldFilter bound to a Field in a selected Batch. */
@@ -37,6 +37,18 @@ export class FilterUi extends LitElement {
   @query('#numberMin') private readonly numberMin?: TextField;
   @query('#numberMax') private readonly numberMax?: TextField;
   @query('#numberSlider') private readonly numberSlider?: SliderRange;
+
+  override connectedCallback() {
+    super.connectedCallback();
+    // Hack to force refreshing the mwc-slider-range. Otherwise it may appear
+    // broken (probably due to being initialized in a display:none parent).
+    listen(EventType.FILTERED_DATA_INFO_REQUEST, async () => {
+      await new Promise(r => setTimeout(r, 1));
+      if (this.numberSlider !== undefined) {
+        await this.numberSlider.layout();
+      }
+    });
+  }
 
   private renderSingleUniqueValue() {
     const uniqueValue = this.field.uniqueValuesArray.length === 0 ?

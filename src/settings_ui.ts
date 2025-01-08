@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon';
-import '@material/mwc-fab';
 import '@material/mwc-switch';
 import './filtered_images_ui';
 import './filters_ui';

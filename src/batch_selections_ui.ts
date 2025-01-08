@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import '@material/mwc-icon';
 import './batch_selection_actions_ui';
 
 import {css, html, LitElement} from 'lit';
@@ -78,8 +79,8 @@ export class BatchSelectionsUi extends LitElement {
       let mean = stats.getAbsoluteMean();
       let multiple = '';
       const unit = fieldUnit(field.id);
-      const title = `average ${field.displayName} of ${batch.name} is ${
-          mean} ${unit}`;
+      const title =
+          `average ${field.displayName} of ${batch.name} is ${mean} ${unit}`;
 
       if (mean > 1000000 && unit === 'B') {
         mean /= 1000000;
@@ -147,7 +148,10 @@ export class BatchSelectionsUi extends LitElement {
       <tr>
         <td>
           <div class="batchName">
-            <batch-name-ui .batch=${batch}></batch-name-ui>
+            <batch-name-ui .batch=${batch} class="batchInfo" @click=${() => {
+      dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
+    }}>
+            </batch-name-ui>
             ${this.renderFilterChips(batchSelection)}
           </div>
         </td>
@@ -233,6 +237,9 @@ export class BatchSelectionsUi extends LitElement {
       align-content: flex-start;
       align-items: center;
       gap: 5px;
+    }
+    batch-name-ui:hover {
+      cursor: pointer;
     }
     .stat {
       text-align: right;

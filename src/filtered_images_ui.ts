@@ -14,7 +14,6 @@
 
 import '@material/mwc-icon';
 import '@material/mwc-button';
-import './batch_name_ui';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
@@ -70,17 +69,7 @@ export class FilteredImagesUi extends LitElement {
             ${this.batchSelection.filteredRowIndices.length} / ${
         batch.rows.length}
           </div>
-          <h2>
-            filtered data points in <batch-name-ui .batch=${
-        batch}></batch-name-ui>
-          </h2>
-          <a href="${batch.url}" target="_blank">
-            <mwc-button raised dense
-              title="Download all unfiltered data points in JSON format">
-              <mwc-icon>clear_all</mwc-icon>
-              <mwc-icon>download</mwc-icon>
-            </mwc-button>
-          </a>
+          <h2>filtered data points</h2>
         </div>
         <div class="tableParent">
           <table>
@@ -121,6 +110,7 @@ export class FilteredImagesUi extends LitElement {
       font-size: 20px;
     }
     h2 {
+      margin: 0;
       color: var(--mdc-theme-text);
     }
 
@@ -178,10 +168,6 @@ export class FilteredImagesUi extends LitElement {
     }
     .hiddenRow:hover {
       cursor: pointer;
-    }
-
-    a {
-      text-decoration: none;
     }
   `;
 }

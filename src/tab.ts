@@ -17,3 +17,11 @@ export enum Tab {
   STATS = 1,    // Advanced interface with tunable comparison parameters.
   GALLERY = 2,  // Source data set grid.
 }
+
+export enum BatchTab {
+  METADATA = 0,          // General information about the selected batch.
+  FILTERS_AND_ROWS = 1,  // Enabled filters and filtered data points.
+  MATCHES = 2,  // List of matches between the selected batch and the reference.
+                // If the selected batch is the reference, then this tab
+                // displays the filtered data points.
+}

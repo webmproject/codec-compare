@@ -73,11 +73,7 @@ export class PlotUi {
 
       if (plotlyData.isAggregated) {
         const batchIndex = plotlyData.batchIndices[series.pointIndex];
-        dispatch(
-            batchIndex === this.state.referenceBatchSelectionIndex ?
-                EventType.BATCH_INFO_REQUEST :
-                EventType.MATCHES_INFO_REQUEST,
-            {batchIndex});
+        dispatch(EventType.MATCHES_INFO_REQUEST, {batchIndex});
       } else {
         dispatch(EventType.MATCH_INFO_REQUEST, {
           batchIndex: plotlyData.batchIndices[0],

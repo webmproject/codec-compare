@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-fab';
 import '@material/mwc-icon';
 import './batch_name_ui';
 import './filtered_images_ui';
@@ -101,7 +100,7 @@ export class MatchImageUi extends LitElement {
     a {
       box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px 0px;
       transition: box-shadow 0.2s;
-      margin: 7px;
+      margin: 20px;
       text-decoration: none;
       overflow: hidden;
       position: relative; /* For imageOverlay absolute position to work. */
@@ -112,9 +111,9 @@ export class MatchImageUi extends LitElement {
       cursor: zoom-in;
     }
     img {
-      /* Expect a wider room than the image ratio, so try to fit on height. */
-      min-height: 64px;
-      max-height: 100%;
+      /* Expect a taller room than the image ratio, so try to fit on width. */
+      min-width: 64px;
+      max-width: 100%;
     }
 
     #imageOverlay {
