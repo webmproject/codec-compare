@@ -151,6 +151,7 @@ export class PlotUi {
 
     if (this.state.showEachPoint) {
       for (const batchSelection of this.state.batchSelections) {
+        if (batchSelection.isDisplayed === false) continue;
         if (batchSelection.matchedDataPoints.rows.length === 0) continue;
         const batch = batchSelection.batch;
 
@@ -241,6 +242,7 @@ export class PlotUi {
         }
 
         const batchSelection = this.state.batchSelections[batchIndex];
+        if (batchSelection.isDisplayed === false) continue;
         if (batchSelection.matchedDataPoints.rows.length === 0) continue;
         const batch = batchSelection.batch;
         xAxis = batch.fields[xMetric.fieldIndices[batch.index]].displayName;

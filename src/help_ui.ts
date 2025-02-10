@@ -136,7 +136,8 @@ export class HelpUi extends LitElement {
       <div class="descriptionHolder" id="batchSelectionsDescription">
         <div class="bracket"></div>
         <p>
-        Batches are aggregated by codec.<br>
+        Each batch contains encode and decode data over a set of images for a
+        given codec at a specified version and with specific settings.<br>
         See the ADVANCED tab for more information and to change the comparison
         reference, criteria and shown metrics.
         </p>
@@ -183,7 +184,7 @@ export class HelpUi extends LitElement {
         The compared codecs are listed on the left. Data batches may represent
         different codecs, or the same codec with different settings. Each batch
         has an associated color.<br>
-        Click the info button to see batch metadata and data points. Some data
+        Click the batch name to see batch metadata and data points. Some data
         points may be filtered out. When comparing lossy compression methods, it
         is recommended to filter based on
         <a href="https://github.com/webmproject/codec-compare/wiki/Bits-per-pixel-of-Internet-images"
@@ -192,6 +193,8 @@ export class HelpUi extends LitElement {
           <mwc-icon>open_in_new</mwc-icon></a>.<br>
         Click the focus button to set a batch as the reference to compare the
         others against.<br>
+        Click the visibility button to show or hide a specific batch in the plot
+        and in the SUMMARY tab.<br>
         The statistics relative to the reference batch for the fields selected
         as metrics are displayed in the right-most columns. The aggregation
         method can be changed in the Settings.
@@ -208,7 +211,8 @@ export class HelpUi extends LitElement {
         presented here to compare their relative performance.<br>
         <br>
         The count associated with each asset corresponds to the number of
-        matched pairs based on that asset.
+        matched pairs based on that asset.<br>
+        Each image can be toggled on or off across all batches.
         </p>
       </div>`;
   }

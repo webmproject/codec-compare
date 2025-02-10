@@ -18,7 +18,6 @@ import './matcher_ui';
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {mergeBatches} from './batch_merger';
 import {BatchSelection} from './batch_selection';
 import {Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId, fieldUnit} from './entry';
 import {dispatch, EventType, listen} from './events';
@@ -218,16 +217,9 @@ export class SentenceUi extends LitElement {
   }
 
   private renderBatches() {
-    const mergedBatches = mergeBatches(
-        this.state.batchSelections,
-        /*skipIndex=*/ this.state.referenceBatchSelectionIndex);
-    if (mergedBatches.length > 0) {
-      return html`${mergedBatches.map((batchSelection, index) => {
-        return this.renderBatch(batchSelection);
-      })}`;
-    }
     return html`${this.state.batchSelections.map((batchSelection, index) => {
       return this.state.referenceBatchSelectionIndex === index ||
+              batchSelection.isDisplayed === false ||
               batchSelection.matchedDataPoints.rows.length === 0 ?
           '' :
           this.renderBatch(batchSelection);

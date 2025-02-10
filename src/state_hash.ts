@@ -67,7 +67,13 @@ export function stateToMapping(state: State) {
   // easier to read in a URL this way.
   values.set('ref', reference.name);
 
-  // Each field fitler is stored as "off" if disabled, and as its range or set
+  // Batch visibility.
+  for (const batchSelection of state.batchSelections) {
+    const key = `${batchSelection.batch.name}-show`;
+    values.set(key, batchSelection.isDisplayed ? 'on' : 'off');
+  }
+
+  // Each field filter is stored as "off" if disabled, and as its range or set
   // of filtered values if enabled.
   for (const batchSelection of state.batchSelections) {
     for (const [fieldIndex, fieldFilter] of batchSelection.fieldFilters
@@ -181,6 +187,12 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
         break;
       }
     }
+  }
+
+  for (const batchSelection of state.batchSelections) {
+    const value = values.get(`${batchSelection.batch.name}-show`);
+    if (value === 'on') batchSelection.isDisplayed = true;
+    if (value === 'off') batchSelection.isDisplayed = false;
   }
 
   for (const batchSelection of state.batchSelections) {
