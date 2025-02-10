@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.0
+
+- No longer merge similar batches in Summary tab to avoid confusion.
+- Add a visibility toggle button per batch in Advanced tab.
+
 ## v0.4.0
 
 - Improve navigation by refactoring the BatchUi, BatchSelectionUi, MatchesUi,

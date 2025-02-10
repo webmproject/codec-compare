@@ -24,6 +24,9 @@ export class BatchSelection {
   /** The selected set of input raw data points. */
   batch: Batch;
 
+  /** If false, the batch is not displayed in the plot and summary. */
+  isDisplayed: boolean = true;
+
   /**
    * How to filter these input raw data points into a subset that will be used
    * for the comparison.
