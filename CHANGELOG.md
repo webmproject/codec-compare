@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.1
+
+- Fix absolute asset paths in codec_compare npm run build.
+
 ## v0.5.0
 
 - No longer merge similar batches in Summary tab to avoid confusion.
