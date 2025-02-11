@@ -1,6 +1,6 @@
 {
   "name": "codec_compare",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Codec performance comparison tool",
   "publisher": "Google LLC",
   "author": "Yannis Guyon",
@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite --open",
     "build": "vite build",
+    "postbuild": "./postbuild.sh",
     "preview": "vite preview --open",
     "test": "karma start"
   },

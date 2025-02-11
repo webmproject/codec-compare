@@ -166,7 +166,7 @@ export class GalleryUi extends LitElement {
     };
 
     if (asset.previewPath !== undefined) {
-      // Use a preview image tag.
+      // Use a preview image.
 
       if (asset.sourcePath !== undefined) {
         // Use a link to open the image in a new tab.
@@ -190,11 +190,14 @@ export class GalleryUi extends LitElement {
     }
 
     if (asset.sourcePath !== undefined) {
-      // Use a link to open the image in a new tab.
+      // Use a link to open the image in a new tab. Display the original image
+      // in full resolution. This can be as heavy as the full input dataset but
+      // this is still better than just displaying text.
       return html`
         <a href="${asset.sourcePath}" target="_blank" class="constrainedSize"
           title="${title}">
-          ${asset.sourceName}
+          <img src="${asset.sourcePath}" class="constrainedSize"
+            alt="${asset.sourceName}" loading="lazy">
           <span class="countBubble">${asset.count}</span>
           <div class="linkOverlay"><mwc-icon>open_in_new</mwc-icon></div>
           <mwc-checkbox ?checked=${checked} @click=${onCheckboxClick}>
