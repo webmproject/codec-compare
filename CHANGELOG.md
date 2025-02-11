@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.2
+
+- Replace placeholder comparison presets by generic resource links.
+
 ## v0.5.1
 
 - Fix absolute asset paths in codec_compare npm run build.

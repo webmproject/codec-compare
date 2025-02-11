@@ -187,27 +187,24 @@ export class CodecCompare extends LitElement {
           </mwc-button-fit>
 
           <mwc-button-fit disabled>
-            <mwc-icon>open_in_new</mwc-icon> Comparison presets
+            <mwc-icon>open_in_new</mwc-icon> Resources
           </mwc-button-fit>
 
           <p id="presets">
-            <!-- Open in new tab to avoid handling location hash changes. -->
-            <a target="_blank" href="?batch=/demo_batch_some_codec_effort2.json&batch=/demo_batch_other_codec_settingC.json">
-              Some codec effort 2 vs setting C
+            <a target="_blank" href="https://storage.googleapis.com/demos.webmproject.org/webp/cmp/index.html">
+              Image format comparison homepage
             </a><br>
-            <a target="_blank" href="?batch=/demo_batch_other_codec_settingA.json&batch=/demo_batch_some_codec_exp.json">
-              Some codec setting A vs experiment
+            <a target="_blank" href="https://github.com/webmproject/codec-compare/wiki/Bits-per-pixel-of-Internet-images">
+              Bits per pixel of Internet images
             </a><br>
-            <a target="_blank" href="#">
-              Encoding time and encoded size metrics
+            <a target="_blank" href="https://storage.googleapis.com/avif-comparison/index.html">
+              Another study of AVIF/WebP/JPG/JXL
             </a><br>
-            <a target="_blank" href="#matcher_encoded_size=0.01&metric_decoding_time=on&metric_encoded_size=off">
-              Time metrics for same encoded size
-            </a>
+            <!-- Other links can be inserted here. -->
           </p>
 
           <p id="credits">
-            Codec Compare version 0.5.1<br>
+            Codec Compare version 0.5.2<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -421,7 +418,7 @@ export class CodecCompare extends LitElement {
       margin-left: 70px;
       color: var(--mdc-theme-background);
       font-family: Roboto, sans-serif;
-      font-size: 20px;
+      font-size: 16px;
     }
     #presets > a {
       color: var(--mdc-theme-background);
