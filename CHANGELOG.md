@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.3
+
+- Display the constants-table-ui component when selecting a match.
+- Display a copy-to-clipboard button next to each command line constant.
+
 ## v0.5.2
 
 - Replace placeholder comparison presets by generic resource links.

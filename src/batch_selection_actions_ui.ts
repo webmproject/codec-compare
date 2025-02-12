@@ -66,9 +66,6 @@ export class BatchSelectionActionsUi extends LitElement {
   }
 
   static override styles = css`
-    a {
-      text-decoration: none;
-    }
     mwc-icon-button {
       color: var(--mdc-theme-text);
       /* Make the background disk that appears when hovered slightly bigger
