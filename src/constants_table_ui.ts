@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import './batch_name_ui';
+import './copy_button';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
@@ -28,12 +29,12 @@ import {Batch, Constant, FieldId} from './entry';
 @customElement('constants-table-ui')
 export class ConstantsTableUi extends LitElement {
   @property({attribute: false}) batch?: Batch;
-  @property({attribute: false}) rowIndex = -1;
+  @property({attribute: false}) rowIndex: number|undefined = undefined;
 
   private renderConstant(
       batch: Batch, constant: Constant, showDescriptionAsTitle: boolean,
       constantValue: string) {
-    // Already displayed by parent component BatchUi.
+    // Already displayed by a parent component.
     if (constant.id === FieldId.BATCH_NAME) return html``;
 
     // Save screen space by hiding some fields that can be found elsewhere.
@@ -42,6 +43,12 @@ export class ConstantsTableUi extends LitElement {
     if (constant.id === FieldId.ENCODED_IMAGE_PATH) return html``;
     if (constant.id === FieldId.DECODED_IMAGE_PATH) return html``;
     if (constant.id === FieldId.PREVIEW_PATH) return html``;
+
+    const trailingElements =
+        constant.displayName.toLowerCase().endsWith('command') ?
+        html`<copy-button .textToCopyInClipboard=${
+            constantValue}></copy-button>` :
+        html``;
 
     return html`
         <tr>
@@ -52,8 +59,9 @@ export class ConstantsTableUi extends LitElement {
           <th>${constant.displayName}</th>
           <td class="description">${constant.description}</td>`}
           ${
-        constant.id === FieldId.DATE ? html`<td>${batch.timeStringLong}</td>` :
-                                       html`<td>${constantValue}</td>`}
+        constant.id === FieldId.DATE ?
+            html`<td>${batch.timeStringLong}</td>` :
+            html`<td>${constantValue}${trailingElements}</td>`}
         </tr>`;
   }
 
@@ -62,7 +70,7 @@ export class ConstantsTableUi extends LitElement {
 
     let constantValues: string[];
     let showDescriptionAsTitle: boolean;
-    if (this.rowIndex === -1) {
+    if (this.rowIndex === undefined) {
       constantValues = [];
       for (const constant of this.batch.constants) {
         constantValues.push(constant.value);

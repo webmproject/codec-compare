@@ -38,8 +38,12 @@ export class MatchesUi extends LitElement {
   @property({attribute: false}) matchIndex!: number|undefined;
 
   override render() {
+    const rowIndex = this.matchIndex === undefined ?
+        undefined :
+        this.batchSelection.matchedDataPoints.rows[this.matchIndex].leftIndex;
+
     return html`
-      <div class="verticalFlex">
+      <div class="leftVerticalFlex">
         <div id="batchesHeader">
           <div id="matchChip">
             <mwc-icon>${
@@ -66,11 +70,17 @@ export class MatchesUi extends LitElement {
         </matches-table-ui>
       </div>
 
-      <match-image-ui .state=${this.state}
-        .batchSelection=${this.batchSelection}
-        .matchIndex=${this.matchIndex === undefined ? 0 : this.matchIndex}
+      <div class="rightVerticalFlex"
         style=${this.matchIndex !== undefined ? '' : 'display: none'}>
-      </match-image-ui>`;
+        <constants-table-ui
+          .batch=${this.batchSelection.batch}
+          .rowIndex=${rowIndex}>
+        </constants-table-ui>
+        <match-image-ui .state=${this.state}
+          .batchSelection=${this.batchSelection}
+          .matchIndex=${this.matchIndex === undefined ? 0 : this.matchIndex}>
+        </match-image-ui>
+      </div>`;
   }
 
   static override styles = css`
@@ -81,15 +91,21 @@ export class MatchesUi extends LitElement {
       gap: 10px;
       overflow: hidden;
     }
-    .verticalFlex {
+    .leftVerticalFlex,
+    .rightVerticalFlex {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       gap: 10px;
       overflow: hidden;
+    }
+    .leftVerticalFlex {
       flex: 4;
       /* Prevents unnecessarily wide table but breaks scrollbars. */
       /* align-items: flex-start; */
+    }
+    .rightVerticalFlex {
+      flex: 1;
     }
 
     #batchesHeader {
@@ -115,7 +131,6 @@ export class MatchesUi extends LitElement {
     }
 
     match-image-ui {
-      flex: 1;
       align-self: center;
     }
   `;
