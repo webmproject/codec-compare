@@ -63,7 +63,7 @@ describe('BatchSelectionsUi', () => {
       expect(stats).toBeDefined();
       if (stats === undefined) return;
 
-      expect(stats).toHaveSize(state.batches.length);
+      expect(stats).toHaveSize(state.batches.length - 1);
       expect(stats).toHaveSize(expectedStats.length);
       for (const [index, stat] of stats.entries()) {
         expect(stat).toBeInstanceOf(HTMLTableCellElement);
@@ -75,7 +75,7 @@ describe('BatchSelectionsUi', () => {
     };
 
     // No stat was computed yet.
-    expectStatsToBe(['-', 'n/a']);
+    expectStatsToBe(['n/a']);
 
     // The first batch is used as the reference so there is no stat compared
     // with itself. The second batch is compared with the first batch based on
@@ -83,12 +83,12 @@ describe('BatchSelectionsUi', () => {
     expect(state.referenceBatchSelectionIndex).toBe(0);
     dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
     await batchSelectionsEl.updateComplete;
-    expectStatsToBe(['-', '+120.0%']);
+    expectStatsToBe(['+120.0%']);
 
     // Swapping the reference leads to the opposite results.
     state.referenceBatchSelectionIndex = 1;
     dispatch(EventType.REFERENCE_CHANGED);
     await batchSelectionsEl.updateComplete;
-    expectStatsToBe(['-54.5%', '-']);
+    expectStatsToBe(['-54.5%']);
   });
 });

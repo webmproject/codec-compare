@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import '@material/mwc-button';
 import '@material/mwc-icon';
+import '@material/mwc-menu';
 import '@material/mwc-tab-bar';
 import '@material/mwc-tab';
 import './batch_name_ui';
@@ -27,6 +29,8 @@ import './panel_ui';
 import './sentence_ui';
 import './settings_ui';
 
+import {ActionDetail} from '@material/mwc-list';
+import {Menu} from '@material/mwc-menu';
 import {css, html, LitElement} from 'lit';
 import {customElement, query} from 'lit/decorators.js';
 
@@ -67,14 +71,37 @@ export class CodecCompare extends LitElement {
   @query('help-ui') private readonly helpUi!: HelpUi;
   @query('loading-ui') private readonly loadingUi!: LoadingUi;
 
+  @query('#referenceMenu') private readonly referenceMenu!: Menu;
+
   private renderReference(referenceBatch: Batch) {
     return html`
-      <p id="referenceBatch">
-        compared to <batch-name-ui .batch=${referenceBatch} @click=${() => {
-      dispatch(
-          EventType.BATCH_INFO_REQUEST, {batchIndex: referenceBatch.index});
-    }}></batch-name-ui>.
-      </p>`;
+      <mwc-button icon="arrow_drop_down" trailingIcon raised
+          title="Change the reference batch to compare other codecs with"
+          id="referenceButton" @click=${() => {
+      this.referenceMenu.show();
+    }}>
+        <batch-name-ui .batch=${referenceBatch}></batch-name-ui>
+      </mwc-button>
+      <mwc-menu
+        .anchor=${this.referenceMenu}
+        corner="BOTTOM_LEFT"
+        menuCorner="START"
+        id="referenceMenu"
+        @action=${(e: CustomEvent<ActionDetail>) => {
+      this.state.referenceBatchSelectionIndex = e.detail.index;
+      dispatch(EventType.REFERENCE_CHANGED);
+    }}>
+        ${
+        this.state.batches.map(
+            (batch) => html`
+        <mwc-list-item ?activated=${batch.index === referenceBatch.index}>
+          <batch-name-ui .batch=${batch}></batch-name-ui>
+          ${
+                batch.index === referenceBatch.index ?
+                    html`<span class="referenceBatchChip">reference</span>` :
+                    html``}
+        </mwc-list-item>`)}
+      </mwc-menu>`;
   }
 
   private renderSentence() {
@@ -107,17 +134,27 @@ export class CodecCompare extends LitElement {
   }
 
   override render() {
-    let numComparisons = 0;
+    let minNumComparisons = -1;
+    let maxNumComparisons = -1;
     let truncatedResults = false;
     let hasHistograms = false;
     for (const [index, batchSelection] of this.state.batchSelections
              .entries()) {
       if (index !== this.state.referenceBatchSelectionIndex) {
-        numComparisons += batchSelection.matchedDataPoints.rows.length;
+        const numComparisons = batchSelection.matchedDataPoints.rows.length;
+        minNumComparisons = minNumComparisons === -1 ?
+            numComparisons :
+            Math.min(minNumComparisons, numComparisons);
+        maxNumComparisons = maxNumComparisons === -1 ?
+            numComparisons :
+            Math.max(maxNumComparisons, numComparisons);
         truncatedResults ||= batchSelection.matchedDataPoints.limited;
       }
       hasHistograms ||= batchSelection.histogram.length > 0;
     }
+    const numComparisonsStr = minNumComparisons === maxNumComparisons ?
+        `${Math.max(0, maxNumComparisons)}` :
+        `${minNumComparisons} to ${maxNumComparisons}`;
 
     let referenceBatch: Batch|undefined = undefined;
     if (this.state.referenceBatchSelectionIndex >= 0 &&
@@ -143,11 +180,15 @@ export class CodecCompare extends LitElement {
           <div id="advancedInterface">
             <div class="scrollFriendlyPadding"></div>
             ${truncatedResults ? this.renderTruncatedResults() : ''}
-            <p id="numComparisons">Based on ${numComparisons} comparisons,</p>
+            <p id="numComparisons" style="position: relative;">
+              Based on ${numComparisonsStr} comparisons
+              ${
+        referenceBatch ? html`with ${this.renderReference(referenceBatch)}` :
+                         ''},
+            </p>
             <matchers-ui .state=${this.state} id="matchers"></matchers-ui>
             <metrics-ui .state=${this.state} id="metrics"></metrics-ui>
             <batch-selections-ui .state=${this.state}></batch-selections-ui>
-            ${referenceBatch ? this.renderReference(referenceBatch) : ''}
             <div class="scrollFriendlyPadding"></div>
           </div>
         </div>
@@ -204,7 +245,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare version 0.5.3<br>
+            Codec Compare version 0.5.4<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -277,8 +318,8 @@ export class CodecCompare extends LitElement {
       let jsonPaths = url.getAll('batch');
       try {
         if (jsonPaths.length === 0) {
-          const pathOfJsonContaingJsonPaths =
-              decodeURIComponent(url.get('load') ?? '/demo_batches.json');
+          const pathOfJsonContaingJsonPaths = decodeURIComponent(
+              url.get('load') ?? '/default_batches.json');
           jsonPaths = await loadJsonContainingBatchJsonPaths(
               pathOfJsonContaingJsonPaths);
         }
@@ -364,6 +405,29 @@ export class CodecCompare extends LitElement {
     }
     batch-name-ui:hover {
       cursor: pointer;
+    }
+    #referenceButton {
+      --mdc-theme-primary: white;
+      --mdc-theme-on-primary: var(--mdc-theme-text);
+      /* Align the following comma to the bottom of the button. */
+      vertical-align: bottom;
+    }
+    #referenceButton batch-name-ui {
+      color: var(--mdc-theme-text);
+      font-size: 16px;
+      white-space: nowrap;
+      text-transform: none;
+    }
+    #referenceMenu {
+      --mdc-menu-item-height: 20px;
+    }
+    .referenceBatchChip {
+      background: var(--mdc-theme-primary);
+      color: var(--mdc-theme-background);
+      border-radius: 16px;
+      padding: 2px 8px;
+      font-size: 12px;
+      margin-left: 8px;
     }
     #truncatedResults {
       background: orange;

@@ -48,15 +48,6 @@ export class BatchSelectionsUi extends LitElement {
     const referenceBatch =
         this.state.batchSelections[this.state.referenceBatchSelectionIndex]
             .batch;
-    if (this.state.showRelativeRatios &&
-        batchSelectionIndex === this.state.referenceBatchSelectionIndex) {
-      const title = referenceBatch.name + ' is used as reference';
-      return html`
-        <td class="stat" title="${title}">
-          -
-        </td>
-      `;
-    }
     if (batchSelection.matchedDataPoints.rows.length === 0) {
       const title = 'There is no data to compare ' + batch.name + ' with ' +
           referenceBatch.name;
@@ -142,7 +133,8 @@ export class BatchSelectionsUi extends LitElement {
   }
 
   private renderBatchSelectionRow(
-      batchSelection: BatchSelection, index: number) {
+      batchSelection: BatchSelection, index: number,
+      numEnabledMetrics: number) {
     const batch = batchSelection.batch;
     return html`
       <tr>
@@ -162,10 +154,20 @@ export class BatchSelectionsUi extends LitElement {
             .isReference=${index === this.state.referenceBatchSelectionIndex}>
           </batch-selection-actions-ui>
         </td>
-        ${this.state.metrics.map((metric: FieldMetric, metricIndex: number) => {
-      return this.renderRowMetric(
-          batchSelection, index, metric, batchSelection.stats[metricIndex]);
-    })}
+        ${
+        (this.state.showRelativeRatios &&
+         index === this.state.referenceBatchSelectionIndex) ?
+            html`
+        <td class="notText" colspan=${numEnabledMetrics}
+          title="${batch.name} is used as reference">
+          <span class="referenceBatchChip">reference</span>
+        </td>` :
+            this.state.metrics.map(
+                (metric: FieldMetric, metricIndex: number) => {
+                  return this.renderRowMetric(
+                      batchSelection, index, metric,
+                      batchSelection.stats[metricIndex]);
+                })}
       </tr>`;
   }
 
@@ -182,7 +184,8 @@ export class BatchSelectionsUi extends LitElement {
         ${
         this.state.batchSelections.map(
             (batchSelection: BatchSelection, index: number) => {
-              return this.renderBatchSelectionRow(batchSelection, index);
+              return this.renderBatchSelectionRow(
+                  batchSelection, index, numEnabledMetrics);
             })}
       </table>
     `;
@@ -266,6 +269,15 @@ export class BatchSelectionsUi extends LitElement {
     }
     #filterChip:hover {
       cursor: pointer;
+    }
+
+    .referenceBatchChip {
+      background: var(--mdc-theme-primary);
+      color: var(--mdc-theme-background);
+      border-radius: 16px;
+      padding: 2px 8px;
+      font-size: 12px;
+      margin-left: 8px;
     }
   `;
 }

@@ -148,7 +148,7 @@ describe('loadBatchJson', () => {
 describe('loadJsonContainingBatchJsonPaths', () => {
   it('loads a JSON file', async () => {
     const paths =
-        await loadJsonContainingBatchJsonPaths('/assets/demo_batches.json');
+        await loadJsonContainingBatchJsonPaths('/assets/default_batches.json');
     expect(paths).toEqual(jasmine.arrayWithExactContents([
       '/assets/demo_batch_some_codec_exp.json',
       '/assets/demo_batch_some_codec_effort1.json',

@@ -194,8 +194,13 @@ export class SentenceUi extends LitElement {
     }
   }
 
-  private renderBatch(batchSelection: BatchSelection) {
+  private renderBatch(batchSelection: BatchSelection, isLast: boolean) {
     const batch = batchSelection.batch;
+    const lastEnabledMetricIndex = isLast ?
+        Math.max(...this.state.metrics.map(
+            (metric, index) => metric.enabled ? index : -1)) :
+        -1;
+
     return html`
         <p>
         images encoded with <batch-name-ui .batch=${batch} @click=${() => {
@@ -210,19 +215,29 @@ export class SentenceUi extends LitElement {
                   this.renderRelativeMetric(
                       batch, metric, batchSelection.stats[metricIndex]) :
                   this.renderAbsoluteMetric(
-                      batch, metric, batchSelection.stats[metricIndex])},` :
+                      batch, metric, batchSelection.stats[metricIndex])}${
+              metricIndex === lastEnabledMetricIndex ? '.' : ','}` :
           '';
     })}
         </p>`;
   }
 
   private renderBatches() {
+    const shouldBatchBeDisplayed = (batchSelection: BatchSelection) =>
+        (!this.state.showRelativeRatios ||
+         batchSelection.batch.index !==
+             this.state.referenceBatchSelectionIndex) &&
+        batchSelection.isDisplayed &&
+        batchSelection.matchedDataPoints.rows.length > 0;
+    const lastDisplayedBatchIndex = Math.max(...this.state.batchSelections.map(
+        (batchSelection, index) =>
+            shouldBatchBeDisplayed(batchSelection) ? index : -1));
+
     return html`${this.state.batchSelections.map((batchSelection, index) => {
-      return this.state.referenceBatchSelectionIndex === index ||
-              batchSelection.isDisplayed === false ||
-              batchSelection.matchedDataPoints.rows.length === 0 ?
-          '' :
-          this.renderBatch(batchSelection);
+      return shouldBatchBeDisplayed(batchSelection) ?
+          this.renderBatch(
+              batchSelection, /*isLast=*/ index === lastDisplayedBatchIndex) :
+          '';
     })}`;
   }
 
@@ -248,9 +263,9 @@ export class SentenceUi extends LitElement {
         <p id="referenceBatch">
           compared to <batch-name-ui .batch=${batch} @click=${() => {
         dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
-      }}></batch-name-ui>${this.renderFilters(referenceBatch)}.</p>`;
+      }}></batch-name-ui>${this.renderFilters(referenceBatch)},</p>`;
     }
-    return html`<p id="referenceBatch">on average.</p>`;
+    return html`<p id="referenceBatch">on average,</p>`;
   }
 
   override render() {
@@ -267,10 +282,10 @@ export class SentenceUi extends LitElement {
         ${this.renderMatchers()}
         ${referenceBatch ? this.renderMatcherReference(referenceBatch) : ''}
       </div>
+      ${referenceBatch ? this.renderReference(referenceBatch) : ''}
       <div id="batches">
         ${this.renderBatches()}
-      </div>
-      ${referenceBatch ? this.renderReference(referenceBatch) : ''}`;
+      </div>`;
   }
 
   static override styles = css`

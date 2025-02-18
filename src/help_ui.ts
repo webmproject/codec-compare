@@ -100,12 +100,8 @@ export class HelpUi extends LitElement {
           ['codec-compare', 'gallery-ui', '#sourceDataSet']);
     }
 
-    // This is not the description of the #referenceBatch <p> but it is used as
-    // a convenient top anchor to fill the remaining graph area till the bottom
-    // of the screen.
-    positionElementAtTheRightOf(
-        this.graphDescription, ['codec-compare', '#referenceBatch']);
     this.graphDescription.style.bottom = '60px';
+    this.graphDescription.style.left = '600px';
     this.graphDescription.style.height = '';
 
     // Note that the positions above will be stale if the elements used as
@@ -154,7 +150,7 @@ export class HelpUi extends LitElement {
         point is an image compressed then decompressed, with some codec settings
         and some measured information such as encoding duration, visual
         distortion etc. The number of comparisons is the number of matched pairs
-        across all batches.
+        between a batch and the reference batch.
         </p>
       </div>
 
@@ -191,8 +187,6 @@ export class HelpUi extends LitElement {
           target="_blank">
           bits-per-pixel usually seen on the web
           <mwc-icon>open_in_new</mwc-icon></a>.<br>
-        Click the focus button to set a batch as the reference to compare the
-        others against.<br>
         Click the visibility button to show or hide a specific batch in the plot
         and in the SUMMARY tab.<br>
         The statistics relative to the reference batch for the fields selected
@@ -211,7 +205,7 @@ export class HelpUi extends LitElement {
         presented here to compare their relative performance.<br>
         <br>
         The count associated with each asset corresponds to the number of
-        matched pairs based on that asset.<br>
+        matched pairs based on that asset accross all batches.<br>
         Each image can be toggled on or off across all batches.
         </p>
       </div>`;
@@ -276,7 +270,7 @@ export class HelpUi extends LitElement {
       top: 0;
       bottom: 0;
       right: 0;
-      /** Translucid enough to see through, dark enough to read white text.*/
+      /* Translucid enough to see through, dark enough to read white text. */
       background: rgba(0,0,0,0.7);
     }
 

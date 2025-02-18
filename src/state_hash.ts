@@ -16,7 +16,7 @@ import {Field} from './entry';
 import {FieldFilter} from './filter';
 import {selectPlotMetrics} from './metric';
 import {State} from './state';
-import {applyBitmaskToStringArray} from './utils';
+import {applyBase16Bitmask, applyBitmaskToStringArray, getBase16Bitmask} from './utils';
 
 function filterToMapping(
     field: Field, fieldFilter: FieldFilter, key: string,
@@ -32,25 +32,12 @@ function filterToMapping(
     // Serialize the bitset of filtered values as a hexadecimal string.
     // Listing the set of actual values verbatim would take too many
     // characters.
-    let hexValue = '';
-    let incompleteHexDigit = 0;
-    let i = 0;
-    for (const possibleFieldValue of field.uniqueValuesArray) {
-      if (fieldFilter.uniqueValues.has(possibleFieldValue)) {
-        incompleteHexDigit |= 1 << i;
-      }
-      ++i;
-      if (i === 4) {
-        hexValue += incompleteHexDigit.toString(16);
-        incompleteHexDigit = 0;
-        i = 0;
-      }
-    }
-    if (i !== 0) {
-      hexValue += incompleteHexDigit.toString(16);
-    }
-
-    values.set(key, hexValue);
+    values.set(
+        key,
+        getBase16Bitmask(
+            field.uniqueValuesArray.length,
+            (elementIndex: number) => fieldFilter.uniqueValues.has(
+                field.uniqueValuesArray[elementIndex])));
   }
 }
 
@@ -68,10 +55,12 @@ export function stateToMapping(state: State) {
   values.set('ref', reference.name);
 
   // Batch visibility.
-  for (const batchSelection of state.batchSelections) {
-    const key = `${batchSelection.batch.name}-show`;
-    values.set(key, batchSelection.isDisplayed ? 'on' : 'off');
-  }
+  values.set(
+      'shown',
+      getBase16Bitmask(
+          state.batchSelections.length,
+          (elementIndex: number) =>
+              state.batchSelections[elementIndex].isDisplayed));
 
   // Each field filter is stored as "off" if disabled, and as its range or set
   // of filtered values if enabled.
@@ -189,10 +178,13 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
     }
   }
 
-  for (const batchSelection of state.batchSelections) {
-    const value = values.get(`${batchSelection.batch.name}-show`);
-    if (value === 'on') batchSelection.isDisplayed = true;
-    if (value === 'off') batchSelection.isDisplayed = false;
+  const visibilities = values.get('shown');
+  if (visibilities) {
+    applyBase16Bitmask(
+        visibilities, state.batchSelections.length,
+        (elementIndex: number, on: boolean) => {
+          state.batchSelections[elementIndex].isDisplayed = on;
+        });
   }
 
   for (const batchSelection of state.batchSelections) {
