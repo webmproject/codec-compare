@@ -34,24 +34,7 @@ export class BatchSelectionActionsUi extends LitElement {
 
   override render() {
     const batchSelection = this.state.batchSelections[this.batchSelectionIndex];
-
-    // Note: A span is used because title does not appear on hover when
-    //       mwc-icon-button is disabled.
-    const focusTitle = `${
-        this.isReference ? 'Used' :
-                           'Use'} as reference to compare other codecs with`;
-
     return html`
-      <span title="${focusTitle}">
-        <mwc-icon-button
-          ?disabled=${this.isReference}
-          icon=${this.isReference ? 'center_focus_strong' : 'center_focus_weak'}
-          @click=${() => {
-      this.state.referenceBatchSelectionIndex = this.batchSelectionIndex;
-      dispatch(EventType.REFERENCE_CHANGED);
-    }}>
-        </mwc-icon-button>
-      </span>
       <span title="${batchSelection.isDisplayed ? 'Hide' : 'Show'}">
         <mwc-icon-button
           icon=${batchSelection.isDisplayed ? 'visibility' : 'visibility_off'}

@@ -263,6 +263,9 @@ export class PanelUi extends LitElement {
       white-space: nowrap;
       text-transform: none;
     }
+    #selectionMenu {
+      --mdc-menu-item-height: 20px;
+    }
     .referenceBatchChip {
       background: var(--mdc-theme-primary);
       color: var(--mdc-theme-background);

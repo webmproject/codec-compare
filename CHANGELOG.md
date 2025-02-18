@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.5.4
+
+- Shorten the URL hash way of storing which batches are displayed.
+- Load default_batches.json instead of demo_batches.json by default.
+- Move the reference batch's name to the top of the Summary and Advanced tabs.
+- Replace the focus icon button by a dropdown to select the reference batch in
+  the Advanced tab.
+- Display the reference batch in the Summary tab in absolute mode.
+- Display a "reference" chip in Advanced tab instead of "-" cells.
+- Display the number of comparisons per batch instead of the sum in the Advanced
+  tab.
+
 ## v0.5.3
 
 - Display the constants-table-ui component when selecting a match.
