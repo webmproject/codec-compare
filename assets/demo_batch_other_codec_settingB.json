@@ -15,9 +15,9 @@
     "other_codec",
     "0.1.2",
     "2023-05-16T16:05:20.741900282Z",
-    "/rainbow.png",
-    "/rainbow_q50.webp",
-    "/rainbow_q50.webp",
+    "rainbow.png",
+    "rainbow_q50.webp",
+    "rainbow_q50.webp",
     "encode ${original_name} ${encoded_name} --setting B",
     "decode ${encoded_name} ${encoded_name}.png"
   ],

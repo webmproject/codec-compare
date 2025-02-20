@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.5
+
+- Simplify "rainbow" demo asset inclusion paths.
+
 ## v0.5.4
 
 - Shorten the URL hash way of storing which batches are displayed.
