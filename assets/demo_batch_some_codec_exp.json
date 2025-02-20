@@ -19,9 +19,9 @@
     "2023-05-22T13:02:15.137053618Z",
     "https://testimages.org/sampling/",
     "fruits=d040000018&with text=0d88068002",
-    "/rainbow.png",
-    "assets/rainbow_q0.webp",
-    "/rainbow_q50.webp",
+    "rainbow.png",
+    "rainbow_q0.webp",
+    "rainbow_q50.webp",
     "encode ${original_name} ${encoded_name}",
     "decode ${encoded_name} ${encoded_name}.png"
   ],
