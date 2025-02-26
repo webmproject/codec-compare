@@ -27,11 +27,10 @@ export class BatchNameUi extends LitElement {
     const description = `${this.batch.codec} ${this.batch.version} (${
         this.batch.timeStringShort})`;
     const diskColor = {'background-color': this.batch.color};
-    return html`
-        <span title="${description}">
-          <span class="disk" style=${styleMap(diskColor)}></span>
-          <span class="mono">${this.batch.name}</span>
-        </span>`;
+    // Avoid undesired spaces due to line breaks between inline elements.
+    return html`<span title="${description}"><span class="disk" style=${
+        styleMap(diskColor)}></span> <span class="mono">${
+        this.batch.name}</span></span>`;
   }
 
   static override styles = css`

@@ -67,12 +67,12 @@ export class SentenceUi extends LitElement {
     const paren = subName ?
         (tolerance ? ` (${subName} ${tolerance})` : ` (${subName})`) :
         (tolerance ? ` (${tolerance})` : '');
-    const lineEnd = isLast ? this.state.showRelativeRatios ? ',' : '' : 'and';
+    const lineEnd = isLast ?
+        (this.state.showRelativeRatios ? html`,` : html``) :
+        html`<br>`;
 
     return html`
-        <p>
-          ${isFirst ? 'For' : ''} the same ${displayName}${paren}${lineEnd}
-        </p>`;
+        ${isFirst ? 'For' : 'and'} the same ${displayName}${paren}${lineEnd}`;
   }
 
   private renderMatchers() {
@@ -80,11 +80,13 @@ export class SentenceUi extends LitElement {
         this.state.matchers.filter(matcher => matcher.enabled).length;
     let index = 0;
     return html`
-        ${
+        <p>
+          ${
         this.state.matchers.map(
             matcher => matcher.enabled ?
                 this.renderMatcher(matcher, index++, numEnabledMatchers) :
-                '')}`;
+                '')}
+        </p>`;
   }
 
   // Batches, filters and metrics
