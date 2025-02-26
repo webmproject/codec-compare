@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.6
+
+- Fix missing space and vertical spacing on multiple match criteria in the
+  Summary tab.
+- Remove extra white spaces around batch-name-ui tags.
+
 ## v0.5.5
 
 - Simplify "rainbow" demo asset inclusion paths.
