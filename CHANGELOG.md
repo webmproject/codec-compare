@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.7
+
+- Display 100 rows surrounding the selected match in the Matches tab instead of
+  displaying the first 100 rows.
+
 ## v0.5.6
 
 - Fix missing space and vertical spacing on multiple match criteria in the
