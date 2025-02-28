@@ -301,21 +301,54 @@ export class MatchesTableUi extends LitElement {
     const numColumns =
         matchers.length + metrics.length + selectionSharedFieldIndices.length;
     let rows = this.batchSelection.matchedDataPoints.rows;
-    let truncatedRows = html``;
-    if (!this.state.showAllRows && rows.length > 100) {
+    let firstDisplayedRowIndex = 0;
+    let numDisplayedRows = 100;
+    let truncatedRowsBefore = html``;
+    let truncatedRowsAfter = html``;
+    // +2 in case one or two placeholder rows below are replaced by actual
+    // single data rows.
+    if (this.state.showAllRows || rows.length <= numDisplayedRows + 2) {
+      numDisplayedRows = rows.length;
+    } else {
       const onDisplayHiddenRow = () => {
         this.state.showAllRows = true;
         dispatch(EventType.SETTINGS_CHANGED);
         this.requestUpdate();
       };
-      truncatedRows = html`
-        <tr>
-          <td @click=${onDisplayHiddenRow}
-              colspan=${numColumns * 3} class="hiddenRow">
-            ${rows.length - 100} hidden rows. Click to expand.
-          </td>
-        </tr>`;
-      rows = rows.slice(0, 100);
+      if (this.matchIndex !== undefined && this.matchIndex > 10) {
+        firstDisplayedRowIndex =
+            Math.min(this.matchIndex - 10, rows.length - numDisplayedRows);
+        if (firstDisplayedRowIndex === 1) {
+          // Display the data row directly instead of showing a "1 hidden row"
+          // placeholder.
+          firstDisplayedRowIndex = 0;
+          numDisplayedRows += 1;
+        } else {
+          truncatedRowsBefore = html`
+            <tr>
+              <td @click=${onDisplayHiddenRow} colspan=${numColumns * 3}
+                class="hiddenRow">
+                ${firstDisplayedRowIndex} hidden rows. Click to expand.
+              </td>
+            </tr>`;
+        }
+      }
+      if (firstDisplayedRowIndex + numDisplayedRows + 1 >= rows.length) {
+        // Display the data row directly instead of showing a "1 hidden row"
+        // placeholder.
+        numDisplayedRows += 1;
+      }
+      const endRow = firstDisplayedRowIndex + numDisplayedRows;
+      if (endRow < rows.length) {
+        truncatedRowsAfter = html`
+          <tr>
+            <td @click=${onDisplayHiddenRow} colspan=${numColumns * 3}
+              class="hiddenRow">
+              ${rows.length - endRow} hidden rows. Click to expand.
+            </td>
+          </tr>`;
+      }
+      rows = rows.slice(firstDisplayedRowIndex, endRow);
     }
 
     return html`
@@ -324,8 +357,12 @@ export class MatchesTableUi extends LitElement {
         this.renderFirstHeaderRow(
             reference, matchers, metrics, referenceSharedFieldIndices)}
         ${this.renderSecondHeaderRow(reference, matchers, metrics)}
-        ${rows.map(renderRow)}
-        ${truncatedRows}
+        ${truncatedRowsBefore}
+        ${
+        rows.map(
+            (match: Match, index: number) =>
+                renderRow(match, firstDisplayedRowIndex + index))}
+        ${truncatedRowsAfter}
         ${
         selection.index === reference.index ?
             this.renderMeanRowsSingleBatch(
@@ -390,7 +427,7 @@ export class MatchesTableUi extends LitElement {
     .hiddenRow {
       color: grey;
       font-style: italic;
-      text-align: center;
+      text-align: start; /* Show text even if the table is very wide. */
     }
     .hiddenRow:hover {
       cursor: pointer;
