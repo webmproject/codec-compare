@@ -17,6 +17,7 @@ import 'jasmine';
 import {BatchSelection} from './batch_selection';
 import {Batch, Field} from './entry';
 import {dispatch, EventType} from './events';
+import {FieldFilterRangeFloat, FieldFilterStringSet} from './filter';
 
 describe('BatchSelection', () => {
   let batch: Batch;
@@ -42,25 +43,28 @@ describe('BatchSelection', () => {
 
   it('filters rows', () => {
     // FieldFilters are correctly set up but disabled by default.
-    expect(selection.fieldFilters[0].enabled).toBeFalse();
-    expect(selection.fieldFilters[0].uniqueValues).toEqual(new Set<string>([
-      'path/to/image', 'path/to/image2'
-    ]));
-    expect(selection.fieldFilters[1].enabled).toBeFalse();
-    expect(selection.fieldFilters[1].rangeStart).toBe(3.14);
-    expect(selection.fieldFilters[1].rangeEnd).toBe(5);
+    const filter0 = selection.fieldFilters[0].fieldFilter;
+    const filter1 = selection.fieldFilters[1].fieldFilter;
+    expect(filter0.enabled).toBeFalse();
+    expect(filter0).toBeInstanceOf(FieldFilterStringSet);
+    expect((filter0 as FieldFilterStringSet).uniqueValues)
+        .toEqual(new Set<string>(['path/to/image', 'path/to/image2']));
+    expect(filter1.enabled).toBeFalse();
+    expect(filter1).toBeInstanceOf(FieldFilterRangeFloat);
+    expect((filter1 as FieldFilterRangeFloat).rangeStart).toBe(3.14);
+    expect((filter1 as FieldFilterRangeFloat).rangeEnd).toBe(5);
     // All rows are available by default.
     expect(selection.filteredRowIndices).toEqual([0, 1, 2]);
 
     // Filter out one image.
-    selection.fieldFilters[0].enabled = true;
-    selection.fieldFilters[0].uniqueValues.delete('path/to/image');
+    filter0.enabled = true;
+    (filter0 as FieldFilterStringSet).uniqueValues.delete('path/to/image');
     selection.updateFilteredRows([]);
     expect(selection.filteredRowIndices).toEqual([1, 2]);
 
     // Reduce the range of numeric values.
-    selection.fieldFilters[1].enabled = true;
-    selection.fieldFilters[1].rangeEnd = 4.6;
+    filter1.enabled = true;
+    (filter1 as FieldFilterRangeFloat).rangeEnd = 4.6;
     selection.updateFilteredRows([]);
     expect(selection.filteredRowIndices).toEqual([2]);
   });

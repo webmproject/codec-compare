@@ -14,7 +14,7 @@
 
 import {BatchSelection} from './batch_selection';
 import {areFieldsComparable, Batch, DISTORTION_METRIC_FIELD_IDS, Entry, Field, FieldId} from './entry';
-import {FieldFilter} from './filter';
+import {createFilter, FieldFilter} from './filter';
 import {applyBitmaskToStringArray} from './utils';
 
 /** Field that is common to all batches. */
@@ -53,14 +53,7 @@ export class CommonField {
     }
 
     // Initialize the filter. It is disabled by default.
-    this.filter = new FieldFilter();
-    this.filter.rangeStart = this.field.rangeStart;
-    this.filter.rangeEnd = this.field.rangeEnd;
-    if (!this.field.isNumber) {
-      for (const value of this.field.uniqueValuesArray) {
-        this.filter.uniqueValues.add(value);
-      }
-    }
+    this.filter = createFilter(this.field);
   }
 }
 

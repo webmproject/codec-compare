@@ -29,6 +29,8 @@ export class FilteredImagesUi extends LitElement {
   @property({attribute: false}) state!: State;
   @property() batchSelection!: BatchSelection;
 
+  public static readonly DEFAULT_NUM_DISPLAYED_ROWS = 100;
+
   private renderRow(row: Entry, rowIndex: number) {
     const batch = this.batchSelection.batch;
     return html`
@@ -44,9 +46,10 @@ export class FilteredImagesUi extends LitElement {
 
   override render() {
     const batch = this.batchSelection.batch;
+    let numDisplayedRows = FilteredImagesUi.DEFAULT_NUM_DISPLAYED_ROWS;
     let rows = batch.rows;
     let truncatedRows = html``;
-    if (!this.state.showAllRows && rows.length > 100) {
+    if (!this.state.showAllRows && rows.length > numDisplayedRows) {
       const onDisplayHiddenRow = () => {
         this.state.showAllRows = true;
         dispatch(EventType.SETTINGS_CHANGED);
@@ -56,10 +59,10 @@ export class FilteredImagesUi extends LitElement {
         <tr>
           <td @click=${onDisplayHiddenRow}
               colspan=${batch.fields.length} class="hiddenRow">
-            ${rows.length - 100} hidden rows. Click to expand.
+            ${rows.length - numDisplayedRows} hidden rows. Click to expand.
           </td>
         </tr>`;
-      rows = rows.slice(0, 100);
+      rows = rows.slice(0, numDisplayedRows);
     }
 
     return html`
@@ -164,7 +167,7 @@ export class FilteredImagesUi extends LitElement {
     .hiddenRow {
       color: grey;
       font-style: italic;
-      text-align: center;
+      text-align: start; /* Show text even if the table is very wide. */
     }
     .hiddenRow:hover {
       cursor: pointer;

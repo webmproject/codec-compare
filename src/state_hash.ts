@@ -16,30 +16,7 @@ import {Field} from './entry';
 import {FieldFilter} from './filter';
 import {selectPlotMetrics} from './metric';
 import {State} from './state';
-import {applyBase16Bitmask, applyBitmaskToStringArray, getBase16Bitmask} from './utils';
-
-function filterToMapping(
-    field: Field, fieldFilter: FieldFilter, key: string,
-    values: URLSearchParams) {
-  if (!fieldFilter.enabled) {
-    values.set(key, 'off');
-    return;
-  }
-
-  if (field.isNumber) {
-    values.set(key, `${fieldFilter.rangeStart}..${fieldFilter.rangeEnd}`);
-  } else {
-    // Serialize the bitset of filtered values as a hexadecimal string.
-    // Listing the set of actual values verbatim would take too many
-    // characters.
-    values.set(
-        key,
-        getBase16Bitmask(
-            field.uniqueValuesArray.length,
-            (elementIndex: number) => fieldFilter.uniqueValues.has(
-                field.uniqueValuesArray[elementIndex])));
-  }
-}
+import {applyBase16Bitmask, getBase16Bitmask} from './utils';
 
 /**
  * Traverses the whole state and returns the mapping from any possible element
@@ -65,21 +42,20 @@ export function stateToMapping(state: State) {
   // Each field filter is stored as "off" if disabled, and as its range or set
   // of filtered values if enabled.
   for (const batchSelection of state.batchSelections) {
-    for (const [fieldIndex, fieldFilter] of batchSelection.fieldFilters
-             .entries()) {
+    for (const fieldFilter of batchSelection.fieldFilters) {
       const batch = batchSelection.batch;
-      const field = batch.fields[fieldIndex];
+      const field = batch.fields[fieldFilter.fieldIndex];
       // There may be collisions if names contain the character '-' such as
       // "batch-a"-"field" and "batch"-"a-field" but this should never happen in
       // practice.
-      const key = `${batch.name}-${field.name}`;
-      filterToMapping(field, fieldFilter, key, values);
+      const key = `${batch.name}-${fieldFilter.fieldFilter.key(field)}`;
+      values.set(key, fieldFilter.fieldFilter.serialize(field));
     }
   }
 
   for (const commonField of state.commonFields) {
-    const key = `${commonField.field.name}`;
-    filterToMapping(commonField.field, commonField.filter, key, values);
+    const key = commonField.filter.key(commonField.field);
+    values.set(key, commonField.filter.serialize(commonField.field));
   }
 
   // Each matcher is stored as "off" if disabled, and as "on" or its tolerance
@@ -137,32 +113,6 @@ export function stateToMapping(state: State) {
   return values;
 }
 
-function applyMappingToFilter(
-    value: string, field: Field, fieldFilter: FieldFilter) {
-  if (value === 'off') {
-    fieldFilter.enabled = false;
-  } else if (field.isNumber) {
-    const range = value.split('..');
-    if (range.length !== 2) return;
-
-    const rangeStart = Number(range[0]);
-    const rangeEnd = Number(range[1]);
-    if (!isFinite(rangeStart) || !isFinite(rangeEnd)) return;
-    if (rangeStart > rangeEnd) return;
-
-    fieldFilter.enabled = true;
-    fieldFilter.rangeStart =
-        Math.min(Math.max(field.rangeStart, rangeStart), field.rangeEnd);
-    fieldFilter.rangeEnd =
-        Math.min(Math.max(field.rangeStart, rangeEnd), field.rangeEnd);
-  } else if (value.length === Math.ceil(field.uniqueValuesArray.length / 4)) {
-    fieldFilter.enabled = true;
-    // Deserialize the hexadecimal string to a bitset of filtered values.
-    applyBitmaskToStringArray(
-        field.uniqueValuesArray, value, fieldFilter.uniqueValues);
-  }
-}
-
 /**
  * Modifies the state according to the element values.
  * Ignores any unused element or invalid value.
@@ -188,22 +138,20 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
   }
 
   for (const batchSelection of state.batchSelections) {
-    for (const [fieldIndex, fieldFilter] of batchSelection.fieldFilters
-             .entries()) {
+    for (const fieldFilter of batchSelection.fieldFilters) {
       const batch = batchSelection.batch;
-      const field = batch.fields[fieldIndex];
-      const value = values.get(`${batch.name}-${field.name}`);
+      const field = batch.fields[fieldFilter.fieldIndex];
+      const value =
+          values.get(`${batch.name}-${fieldFilter.fieldFilter.key(field)}`);
       if (value === null) continue;
-
-      applyMappingToFilter(value, field, fieldFilter);
+      fieldFilter.fieldFilter.unserialize(field, value);
     }
   }
 
   for (const commonField of state.commonFields) {
-    const value = values.get(`${commonField.field.name}`);
+    const value = values.get(commonField.filter.key(commonField.field));
     if (value === null) continue;
-
-    applyMappingToFilter(value, commonField.field, commonField.filter);
+    commonField.filter.unserialize(commonField.field, value);
   }
 
   for (const matcher of state.matchers) {

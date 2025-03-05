@@ -14,25 +14,15 @@
 
 import {CommonField} from './common_field';
 import {Batch, Entry, Field} from './entry';
-import {FieldFilter} from './filter';
+import {FieldFilterWithIndex} from './filter';
 
 function rowPassesFilter(
-    batch: Batch, row: Entry, fieldFilters: FieldFilter[],
+    batch: Batch, row: Entry, fieldFilters: FieldFilterWithIndex[],
     commonFields: CommonField[]): boolean {
-  for (let fieldIndex = 0; fieldIndex < row.length; ++fieldIndex) {
-    const filter = fieldFilters[fieldIndex];
-    if (!filter.enabled) {
-      continue;
-    }
-    if (batch.fields[fieldIndex].isNumber) {
-      const value = row[fieldIndex] as number;
-      if (value < filter.rangeStart || value > filter.rangeEnd) {
-        return false;
-      }
-    } else {
-      if (!filter.uniqueValues.has(row[fieldIndex] as string)) {
-        return false;
-      }
+  for (const filter of fieldFilters) {
+    if (filter.fieldFilter.enabled &&
+        filter.fieldFilter.filtersOut(row, row[filter.fieldIndex])) {
+      return false;
     }
   }
 
@@ -44,15 +34,13 @@ function rowPassesFilter(
     if (commonField.field.isNumber) {
       // commonField.field.isNumber can only be true if isNumber is true for
       // that field in all batches.
-      const value = row[fieldIndex] as number;
-      if (value < commonField.filter.rangeStart ||
-          value > commonField.filter.rangeEnd) {
+      if (commonField.filter.filtersOut(row, row[fieldIndex])) {
         return false;
       }
     } else {
       // No guarantee that the value is a string in all batches, hence the
       // conversion instead of a cast.
-      if (!commonField.filter.uniqueValues.has(String(row[fieldIndex]))) {
+      if (commonField.filter.filtersOut(row, String(row[fieldIndex]))) {
         return false;
       }
     }
@@ -61,8 +49,8 @@ function rowPassesFilter(
 }
 
 function forEachFilteredRow(
-    batch: Batch, fieldFilters: FieldFilter[], commonFields: CommonField[],
-    effect: (rowIndex: number) => void) {
+    batch: Batch, fieldFilters: FieldFilterWithIndex[],
+    commonFields: CommonField[], effect: (rowIndex: number) => void) {
   for (let rowIndex = 0; rowIndex < batch.rows.length; ++rowIndex) {
     if (rowPassesFilter(
             batch, batch.rows[rowIndex], fieldFilters, commonFields)) {
@@ -73,7 +61,7 @@ function forEachFilteredRow(
 
 /** Returns the indices of the kept rows in a batch, given some fieldFilters. */
 export function getFilteredRowIndices(
-    batch: Batch, fieldFilters: FieldFilter[],
+    batch: Batch, fieldFilters: FieldFilterWithIndex[],
     commonFields: CommonField[]): number[] {
   const filteredRowIndices: number[] = [];
   forEachFilteredRow(batch, fieldFilters, commonFields, (rowIndex: number) => {

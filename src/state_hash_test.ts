@@ -15,6 +15,7 @@
 import 'jasmine';
 
 import {Batch, Field} from './entry';
+import {FieldFilterRangeFloat, FieldFilterStringSet} from './filter';
 import {State} from './state';
 import {applyMappingToState, stateToMapping, trimDefaultStateMapping} from './state_hash';
 
@@ -54,8 +55,8 @@ describe('stateToMapping', () => {
   it('supports field filters', () => {
     expect(stateToMapping(state).get('batch0-original')).toBe('off');
     expect(stateToMapping(state).get('batch1-field')).toBe('off');
-    state.batchSelections[0].fieldFilters[0].enabled = true;
-    state.batchSelections[1].fieldFilters[1].enabled = true;
+    state.batchSelections[0].fieldFilters[0].fieldFilter.enabled = true;
+    state.batchSelections[1].fieldFilters[1].fieldFilter.enabled = true;
     expect(stateToMapping(state).get('batch0-original')).toBe('1');  // bitset
     expect(stateToMapping(state).get('batch1-field')).toBe('3.14..3.14');
   });
@@ -94,13 +95,15 @@ describe('applyMappingToState', () => {
 
   it('supports field filters', () => {
     const allValues = stateToMapping(state);
-    expect(state.batchSelections[0].fieldFilters[0].enabled).toBeFalse();
-    expect(state.batchSelections[0].fieldFilters[0].uniqueValues).toHaveSize(1);
+    const filter = state.batchSelections[0].fieldFilters[0].fieldFilter;
+    expect(filter.enabled).toBeFalse();
+    expect(filter).toBeInstanceOf(FieldFilterStringSet);
+    expect((filter as FieldFilterStringSet).uniqueValues).toHaveSize(1);
     expect(stateToMapping(state).get('batch0-original')).toBe('off');
     allValues.set('batch0-original', '0');
     applyMappingToState(allValues, state);
-    expect(state.batchSelections[0].fieldFilters[0].enabled).toBeTrue();
-    expect(state.batchSelections[0].fieldFilters[0].uniqueValues).toHaveSize(0);
+    expect(filter.enabled).toBeTrue();
+    expect((filter as FieldFilterStringSet).uniqueValues).toHaveSize(0);
   });
 });
 
@@ -152,9 +155,11 @@ describe('State with many rows', () => {
 
   it('serializes field filter sets', () => {
     expect(stateToMapping(state).get('batch0-field A')).toBe('off');
-    state.batchSelections[0].fieldFilters[0].enabled = true;
-    state.batchSelections[0].fieldFilters[0].uniqueValues.delete('row7');
-    state.batchSelections[0].fieldFilters[0].uniqueValues.delete('row12');
+    const filter = state.batchSelections[0].fieldFilters[0].fieldFilter;
+    filter.enabled = true;
+    expect(filter).toBeInstanceOf(FieldFilterStringSet);
+    (filter as FieldFilterStringSet).uniqueValues.delete('row7');
+    (filter as FieldFilterStringSet).uniqueValues.delete('row12');
     // bitset serialized as hexadecimal string
     expect(stateToMapping(state).get('batch0-field A')).toBe('f7f0');
   });
@@ -163,8 +168,10 @@ describe('State with many rows', () => {
     const allValues = stateToMapping(state);
     allValues.set('batch0-field A', 'f7f0');
     applyMappingToState(allValues, state);
-    expect(state.batchSelections[0].fieldFilters[0].enabled).toBeTrue();
-    expect(state.batchSelections[0].fieldFilters[0].uniqueValues)
+    const filter = state.batchSelections[0].fieldFilters[0].fieldFilter;
+    expect(filter.enabled).toBeTrue();
+    expect(filter).toBeInstanceOf(FieldFilterStringSet);
+    expect((filter as FieldFilterStringSet).uniqueValues)
         .toEqual(new Set<string>([
           'row0', 'row1', 'row2', 'row3', 'row4', 'row5', 'row6', 'row8',
           'row9', 'row10', 'row11'
@@ -173,9 +180,11 @@ describe('State with many rows', () => {
 
   it('serializes field filter ranges', () => {
     expect(stateToMapping(state).get('batch1-field B')).toBe('off');
-    state.batchSelections[1].fieldFilters[1].enabled = true;
-    state.batchSelections[1].fieldFilters[1].rangeStart = 5;
-    state.batchSelections[1].fieldFilters[1].rangeEnd = 10.1010101;
+    const filter = state.batchSelections[1].fieldFilters[1].fieldFilter;
+    filter.enabled = true;
+    expect(filter).toBeInstanceOf(FieldFilterRangeFloat);
+    (filter as FieldFilterRangeFloat).rangeStart = 5;
+    (filter as FieldFilterRangeFloat).rangeEnd = 10.1010101;
     expect(stateToMapping(state).get('batch1-field B')).toBe('5..10.1010101');
   });
 
@@ -183,8 +192,10 @@ describe('State with many rows', () => {
     const allValues = stateToMapping(state);
     allValues.set('batch1-field B', '5..10.1010101');
     applyMappingToState(allValues, state);
-    expect(state.batchSelections[1].fieldFilters[1].enabled).toBeTrue();
-    expect(state.batchSelections[1].fieldFilters[1].rangeStart).toBe(5);
-    expect(state.batchSelections[1].fieldFilters[1].rangeEnd).toBe(10.1010101);
+    const filter = state.batchSelections[1].fieldFilters[1].fieldFilter;
+    expect(filter.enabled).toBeTrue();
+    expect(filter).toBeInstanceOf(FieldFilterRangeFloat);
+    expect((filter as FieldFilterRangeFloat).rangeStart).toBe(5);
+    expect((filter as FieldFilterRangeFloat).rangeEnd).toBe(10.1010101);
   });
 });

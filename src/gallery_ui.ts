@@ -22,7 +22,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {mergeHistograms} from './batch_merger';
 import {Field, FieldId} from './entry';
 import {dispatch, EventType, listen} from './events';
-import {FieldFilter} from './filter';
+import {FieldFilterStringSet} from './filter';
 import {SourceCount} from './metric';
 import {State} from './state';
 
@@ -60,7 +60,8 @@ export class GalleryUi extends LitElement {
     return '';
   }
 
-  private renderTags(field: Field|undefined, filter: FieldFilter|undefined) {
+  private renderTags(
+      field: Field|undefined, filter: FieldFilterStringSet|undefined) {
     if (field === undefined || filter === undefined) {
       return html``;
     }
@@ -144,7 +145,7 @@ export class GalleryUi extends LitElement {
 
   private renderAsset(
       asset: SourceCount, field: Field|undefined,
-      filter: FieldFilter|undefined) {
+      filter: FieldFilterStringSet|undefined) {
     const tags = this.assetNameToTags.get(asset.sourceName);
     const tagList = tags !== undefined ?
         ' (tags: ' + Array.from(tags).join(', ') + ')' :
@@ -216,9 +217,12 @@ export class GalleryUi extends LitElement {
         batchSelection => batchSelection.histogram));
 
     const commonField = this.state.commonFields.find(
-        (common) => common.field.id === FieldId.SOURCE_IMAGE_NAME);
+        (common) => common.field.id === FieldId.SOURCE_IMAGE_NAME &&
+            common.filter instanceof FieldFilterStringSet);
     const field = commonField !== undefined ? commonField.field : undefined;
-    const filter = commonField !== undefined ? commonField.filter : undefined;
+    const filter = commonField !== undefined ?
+        commonField.filter as FieldFilterStringSet :
+        undefined;
 
     return html`
       ${this.renderSourceDataSet()}

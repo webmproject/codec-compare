@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.8
+
+- Add custom "Web bpp" filter. Refactor FieldFilter classes to that end.
+
 ## v0.5.7
 
 - Display 100 rows surrounding the selected match in the Matches tab instead of

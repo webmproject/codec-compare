@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import '@material/mwc-button';
-import '@material/mwc-checkbox';
 import '@material/mwc-slider';
 import '@material/mwc-slider/slider-range';
 import '@material/mwc-textfield';
@@ -25,14 +24,14 @@ import {customElement, property, query} from 'lit/decorators.js';
 
 import {Field} from './entry';
 import {dispatch, EventType, listen} from './events';
-import {FieldFilter} from './filter';
+import {FieldFilter, FieldFilterRange, FieldFilterStringSet} from './filter';
 
-/** Component displaying a FieldFilter bound to a Field in a selected Batch. */
-@customElement('filter-ui')
-export class FilterUi extends LitElement {
+/* Component displaying a FieldFilterRange bound to a Field. */
+@customElement('filter-ui-range')
+export class FilterUiRange extends LitElement {
   @property({attribute: false}) batchIndex!: number;
   @property({attribute: false}) field!: Field;
-  @property({attribute: false}) filter!: FieldFilter;
+  @property({attribute: false}) filter!: FieldFilterRange;
 
   @query('#numberMin') private readonly numberMin?: TextField;
   @query('#numberMax') private readonly numberMax?: TextField;
@@ -179,45 +178,12 @@ export class FilterUi extends LitElement {
     <p>]</p>`;
   }
 
-  private renderListItem(value: string) {
-    const onToggle = (e: Event) => {
-      if ((e.target as HTMLInputElement).checked) {
-        this.filter.uniqueValues.add(value);
-      } else {
-        this.filter.uniqueValues.delete(value);
-      }
-      dispatch(EventType.FILTER_CHANGED, {batchIndex: this.batchIndex});
-    };
-
-    return html`
-      <label>
-        ${value}
-        <mwc-checkbox reducedTouchTarget
-          ?checked=${this.filter.uniqueValues.has(value)} @change=${onToggle}>
-        </mwc-checkbox>
-      </label>`;
-  }
-
-  private renderList() {
-    return html`
-      <p>
-        <strong title="${this.field.description}">
-          ${this.field.displayName}
-        </strong> in set {
-      </p>
-      ${this.field.uniqueValuesArray.map((value: string) => {
-      return this.renderListItem(value);
-    })}
-      <p>}</p>`;
-  }
-
   override render() {
     return html`
       ${
         this.field.uniqueValuesArray.length < 2 ?
             this.renderSingleUniqueValue() :
-            this.field.isNumber ? this.renderNumber() :
-                                  this.renderList()}
+            this.renderNumber()}
       <mwc-button
         raised
         dense
@@ -251,18 +217,6 @@ export class FilterUi extends LitElement {
       color: var(--mdc-theme-text);
       font-size: 20px;
       white-space: nowrap;
-    }
-
-    label {
-      padding-left: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
-      color: var(--mdc-theme-text);
-      font-family: monospace;
-      background: var(--mdc-theme-surface);
-      border-radius: 30px;
     }
 
     mwc-textfield {
