@@ -21,7 +21,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {BatchSelection} from './batch_selection';
 import {Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId, fieldUnit} from './entry';
 import {dispatch, EventType, listen} from './events';
-import {FieldFilter} from './filter';
+import {FieldFilterWithIndex} from './filter';
 import {FieldMatcher} from './matcher';
 import {FieldMetric, FieldMetricStats} from './metric';
 import {State} from './state';
@@ -91,43 +91,18 @@ export class SentenceUi extends LitElement {
 
   // Batches, filters and metrics
 
-  private renderFilter(field: Field, filter: FieldFilter) {
-    if (field.isNumber) {
-      if (field.isInteger) {
-        if (filter.rangeStart === filter.rangeEnd) {
-          return `${field.displayName} limited to ${filter.rangeStart}`;
-        }
-        return `${field.displayName} limited to [${filter.rangeStart}:${
-            filter.rangeEnd}]`;
-      }
-
-      if (filter.rangeStart === filter.rangeEnd) {
-        return `${field.displayName} limited to ${
-            filter.rangeStart.toFixed(1)}`;
-      }
-      return `${field.displayName} limited to [${
-          filter.rangeStart.toFixed(1)}:${filter.rangeEnd.toFixed(1)}]`;
-    }
-
-    if (filter.uniqueValues.size === 1) {
-      return `${field.displayName} limited to ${
-          filter.uniqueValues.values().next().value}`;
-    }
-    return `${field.displayName} limited`;
-  }
-
   private renderFilters(batchSelection: BatchSelection) {
     const batch = batchSelection.batch;
     let numFilters = 0;
     const filters = html`${
-        batchSelection.fieldFilters.map(
-            (filter: FieldFilter, fieldIndex: number) => {
-              const field = batch.fields[fieldIndex];
-              return filter.actuallyFiltersPointsOut(field) ?
-                  html`${numFilters++ > 0 ? ', ' : ''}${
-                      this.renderFilter(field, filter)}` :
-                  '';
-            })}`;
+        batchSelection.fieldFilters.map((filter: FieldFilterWithIndex) => {
+          const field = batch.fields[filter.fieldIndex];
+          return (filter.fieldFilter.enabled &&
+                  filter.fieldFilter.actuallyFiltersPointsOut(field)) ?
+              html`${numFilters++ > 0 ? ', ' : ''}${
+                  filter.fieldFilter.toString(field, /*short=*/ false)}` :
+              '';
+        })}`;
     if (numFilters === 0) return html``;
     return html`<br><span class="filters">(${filters})</span>`;
   }

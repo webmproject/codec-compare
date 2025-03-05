@@ -19,6 +19,7 @@ import {styleMap} from 'lit/directives/style-map.js';
 import {BatchSelection} from './batch_selection';
 import {areFieldsComparable, Batch, Field, FieldId, fieldUnit} from './entry';
 import {dispatch, EventType} from './events';
+import {FilteredImagesUi} from './filtered_images_ui';
 import {FieldMatcher, Match} from './matcher';
 import {FieldMetric, getRatio} from './metric';
 import {getRelativePercent} from './metric_ui';
@@ -302,7 +303,7 @@ export class MatchesTableUi extends LitElement {
         matchers.length + metrics.length + selectionSharedFieldIndices.length;
     let rows = this.batchSelection.matchedDataPoints.rows;
     let firstDisplayedRowIndex = 0;
-    let numDisplayedRows = 100;
+    let numDisplayedRows = FilteredImagesUi.DEFAULT_NUM_DISPLAYED_ROWS;
     let truncatedRowsBefore = html``;
     let truncatedRowsAfter = html``;
     // +2 in case one or two placeholder rows below are replaced by actual

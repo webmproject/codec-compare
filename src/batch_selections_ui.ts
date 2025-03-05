@@ -21,7 +21,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {BatchSelection} from './batch_selection';
 import {Field, fieldUnit} from './entry';
 import {dispatch, EventType, listen} from './events';
-import {FieldFilter} from './filter';
+import {FieldFilter, FieldFilterWithIndex} from './filter';
 import {FieldMetric, FieldMetricStats} from './metric';
 import {getRelativePercent} from './metric_ui';
 import {State} from './state';
@@ -98,20 +98,12 @@ export class BatchSelectionsUi extends LitElement {
       }
       return field.uniqueValuesArray[0];
     }
-    if (field.isNumber) {
-      if (field.isInteger) {
-        return '[' + fieldFilter.rangeStart.toString() + ':' +
-            fieldFilter.rangeEnd.toString() + ']';
-      }
-      return '[' + fieldFilter.rangeStart.toFixed(1) + ':' +
-          fieldFilter.rangeEnd.toFixed(1) + ']';
-    }
-    return fieldFilter.uniqueValues.size.toString() + '/' +
-        field.uniqueValuesArray.length.toString();
+    return fieldFilter.toString(field, /*short=*/ true);
   }
 
   private renderFilterChip(
       batchSelection: BatchSelection, field: Field, fieldFilter: FieldFilter) {
+    if (!fieldFilter.enabled) return html``;
     if (!fieldFilter.actuallyFiltersPointsOut(field)) return html``;
     return html`
       <div id="filterChip" @click=${() => {
@@ -126,10 +118,11 @@ export class BatchSelectionsUi extends LitElement {
 
   private renderFilterChips(batchSelection: BatchSelection) {
     return html`${
-        batchSelection.batch.fields.map(
-            (field: Field, fieldIndex: number) => this.renderFilterChip(
-                batchSelection, field,
-                batchSelection.fieldFilters[fieldIndex]))}`;
+        batchSelection.fieldFilters.map(
+            (fieldFilter: FieldFilterWithIndex) => this.renderFilterChip(
+                batchSelection,
+                batchSelection.batch.fields[fieldFilter.fieldIndex],
+                fieldFilter.fieldFilter))}`;
   }
 
   private renderBatchSelectionRow(

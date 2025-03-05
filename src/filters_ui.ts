@@ -15,7 +15,10 @@
 import '@material/mwc-menu';
 import '@material/mwc-icon';
 import '@material/mwc-button';
-import './filter_ui';
+import './filter_generic_ui';
+import './filter_range_ui';
+import './filter_string_set_ui';
+import './filter_web_bpp_ui';
 
 import {Button} from '@material/mwc-button';
 import {ActionDetail} from '@material/mwc-list';
@@ -24,9 +27,10 @@ import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
-import {Field} from './entry';
+import {Field, FieldId} from './entry';
 import {dispatch, EventType, FilterChanged, listen} from './events';
-import {FieldFilter} from './filter';
+import {FieldFilter, FieldFilterRange, FieldFilterStringSet, FieldFilterWithIndex} from './filter';
+import {FieldFilterWebBpp} from './filter_ranges';
 import {State} from './state';
 
 /** Component displaying filters. */
@@ -70,19 +74,24 @@ export class FiltersUi extends LitElement {
         .anchor=${this.addFilterButton}
         id="addFilterMenu"
         @action=${(e: CustomEvent<ActionDetail>) => {
-      this.batchSelection.fieldFilters[e.detail.index].enabled = true;
+      this.batchSelection.fieldFilters[e.detail.index].fieldFilter.enabled =
+          true;
       dispatch(
           EventType.FILTER_CHANGED,
           {batchIndex: this.batchSelection.batch.index});
     }}>
         ${
         this.batchSelection.fieldFilters.map(
-            (filter: FieldFilter, fieldIndex: number) => filter.enabled ?
+            (filter: FieldFilterWithIndex) => filter.fieldFilter.enabled ?
                 html`<mwc-list-item disabled class="menuItemDisabled">
-                ${batch.fields[fieldIndex].displayName}
+                ${
+                    filter.fieldFilter.displayName(
+                        batch.fields[filter.fieldIndex])}
               </mwc-list-item>` :
                 html`<mwc-list-item>
-                ${batch.fields[fieldIndex].displayName}
+                ${
+                    filter.fieldFilter.displayName(
+                        batch.fields[filter.fieldIndex])}
               </mwc-list-item>`)}
       </mwc-menu>
     </span>`;
@@ -90,15 +99,40 @@ export class FiltersUi extends LitElement {
 
   private renderFilter(field: Field, fieldFilter: FieldFilter) {
     if (!fieldFilter.enabled) return html``;
-    return html`
-      <filter-ui
-        .batchIndex=${this.batchSelection.batch.index}
-        .field=${field}
-        .filter=${fieldFilter}
-        class="${
-        fieldFilter.actuallyFiltersPointsOut(field) ? 'opaque' :
-                                                      'translucent'}">
-      </filter-ui>`;
+    const pointsAreFilteredOut = fieldFilter.actuallyFiltersPointsOut(field);
+    if (fieldFilter instanceof FieldFilterRange) {
+      return html`
+        <filter-ui-range
+          .batchIndex=${this.batchSelection.batch.index}
+          .field=${field}
+          .filter=${fieldFilter}
+          class="${pointsAreFilteredOut ? 'opaque' : 'translucent'}">
+        </filter-ui-range>`;
+    } else if (fieldFilter instanceof FieldFilterStringSet) {
+      return html`
+        <filter-ui-string-set
+          .batchIndex=${this.batchSelection.batch.index}
+          .field=${field}
+          .filter=${fieldFilter}
+          class="${pointsAreFilteredOut ? 'opaque' : 'translucent'}">
+        </filter-ui-string-set>`;
+    } else if (fieldFilter instanceof FieldFilterWebBpp) {
+      return html`
+        <filter-ui-web-bpp
+          .batchIndex=${this.batchSelection.batch.index}
+          .field=${field}
+          .filter=${fieldFilter}
+          class="${pointsAreFilteredOut ? 'opaque' : 'translucent'}">
+        </filter-ui-web-bpp>`;
+    } else {
+      return html`
+        <filter-ui-generic
+          .batchIndex=${this.batchSelection.batch.index}
+          .field=${field}
+          .filter=${fieldFilter}
+          class="${pointsAreFilteredOut ? 'opaque' : 'translucent'}">
+        </filter-ui-generic>`;
+    }
   }
 
   override render() {
@@ -106,8 +140,9 @@ export class FiltersUi extends LitElement {
     const numEnabledFilters =
         this.batchSelection.fieldFilters
             .filter(
-                (fieldFilter, index) =>
-                    fieldFilter.actuallyFiltersPointsOut(batch.fields[index]))
+                (fieldFilter) => fieldFilter.fieldFilter.enabled &&
+                    fieldFilter.fieldFilter.actuallyFiltersPointsOut(
+                        batch.fields[fieldFilter.fieldIndex]))
             .length;
     return html`
         <div class="horizontalFlex">
@@ -121,9 +156,9 @@ export class FiltersUi extends LitElement {
         <div class="filter-uis-parent">
           <div class="filter-uis">
             ${
-        batch.fields.map(
-            (field: Field, fieldIndex: number) => this.renderFilter(
-                field, this.batchSelection.fieldFilters[fieldIndex]))}
+        this.batchSelection.fieldFilters.map(
+            (fieldFilter: FieldFilterWithIndex) => this.renderFilter(
+                batch.fields[fieldFilter.fieldIndex], fieldFilter.fieldFilter))}
           </div>
           <div class="filter-uis-inner-shadow"></div>
         </div>`;
@@ -168,6 +203,8 @@ export class FiltersUi extends LitElement {
        * when there is not enough space to display all items.
        */
       position: fixed;
+      /* This way all items should fit on screen. */
+      --mdc-menu-item-height: 20px;
       /* Otherwise the menu is rendered under the mwc checkboxes. */
       z-index: 6;
     }

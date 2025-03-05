@@ -13,8 +13,9 @@
 // limitations under the License.
 
 import {CommonField} from './common_field';
-import {Batch} from './entry';
-import {FieldFilter} from './filter';
+import {Batch, FieldId} from './entry';
+import {createFilter, FieldFilterWithIndex} from './filter';
+import {tryCreateWebBppFilter} from './filter_ranges';
 import {getFilteredRowIndices} from './filter_row';
 import {MatchedDataPoints} from './matcher';
 import {FieldMetricStats, SourceCount} from './metric';
@@ -31,7 +32,7 @@ export class BatchSelection {
    * How to filter these input raw data points into a subset that will be used
    * for the comparison.
    */
-  fieldFilters: FieldFilter[] = [];  // As many as batch.fields.
+  fieldFilters: FieldFilterWithIndex[] = [];
 
   /** The indices of the rows. Each index refers to batch.rows[]. */
   filteredRowIndices: number[] = [];  // At most batch.rows.length.
@@ -47,16 +48,14 @@ export class BatchSelection {
     this.batch = selectedBatch;
 
     // Create the fieldFilters.
-    for (const field of selectedBatch.fields) {
-      const fieldFilter = new FieldFilter();
-      fieldFilter.rangeStart = field.rangeStart;
-      fieldFilter.rangeEnd = field.rangeEnd;
-      if (!field.isNumber) {
-        for (const value of field.uniqueValuesArray) {
-          fieldFilter.uniqueValues.add(value);
-        }
-      }
-      this.fieldFilters.push(fieldFilter);
+    selectedBatch.fields.forEach((field, fieldIndex) => {
+      this.fieldFilters.push(
+          new FieldFilterWithIndex(createFilter(field), fieldIndex));
+    });
+
+    const webBppFilter = tryCreateWebBppFilter(this.batch);
+    if (webBppFilter !== undefined) {
+      this.fieldFilters.push(webBppFilter);
     }
   }
 
