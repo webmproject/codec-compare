@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.9
+
+- Fix reference arithmetic mean in match table. It was the mean of the filtered
+  points from the reference batch and is now the mean of the matched points in
+  the reference batch.
+- Properly propagate filter changes to the Matches tab.
+
 ## v0.5.8
 
 - Add custom "Web bpp" filter. Refactor FieldFilter classes to that end.

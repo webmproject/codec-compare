@@ -54,7 +54,7 @@ export class FieldMetricStats {
     return this.absoluteArithmeticHighQuantile;
   }
 
-  getRelativeMean(geometric: boolean) {
+  getRelativeMean(geometric: boolean): number {
     return geometric ? this.geometricMean : this.relativeArithmeticMean;
   }
   getRelativeLowQuantile() {
