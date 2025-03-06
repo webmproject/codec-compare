@@ -18,7 +18,7 @@ import {styleMap} from 'lit/directives/style-map.js';
 
 import {BatchSelection} from './batch_selection';
 import {areFieldsComparable, Batch, Field, FieldId, fieldUnit} from './entry';
-import {dispatch, EventType} from './events';
+import {dispatch, EventType, listen} from './events';
 import {FilteredImagesUi} from './filtered_images_ui';
 import {FieldMatcher, Match} from './matcher';
 import {FieldMetric, getRatio} from './metric';
@@ -35,6 +35,13 @@ export class MatchesTableUi extends LitElement {
   @property({attribute: false}) referenceSelection!: BatchSelection;
   @property({attribute: false}) batchSelection!: BatchSelection;
   @property({attribute: false}) matchIndex!: number|undefined;
+
+  override connectedCallback() {
+    super.connectedCallback();
+    listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
+      this.requestUpdate();
+    });
+  }
 
   // Cells
 
@@ -146,10 +153,9 @@ export class MatchesTableUi extends LitElement {
       const relativeMean =
           this.batchSelection.stats[metricIndex].getRelativeMean(
               /*geometric=*/ false);
-      const referenceAbsoluteMean =
-          reference.stats[metricIndex].getAbsoluteMean();
       const selectionAbsoluteMean =
           this.batchSelection.stats[metricIndex].getAbsoluteMean();
+      const referenceAbsoluteMean = selectionAbsoluteMean / relativeMean;
       const metric = this.state.metrics[metricIndex];
       const fieldIndex = metric.fieldIndices[this.batchSelection.batch.index];
       const field = this.batchSelection.batch.fields[fieldIndex];

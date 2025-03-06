@@ -17,10 +17,9 @@ import './filtered_images_ui';
 import './filters_ui';
 
 import {css, html, LitElement} from 'lit';
-import {customElement, property, query} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
-import {dispatch, EventType, listen} from './events';
 import {FilteredImagesUi} from './filtered_images_ui';
 import {State} from './state';
 
@@ -32,25 +31,7 @@ export class BatchSelectionUi extends LitElement {
   @property({attribute: false}) state!: State;
   @property({attribute: false}) batchSelection!: BatchSelection;
 
-  @query('filtered-images-ui')
-  private readonly filteredImagesUi: FilteredImagesUi|undefined;
-
-  override connectedCallback() {
-    super.connectedCallback();
-    listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
-      this.filteredImagesUi?.requestUpdate();
-    });
-  }
-
   override render() {
-    const batchIndex = this.batchSelection.batch.index;
-    const onBatchInfoRequest = () => {
-      dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex});
-    };
-    const onMatchesInfoRequest = () => {
-      dispatch(EventType.MATCHES_INFO_REQUEST, {batchIndex});
-    };
-
     return html`
       <div class="horizontalFlex">
         <filters-ui .state=${this.state} .batchSelection=${this.batchSelection}>

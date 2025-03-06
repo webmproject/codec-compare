@@ -20,7 +20,7 @@ import {customElement, property} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
 import {Entry} from './entry';
-import {dispatch, EventType} from './events';
+import {dispatch, EventType, listen} from './events';
 import {State} from './state';
 
 /** Component displaying filtered images in a table. */
@@ -30,6 +30,13 @@ export class FilteredImagesUi extends LitElement {
   @property() batchSelection!: BatchSelection;
 
   public static readonly DEFAULT_NUM_DISPLAYED_ROWS = 100;
+
+  override connectedCallback() {
+    super.connectedCallback();
+    listen(EventType.FILTERED_DATA_CHANGED, () => {
+      this.requestUpdate();
+    });
+  }
 
   private renderRow(row: Entry, rowIndex: number) {
     const batch = this.batchSelection.batch;
