@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.10
+
+- Display FieldFilterRanges as: enabled when some points could be filtered out,
+  instead of: disabled when all points could be included.
+- Simplify wording in the Summary tab.
+- Mention lossless in the Summary tab when assumed so by Codec-Compare.
+- Show Web bpp filter as "Web values" in the UI.
+
 ## v0.5.9
 
 - Fix reference arithmetic mean in match table. It was the mean of the filtered

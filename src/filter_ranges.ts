@@ -39,29 +39,47 @@ export const BUCKET_FILTER_MAX_INCLUSIVE = 3;
  */
 export abstract class FieldFilterRanges extends FieldFilter {
   public readonly buckets: FieldFilterRangesBucket[];
-  public readonly crossBucketMin: number;
-  public readonly crossBucketMax: number;
+  public readonly bucketsUnion: FieldFilterRangesBucket;
+  public readonly bucketsIntersection: FieldFilterRangesBucket;
   constructor(
       public readonly otherFieldIndex: number,
       public readonly otherFieldDisplayName: string) {
     super();
     this.buckets = this.getBuckets();
-    this.crossBucketMin = this.buckets.reduce(
-        (prev, curr) => prev[BUCKET_FILTER_MIN_INCLUSIVE] <
-                curr[BUCKET_FILTER_MIN_INCLUSIVE] ?
-            prev :
-            curr)[BUCKET_FILTER_MIN_INCLUSIVE];
-    this.crossBucketMax = this.buckets.reduce(
-        (prev, curr) => prev[BUCKET_FILTER_MAX_INCLUSIVE] >
-                curr[BUCKET_FILTER_MAX_INCLUSIVE] ?
-            prev :
-            curr)[BUCKET_FILTER_MAX_INCLUSIVE];
+    let minBucketMin = this.buckets[0][BUCKET_MIN_INCLUSIVE];
+    let maxBucketMax = this.buckets[0][BUCKET_MAX_EXCLUSIVE];
+    let minBucketFilterMin = this.buckets[0][BUCKET_FILTER_MIN_INCLUSIVE];
+    let maxBucketFilterMax = this.buckets[0][BUCKET_FILTER_MAX_INCLUSIVE];
+    let maxBucketFilterMin = this.buckets[0][BUCKET_FILTER_MIN_INCLUSIVE];
+    let minBucketFilterMax = this.buckets[0][BUCKET_FILTER_MAX_INCLUSIVE];
+    for (const bucket of this.buckets) {
+      minBucketMin = Math.min(minBucketMin, bucket[BUCKET_MIN_INCLUSIVE]);
+      maxBucketMax = Math.max(maxBucketMax, bucket[BUCKET_MAX_EXCLUSIVE]);
+      minBucketFilterMin =
+          Math.min(minBucketFilterMin, bucket[BUCKET_FILTER_MIN_INCLUSIVE]);
+      maxBucketFilterMax =
+          Math.max(maxBucketFilterMax, bucket[BUCKET_FILTER_MAX_INCLUSIVE]);
+      maxBucketFilterMin =
+          Math.max(maxBucketFilterMin, bucket[BUCKET_FILTER_MIN_INCLUSIVE]);
+      minBucketFilterMax =
+          Math.min(minBucketFilterMax, bucket[BUCKET_FILTER_MAX_INCLUSIVE]);
+    }
+    this.bucketsUnion =
+        [minBucketMin, maxBucketMax, minBucketFilterMin, maxBucketFilterMax];
+    this.bucketsIntersection =
+        [minBucketMin, maxBucketMax, maxBucketFilterMin, minBucketFilterMax];
   }
 
   actuallyFiltersPointsOut(field: Field) {
+    const allPointsAreInAllBuckets =
+        this.bucketsIntersection[BUCKET_FILTER_MIN_INCLUSIVE] <=
+            field.rangeStart &&
+        field.rangeEnd <= this.bucketsIntersection[BUCKET_FILTER_MAX_INCLUSIVE];
+    if (allPointsAreInAllBuckets) {
+      return false;
+    }
     // Imprecise but faster than checking all values.
-    return this.crossBucketMin > field.rangeStart ||
-        this.crossBucketMax < field.rangeEnd;
+    return true;
   }
 
   protected abstract getBuckets(): FieldFilterRangesBucket[];
@@ -95,12 +113,12 @@ export abstract class FieldFilterRanges extends FieldFilter {
   }
 
   toString(field: Field, short: boolean) {
+    const min = this.bucketsUnion[BUCKET_FILTER_MIN_INCLUSIVE].toFixed(1);
+    const max = this.bucketsUnion[BUCKET_FILTER_MAX_INCLUSIVE].toFixed(1);
     if (short) {
-      return '[' + this.crossBucketMin.toFixed(1) + ':' +
-          this.crossBucketMax.toFixed(1) + ']';
+      return '[' + min + ':' + max + ']';
     } else {
-      return `${field.displayName} limited to [${
-          this.crossBucketMin.toFixed(1)}:${this.crossBucketMax.toFixed(1)}]`;
+      return `${field.displayName} limited to [${min}:${max}]`;
     }
   }
 }
@@ -117,6 +135,14 @@ export abstract class FieldFilterWebBpp extends FieldFilterRanges {
     return megapixels <= 1 ?
         Math.max(0, Math.min(Math.ceil(megapixels * 10) - 1, 9)) :
         Math.max(10, Math.min(Math.ceil(megapixels) + 8, 22));
+  }
+
+  override toString(field: Field, short: boolean) {
+    if (short) {
+      return '{Web values}';
+    } else {
+      return `${field.displayName} limited to Web values`;
+    }
   }
 }
 

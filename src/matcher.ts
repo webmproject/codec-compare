@@ -138,7 +138,8 @@ export function createMatchers(batches: Batch[]): FieldMatcher[] {
 
 /** Arbitrarily enables some matchers. */
 export function enableDefaultMatchers(
-    batches: Batch[], matchers: FieldMatcher[]) {
+    batches: Batch[], batchesAreLikelyLossless: boolean,
+    matchers: FieldMatcher[]) {
   const firstBatch = batches[0];
 
   // Comparing codec performance on different source images makes little sense.
@@ -150,21 +151,7 @@ export function enableDefaultMatchers(
     sourceImageMatcher.enabled = true;
   }
 
-  // Find distortion metrics suggesting that it is not a lossless comparison.
-  let isLossless = true;
-  for (const id of DISTORTION_METRIC_FIELD_IDS) {
-    const distortionMatcher = matchers.find(
-        (matcher) => firstBatch.fields[matcher.fieldIndices[0]].id === id);
-    if (distortionMatcher === undefined) continue;
-    const distortionField =
-        firstBatch.fields[distortionMatcher.fieldIndices[0]];
-    if (distortionField.isNumber &&
-        distortionField.uniqueValuesArray.length > 1) {
-      isLossless = false;
-      break;
-    }
-  }
-  if (isLossless) return;
+  if (batchesAreLikelyLossless) return;
 
   // To be somewhat fair, enable the distortion metrics that the compared codecs
   // usually optimize for.
@@ -232,19 +219,6 @@ export function enableDefaultMatchers(
       break;
     }
   }
-}
-
-/** Returns true if the input data sets are likely lossless. */
-export function isLossless(firstBatch: Batch, matchers: FieldMatcher[]) {
-  for (const matcher of matchers) {
-    if (matcher.enabled &&
-        DISTORTION_METRIC_FIELD_IDS.includes(
-            firstBatch.fields[matcher.fieldIndices[0]].id)) {
-      return false;
-    }
-  }
-  // Assume other batches to be lossless too.
-  return true;
 }
 
 /**
