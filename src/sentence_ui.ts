@@ -49,7 +49,15 @@ export class SentenceUi extends LitElement {
     for (const batch of this.state.batches) {
       const field = batch.fields[matcher.fieldIndices[batch.index]];
       if (field.displayName === '') continue;
-      if (DISTORTION_METRIC_FIELD_IDS.includes(field.id)) {
+      if (field.id === FieldId.SOURCE_IMAGE_NAME) {
+        displayName = field.displayName;
+        if (this.state.batchesAreLikelyLossless) {
+          subName = 'encoded losslessly';
+        } else {
+          // There should be an enabled distortion-based matcher. No need to
+          // mention that the compression is lossy.
+        }
+      } else if (DISTORTION_METRIC_FIELD_IDS.includes(field.id)) {
         displayName = 'distortion';
         subName = field.displayName;
       } else {
@@ -179,10 +187,9 @@ export class SentenceUi extends LitElement {
         -1;
 
     return html`
-        <p>
-        images encoded with <batch-name-ui .batch=${batch} @click=${() => {
+        <p><batch-name-ui .batch=${batch} @click=${() => {
       dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
-    }}></batch-name-ui>
+    }}></batch-name-ui> files
         ${this.renderFilters(batchSelection)}
         ${this.state.showRelativeRatios ? 'are' : ''}
         ${this.state.metrics.map((metric: FieldMetric, metricIndex: number) => {

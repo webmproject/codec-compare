@@ -16,10 +16,10 @@ import {createGroups} from './batch_groups';
 import {BatchSelection} from './batch_selection';
 import {setColors} from './color_setter';
 import {CommonField, createCommonFields} from './common_field';
-import {Batch, Field, FieldId} from './entry';
+import {Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId} from './entry';
 import {dispatch, EventType, listen} from './events';
 import {enableDefaultFilters} from './filter';
-import {createMatchers, enableDefaultMatchers, FieldMatcher, getDataPointsSymmetric, isLossless} from './matcher';
+import {createMatchers, enableDefaultMatchers, FieldMatcher, getDataPointsSymmetric} from './matcher';
 import {computeHistogram, computeStats, createMetrics, enableDefaultMetrics, FieldMetric, selectPlotMetrics} from './metric';
 
 /** The root data object containing the full state. */
@@ -78,6 +78,9 @@ export class State {
   /** If true, each row is shown in the tables. NOT stored in URL params. */
   showAllRows = false;
 
+  /** Deduced during initialize(). */
+  batchesAreLikelyLossless = false;
+
   /** Sets all other fields up based on the contents of the batches field. */
   initialize() {
     if (this.batches.length === 0) return;
@@ -101,9 +104,30 @@ export class State {
 
     this.commonFields = createCommonFields(this.batches);
 
+    // If there is any input quality setting or distortion metric with multiple
+    // values or with a value that looks not lossless, then the batch is likely
+    // containing images compressed with loss.
+    const anyBatchIsLossy =
+        this.batches.some(batch => batch.fields.some(field => {
+          if (field.id === FieldId.QUALITY) {
+            // An input quality setting in [0:100[ is likely lossy.
+            return field.isNumber &&
+                (field.uniqueValuesArray.length > 1 ||
+                 (field.rangeStart >= 0 && field.rangeStart < 100));
+          }
+          if (DISTORTION_METRIC_FIELD_IDS.includes(field.id)) {
+            // A distortion metric with decimal values is likely lossy.
+            return field.isNumber &&
+                (field.uniqueValuesArray.length > 1 || !field.isInteger);
+          }
+          return false;
+        }));
+    this.batchesAreLikelyLossless = !anyBatchIsLossy;
+
     this.matchers = createMatchers(this.batches);
     if (this.matchers.filter((matcher) => matcher.enabled).length === 0) {
-      enableDefaultMatchers(this.batches, this.matchers);
+      enableDefaultMatchers(
+          this.batches, this.batchesAreLikelyLossless, this.matchers);
     }
     this.metrics = createMetrics(this.batches);
     if (this.metrics.filter((metric) => metric.enabled).length === 0) {
@@ -118,7 +142,7 @@ export class State {
 
     // Pick WebP at default speed if available, otherwise pick the first batch.
     const webpDefaultEffort =
-        isLossless(this.batches[0], this.matchers) ? '6' : '4';  // -z / -m flag
+        this.batchesAreLikelyLossless ? '6' : '4';  // -z / -m flag
     this.referenceBatchSelectionIndex = 0;
     for (let i = 0; i < this.batches.length; i++) {
       const codecName = this.batches[i].codec.toLowerCase();
