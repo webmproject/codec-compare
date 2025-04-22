@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.1
+
+- Fix axis settings in URL hash that were ignored at page load.
+
 ## v0.6.0
 
 - Add a setting to allow multiple data points from the same batch to be matched
