@@ -290,8 +290,8 @@ function findMatch(
  * matchers.
  */
 export function getDataPoints(
-    left: BatchSelection, right: BatchSelection,
-    matchers: FieldMatcher[]): MatchedDataPoints {
+    left: BatchSelection, right: BatchSelection, matchers: FieldMatcher[],
+    matchRepeatedly: boolean): MatchedDataPoints {
   const numEnabledMatchers =
       matchers.filter((matcher) => matcher.enabled).length;
   if (numEnabledMatchers === 0) {
@@ -396,10 +396,11 @@ export function getDataPoints(
     }
 
     if (bestMatch !== undefined) {
-      // Do not match a data point more than once for a given batch pair.
-      // TODO: Add a setting for matching a data point multiple times.
-      bucket[bestIndexInBucket] = bucket[bucket.length - 1];
-      bucket.pop();
+      if (!matchRepeatedly) {
+        // Do not match a data point more than once for a given batch pair.
+        bucket[bestIndexInBucket] = bucket[bucket.length - 1];
+        bucket.pop();
+      }
 
       matches.push(bestMatch);
     }
@@ -412,23 +413,31 @@ export function getDataPoints(
  * input selected batches.
  */
 export function getDataPointsSymmetric(
-    left: BatchSelection, right: BatchSelection,
-    matchers: FieldMatcher[]): MatchedDataPoints {
-  const matchedDataPoints = getDataPoints(left, right, matchers);
+    left: BatchSelection, right: BatchSelection, matchers: FieldMatcher[],
+    matchRepeatedly: boolean): MatchedDataPoints {
+  const matchedDataPoints =
+      getDataPoints(left, right, matchers, matchRepeatedly);
 
-  // Unfortunately getDataPoints() can return a different set of matched
-  // points depending on the order of left and right. The following hacky fix
-  // tries swapping left and right input images, and keeps the solution with
-  // the lowest averageRelativeError. Ties should be rare but additional
-  // choice conditions can be added to make it as deterministic as possible.
-  const swappedMatchedDataPoints = getDataPoints(right, left, matchers);
-  if (swappedMatchedDataPoints.averageRelativeError <
-      matchedDataPoints.averageRelativeError) {
-    for (const row of swappedMatchedDataPoints.rows) {
-      [row.leftIndex, row.rightIndex] = [row.rightIndex, row.leftIndex];
+  if (matchRepeatedly) {
+    // Multiple points in one batch may have been matched to a single point in
+    // the other batch. The batches cannot be swapped as below because of this
+    // asymmetry.
+    // TODO: Look for an approximate alternative.
+  } else {
+    // Unfortunately getDataPoints() can return a different set of matched
+    // points depending on the order of left and right. The following hacky fix
+    // tries swapping left and right input batches, and keeps the solution with
+    // the lowest averageRelativeError. Ties should be rare but additional
+    // choice conditions can be added to make it as deterministic as possible.
+    const swappedMatchedDataPoints =
+        getDataPoints(right, left, matchers, /*matchRepeatedly=*/ false);
+    if (swappedMatchedDataPoints.averageRelativeError <
+        matchedDataPoints.averageRelativeError) {
+      for (const row of swappedMatchedDataPoints.rows) {
+        [row.leftIndex, row.rightIndex] = [row.rightIndex, row.leftIndex];
+      }
+      return swappedMatchedDataPoints;
     }
-    return swappedMatchedDataPoints;
   }
-
   return matchedDataPoints;
 }

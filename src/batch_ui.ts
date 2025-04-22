@@ -44,8 +44,13 @@ export class BatchUi extends LitElement {
     // Keep the batches in the same order.
     const minIndex = Math.min(refIndex, batchIndex);
     const maxIndex = Math.max(refIndex, batchIndex);
+    // Remove any state that depends on batch indices.
+    const stateHash = new URLSearchParams(
+        window.location.hash.length > 3 ? window.location.hash.slice(1) : '');
+    stateHash.delete('shown');
     const twoBatchLink = `?batch=${this.state.batches[minIndex].url}&batch=${
-        this.state.batches[maxIndex].url}${window.location.hash}`;
+        this.state.batches[maxIndex].url}${
+        stateHash.size > 0 ? `#${stateHash.toString()}` : ''}`;
 
     return html`
       <constants-table-ui .batch=${this.batch}></constants-table-ui>

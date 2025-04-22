@@ -65,6 +65,12 @@ export class State {
    */
   showEachPoint = true;
 
+  /**
+   * If true, multiple data points from the same batch can be matched with the
+   * same data point from the reference batch.
+   */
+  matchRepeatedly = false;
+
   /** If false, show absolute metrics. */
   showRelativeRatios = true;
 
@@ -194,7 +200,8 @@ export class State {
       const referenceBatchSelection =
           this.batchSelections[this.referenceBatchSelectionIndex];
       batchSelection.matchedDataPoints = getDataPointsSymmetric(
-          batchSelection, referenceBatchSelection, this.matchers);
+          batchSelection, referenceBatchSelection, this.matchers,
+          this.matchRepeatedly);
       batchSelection.stats = computeStats(
           batchSelection.batch, referenceBatchSelection.batch,
           batchSelection.matchedDataPoints.rows, this.metrics);

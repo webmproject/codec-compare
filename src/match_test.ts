@@ -60,7 +60,8 @@ describe('Matcher', () => {
 
   it('pairs rows', () => {
     const matches = getDataPoints(
-        state.batchSelections[0], state.batchSelections[1], state.matchers);
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        state.matchRepeatedly);
     expect(matches.rows).toEqual([
       // Match constructor arguments are:
       //   leftIndex (row index in batch 0), rightIndex (row index in batch 1),
@@ -69,6 +70,39 @@ describe('Matcher', () => {
       new Match(1, 0, 0),    // value A-1
       new Match(2, 2, 0.5),  // value A-2
       new Match(3, 3, 0.5)   // value A-2
+    ]);
+  });
+
+  it('pairs rows with and without repetitions', () => {
+    // Add rows that can be matched in multiple valid ways.
+    state.batches[0].rows.push(['value A-1', 1]);
+    state.batches[0].rows.push(['value A-1', 1]);
+    for (const batchSelection of state.batchSelections) {
+      batchSelection.updateFilteredRows(state.commonFields);
+    }
+
+    const repeatedMatches = getDataPoints(
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        /*matchRepeatedly=*/ true);
+    expect(repeatedMatches.rows).toEqual([
+      new Match(0, 1, 0),    // value A-1
+      new Match(1, 0, 0),    // value A-1
+      new Match(2, 2, 0.5),  // value A-2
+      new Match(3, 3, 0.5),  // value A-2
+      new Match(5, 0, 0),    // value A-1
+      new Match(6, 0, 0),    // value A-1
+    ]);
+
+    const matches = getDataPoints(
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        /*matchRepeatedly=*/ false);
+    expect(matches.rows).toEqual([
+      new Match(0, 1, 0),    // value A-1
+      new Match(1, 0, 0),    // value A-1
+      new Match(2, 2, 0.5),  // value A-2
+      new Match(3, 3, 0.5)   // value A-2
+      // Other "value A-1" rows are left unmatched because all corresponding
+      // rows in the reference batch were already used.
     ]);
   });
 
@@ -87,7 +121,8 @@ describe('Matcher', () => {
     }
 
     const matches = getDataPoints(
-        state.batchSelections[0], state.batchSelections[1], state.matchers);
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        state.matchRepeatedly);
     expect(matches.rows).toEqual([
       new Match(0, 1, 0),    // value A-1
       new Match(1, 0, 0),    // value A-1
@@ -101,7 +136,8 @@ describe('Matcher', () => {
 
   it('aggregates relative error', () => {
     const matches = getDataPoints(
-        state.batchSelections[0], state.batchSelections[1], state.matchers);
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        state.matchRepeatedly);
     expect(matches.averageRelativeError).toBe(0.25);
     expect(matches.maximumRelativeError).toBe(0.5);
   });
@@ -117,9 +153,11 @@ describe('Matcher', () => {
     }
 
     const matches = getDataPointsSymmetric(
-        state.batchSelections[0], state.batchSelections[1], state.matchers);
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        state.matchRepeatedly);
     const expected = getDataPointsSymmetric(
-        state.batchSelections[1], state.batchSelections[0], state.matchers);
+        state.batchSelections[1], state.batchSelections[0], state.matchers,
+        state.matchRepeatedly);
     // Swap the row indices to expect switched batch inputs.
     for (const row of matches.rows) {
       [row.leftIndex, row.rightIndex] = [row.rightIndex, row.leftIndex];
@@ -140,7 +178,8 @@ describe('Matcher', () => {
     }
 
     const matches = getDataPoints(
-        state.batchSelections[0], state.batchSelections[1], state.matchers);
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        state.matchRepeatedly);
     expect(matches.limited).toBeTrue();
   });
 
@@ -157,7 +196,8 @@ describe('Matcher', () => {
     }
 
     const matches = getDataPoints(
-        state.batchSelections[0], state.batchSelections[1], state.matchers);
+        state.batchSelections[0], state.batchSelections[1], state.matchers,
+        state.matchRepeatedly);
     expect(matches.limited).toBeFalse();
   });
 });

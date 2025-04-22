@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.0
+
+- Add a setting to allow multiple data points from the same batch to be matched
+  with the same data point from the reference batch.
+- Allow megapixels, encoding quality, and bits-per-pixel as metrics.
+- Fix "Two-batch view" button link.
+- Update vite dependency with npm audit fix --force.
+
 ## v0.5.10
 
 - Display FieldFilterRanges as: enabled when some points could be filtered out,

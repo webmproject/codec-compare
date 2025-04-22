@@ -1,6 +1,6 @@
 {
   "name": "codec_compare",
-  "version": "0.5.10",
+  "version": "0.6.0",
   "description": "Codec performance comparison tool",
   "publisher": "Google LLC",
   "author": "Yannis Guyon",
@@ -24,7 +24,7 @@
     "karma-typescript": "^5.5.4",
     "karma-typescript-es6-transform": "^5.5.4",
     "typescript": "^5.3.3",
-    "vite": "^5.0.6"
+    "vite": "^6.3.2"
   },
   "dependencies": {
     "@material/mwc-button": "^0.27.0",
