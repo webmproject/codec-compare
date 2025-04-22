@@ -41,7 +41,8 @@ function createMyData(
   const matcher = new FieldMatcher([0, 0], 0);
   matcher.enabled = true;
   const dataPoints = getDataPointsSymmetric(
-      leftBatchSelection, rightBatchSelection, [matcher]);
+      leftBatchSelection, rightBatchSelection, [matcher],
+      /*matchRepeatedly=*/ false);
   return [leftBatch, rightBatch, dataPoints.rows];
 }
 

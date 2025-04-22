@@ -108,6 +108,7 @@ export function stateToMapping(state: State) {
   values.set('x_error', strOrOff(state.verticalQuantile, 0, 0.5));
   values.set('y_error', strOrOff(state.horizontalQuantile, 0, 0.5));
   values.set('each_point', state.showEachPoint ? 'show' : 'hide');
+  values.set('multimatch', state.matchRepeatedly ? 'on' : 'off');
   values.set('metrics', state.showRelativeRatios ? 'rel' : 'abs');
   values.set('mean', state.useGeometricMean ? 'geo' : 'arith');
   return values;
@@ -236,6 +237,15 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
       state.showEachPoint = true;
     } else if (eachPoint === 'hide') {
       state.showEachPoint = false;
+    }
+  }
+
+  const multimatch = values.get('multimatch');
+  if (multimatch) {
+    if (multimatch === 'on') {
+      state.matchRepeatedly = true;
+    } else if (multimatch === 'off') {
+      state.matchRepeatedly = false;
     }
   }
 

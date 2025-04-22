@@ -85,6 +85,21 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
+          <span title="Multiple data points from the same batch cannot be matched with the same data point from the reference batch">
+            Match set
+          </span>
+          <mwc-switch id="settingMatchRepeatedly"
+            ?selected=${this.state.matchRepeatedly} @click=${() => {
+      this.state.matchRepeatedly = !this.state.matchRepeatedly;
+      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+      dispatch(EventType.SETTINGS_CHANGED);
+    }}>
+          </mwc-switch>
+          <span title="Multiple data points from the same batch can be matched with the same data point from the reference batch">
+            Match multiset
+          </span>
+        </div>
+        <div class="settingGroup">
           <span title="Display the absolute values of the matched data points">
             Absolute metrics
           </span>
