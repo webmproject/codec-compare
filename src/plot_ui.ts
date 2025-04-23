@@ -52,13 +52,7 @@ export class PlotUi {
     if (xMetric === undefined || yMetric === undefined) return;
 
     this.setPlotlyData(xMetric, yMetric);
-    const xField = this.state.batches[0].fields[xMetric.fieldIndices[0]];
-    const yField = this.state.batches[0].fields[yMetric.fieldIndices[0]];
-    const axisType: plotly.AxisType = 'log';
-    const layout = {
-      xaxis: {title: xField.displayName},
-      yaxis: {title: yField.displayName, type: axisType},
-    };
+    const layout = this.getPlotlyLayout(xMetric, yMetric);
     const config = {
       responsive: true,
       scrollZoom: true,
@@ -97,20 +91,7 @@ export class PlotUi {
     this.setPlotlyData(xMetric, yMetric);
     plotly.redraw(PLOTLY_DIV_NAME);  // Based on this.plotlyData, see newPlot().
 
-    const xField = this.state.batches[0].fields[xMetric.fieldIndices[0]];
-    const yField = this.state.batches[0].fields[yMetric.fieldIndices[0]];
-    const linearAxisType: plotly.AxisType = 'linear';
-    const logAxisType: plotly.AxisType = 'log';
-    const layout = {
-      xaxis: {
-        title: xField.displayName,
-        type: this.state.horizontalLogScale ? logAxisType : linearAxisType
-      },
-      yaxis: {
-        title: yField.displayName,
-        type: this.state.verticalLogScale ? logAxisType : linearAxisType
-      },
-    };
+    const layout = this.getPlotlyLayout(xMetric, yMetric);
     // In case the enabled metrics changed.
     plotly.relayout(PLOTLY_DIV_NAME, layout);
 
@@ -331,6 +312,23 @@ export class PlotUi {
         this.plotlyData.push(geomeans);
       }
     }
+  }
+
+  private getPlotlyLayout(xMetric: FieldMetric, yMetric: FieldMetric) {
+    const xField = this.state.batches[0].fields[xMetric.fieldIndices[0]];
+    const yField = this.state.batches[0].fields[yMetric.fieldIndices[0]];
+    const linearAxisType: plotly.AxisType = 'linear';
+    const logAxisType: plotly.AxisType = 'log';
+    return {
+      xaxis: {
+        title: xField.displayName,
+        type: this.state.horizontalLogScale ? logAxisType : linearAxisType
+      },
+      yaxis: {
+        title: yField.displayName,
+        type: this.state.verticalLogScale ? logAxisType : linearAxisType
+      },
+    };
   }
 }
 
