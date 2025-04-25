@@ -67,6 +67,12 @@
       /* For plot-overlay to work. */
       position: relative;
     }
+    /* Remove the possibility of toggling point clouds on and off in plotly.js.
+    /* The user should do that through the codec-compare component. */
+    .legendtoggle {
+      pointer-events: none;
+      cursor: default;
+    }
   </style>
   <script type="module" src="/src/codec_compare.ts"></script>
   <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">

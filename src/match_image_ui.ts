@@ -28,17 +28,15 @@ import {State} from './state';
 /** Component displaying the source image of one selected Match. */
 @customElement('match-image-ui')
 export class MatchImageUi extends LitElement {
-  @property({attribute: false}) state!: State;
-
+  @property({attribute: false}) referenceSelection!: BatchSelection;
   /** The selected batch and the index of the Match. */
   @property({attribute: false}) batchSelection!: BatchSelection;
   @property({attribute: false}) matchIndex!: number;
 
   override render() {
+    if (!this.referenceSelection) return html``;
     if (!this.batchSelection) return html``;
-    const reference =
-        this.state.batchSelections[this.state.referenceBatchSelectionIndex]
-            .batch;
+    const reference = this.referenceSelection.batch;
     const match = this.batchSelection.matchedDataPoints.rows[this.matchIndex];
 
     const sourceImagePath = getFinalValue(

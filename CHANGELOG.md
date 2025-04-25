@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.6.2
+
+- Add buttons to show the "RD-Curve" mode in a new tab.
+- Add "RD-Curve" mode. It is enabled automatically when there is a single "same
+  source image" match criterion and multiple data points per same source image
+  in the same batch. All match-related elements are hidden in this mode.
+- Fix the entries in the table of the Rows tab of the reference batch when the
+  Match multiset setting is on.
+
 ## v0.6.1
 
 - Fix axis settings in URL hash that were ignored at page load.

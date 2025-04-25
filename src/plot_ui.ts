@@ -51,7 +51,11 @@ export class PlotUi {
     const yMetric = this.state.plotMetricVertical;
     if (xMetric === undefined || yMetric === undefined) return;
 
-    this.setPlotlyData(xMetric, yMetric);
+    if (this.state.rdMode) {
+      this.setPlotlyDataRdMode(xMetric, yMetric);
+    } else {
+      this.setPlotlyData(xMetric, yMetric);
+    }
     const layout = this.getPlotlyLayout(xMetric, yMetric);
     const config = {
       responsive: true,
@@ -88,7 +92,11 @@ export class PlotUi {
     const yMetric = this.state.plotMetricVertical;
     if (xMetric === undefined || yMetric === undefined) return;
 
-    this.setPlotlyData(xMetric, yMetric);
+    if (this.state.rdMode) {
+      this.setPlotlyDataRdMode(xMetric, yMetric);
+    } else {
+      this.setPlotlyData(xMetric, yMetric);
+    }
     plotly.redraw(PLOTLY_DIV_NAME);  // Based on this.plotlyData, see newPlot().
 
     const layout = this.getPlotlyLayout(xMetric, yMetric);
@@ -106,6 +114,19 @@ export class PlotUi {
     }
   }
 
+  private getDotSize() {
+    let numDots = 0;
+    for (const batchSelection of this.state.batchSelections) {
+      if (batchSelection.isDisplayed === false) continue;
+      if (!this.state.showRelativeRatios ||
+          batchSelection.batch.index !==
+              this.state.referenceBatchSelectionIndex) {
+        numDots += batchSelection.matchedDataPoints.rows.length;
+      }
+    }
+    return Math.max(1, Math.min(5, 5000 / (numDots + 1)));
+  }
+
   /** Clears then fills this.plotlyData. */
   private setPlotlyData(xMetric: FieldMetric, yMetric: FieldMetric) {
     // Keep the plotlyData object because it will be used by any further call to
@@ -118,14 +139,7 @@ export class PlotUi {
         this.state.batchSelections[this.state.referenceBatchSelectionIndex]
             .batch;
 
-    let numMatches = 0;
-    for (const batchSelection of this.state.batchSelections) {
-      if (batchSelection.batch.index !==
-          this.state.referenceBatchSelectionIndex) {
-        numMatches += batchSelection.matchedDataPoints.rows.length;
-      }
-    }
-    const matchDotSize = Math.max(1, Math.min(5, 5000 / (numMatches + 1)));
+    const dotSize = this.getDotSize();
     const MEAN_DOT_SIZE = 15;
     const showRelativeRatios = this.state.showRelativeRatios;
     const useGeometricMean = showRelativeRatios && this.state.useGeometricMean;
@@ -140,7 +154,7 @@ export class PlotUi {
         const xReferenceFieldIndex = xMetric.fieldIndices[referenceBatch.index];
         const yFieldIndex = yMetric.fieldIndices[batch.index];
         const yReferenceFieldIndex = yMetric.fieldIndices[referenceBatch.index];
-        const textFieldIndex = findImageNameFieldIndex(batch);
+        const imageNameFieldIndex = findImageNameFieldIndex(batch);
         const xField = batch.fields[xFieldIndex];
         const yField = batch.fields[yFieldIndex];
         const xAxis = xField.displayName;
@@ -172,7 +186,7 @@ export class PlotUi {
               x.push(xValue as number);
               y.push(yValue as number);
             }
-            text.push(entry[textFieldIndex] as string);
+            text.push(entry[imageNameFieldIndex] as string);
           }
 
           let hovertemplate = '%{text}<br>';
@@ -187,7 +201,7 @@ export class PlotUi {
             mode: 'markers',
             type: 'scatter',
             name: batch.name,
-            marker: {color: batch.color, size: matchDotSize},
+            marker: {color: batch.color, size: dotSize},
             hoverlabel: {namelength: -1},
             hovertemplate,
             showlegend: false,
@@ -310,6 +324,83 @@ export class PlotUi {
           };
         }
         this.plotlyData.push(geomeans);
+      }
+    }
+  }
+
+  /** Clears then fills this.plotlyData for Rate-Distortion mode. */
+  private setPlotlyDataRdMode(xMetric: FieldMetric, yMetric: FieldMetric) {
+    // Keep the plotlyData object because it will be used by any further call to
+    // plotly.redraw().
+    // this.plotlyData = [] would create a new object and loose the reference.
+    this.plotlyData.length = 0;
+
+    if (this.state.metrics.length === 0) return;
+    const dotSize = this.getDotSize();
+
+    for (const batchSelection of this.state.batchSelections) {
+      if (batchSelection.isDisplayed === false) continue;
+      const rows = batchSelection.matchedDataPoints.rows;
+      if (rows.length === 0) continue;
+      const batch = batchSelection.batch;
+
+      const xFieldIndex = xMetric.fieldIndices[batch.index];
+      const yFieldIndex = yMetric.fieldIndices[batch.index];
+      const imageNameFieldIndex = findImageNameFieldIndex(batch);
+      const xField = batch.fields[xFieldIndex];
+      const yField = batch.fields[yFieldIndex];
+      const xAxis = xField.displayName;
+      const yAxis = yField.displayName;
+
+      let x: number[] = [];
+      let y: number[] = [];
+      let text: string[] = [];
+      let numDots = 0;
+      for (const row of rows) {
+        const entry = batch.rows[row.leftIndex];
+        // Metrics only exist for Fields with isNumber=true.
+        x.push(entry[xFieldIndex] as number);
+        y.push(entry[yFieldIndex] as number);
+        text.push(entry[imageNameFieldIndex] as string);
+
+        ++numDots;
+        const nextEntry = numDots < rows.length ?
+            batch.rows[rows[numDots].leftIndex] :
+            undefined;
+        // Create an independent point cloud for each unique image name
+        // (corresponds to a "Rate-Distortion curve").
+        // Assume rows to be grouped by common image name.
+        if (nextEntry === undefined ||
+            entry[imageNameFieldIndex] !== nextEntry[imageNameFieldIndex]) {
+          let hovertemplate = '%{text}<br>';
+          hovertemplate += xAxis + ': %{x:.2f}<br>';
+          hovertemplate += yAxis + ': %{y:.2f}';
+
+          const pointCloud: PlotlyData = {
+            x,
+            y,
+            text,
+            mode: 'lines+markers',
+            type: 'scatter',
+            name: batch.name,
+            marker: {color: batch.color, size: dotSize},
+            line: {color: batch.color},
+            hoverlabel: {namelength: -1},
+            hovertemplate,
+            // Only show the legend once for each batch.
+            showlegend: numDots === text.length,
+            // Still associate all points of that batch to the same legend.
+            legendgroup: batch.name,
+            isAggregated: false,
+            batchIndices: [batch.index],
+          };
+          this.plotlyData.push(pointCloud);
+
+          // Disconnect the current series from the next one.
+          x = [];
+          y = [];
+          text = [];
+        }
       }
     }
   }

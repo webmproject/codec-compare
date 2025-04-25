@@ -35,6 +35,7 @@ function getShadowElement(domPath: string[]): Element|null {
 @customElement('help-ui')
 export class HelpUi extends LitElement {
   @property() displayedTab!: Tab;
+  @property() rdMode!: boolean;
 
   // Always returned by render() so cannot be null.
   @query('#closeButton') private readonly closeButton!: HTMLElement;
@@ -96,8 +97,7 @@ export class HelpUi extends LitElement {
           ['codec-compare', 'batch-selections-ui']);
     } else if (this.displayedTab === Tab.GALLERY) {
       positionElementAtTheRightOf(
-          this.galleryDescription,
-          ['codec-compare', 'gallery-ui', '#sourceDataSet']);
+          this.galleryDescription, ['codec-compare', 'gallery-ui', '#tags']);
     }
 
     this.graphDescription.style.bottom = '60px';
@@ -119,10 +119,15 @@ export class HelpUi extends LitElement {
 
       <div class="descriptionHolder" id="matchersDescription">
         <div class="bracket"></div>
-        <p>
+        <p>${
+        this.rdMode ? html`
+        This page compares image formats and codecs by plotting a
+        Rate-Distortion curve for each selected source image and batch pair.
+        Each point on a curve corresponds to one quality encoding setting.` :
+                      html`
         This page compares image formats and codecs by matching each data point
         from a reference batch to a data point from another batch while
-        respecting these constraints.
+        respecting these constraints.`}
         </p>
       </div>
 
@@ -144,17 +149,25 @@ export class HelpUi extends LitElement {
     return html`
       <div class="descriptionHolder" id="numComparisonsDescription">
         <div class="bracket"></div>
-        <p>
+        <p>${
+        this.rdMode ? html`
+        This page compares image formats and codecs by plotting a
+        Rate-Distortion curve for each selected source image and batch pair.
+        Each data point is an image compressed then decompressed, with some
+        codec settings and some measured information such as encoding duration,
+        visual distortion etc.` :
+                      html`
         This page compares image formats and codecs by matching each data point
         from a reference batch to a data point from another batch. Each data
         point is an image compressed then decompressed, with some codec settings
         and some measured information such as encoding duration, visual
         distortion etc. The number of comparisons is the number of matched pairs
-        between a batch and the reference batch.
+        between a batch and the reference batch.`}
         </p>
       </div>
 
-      <div class="descriptionHolder" id="matchersDescription">
+      <div class="descriptionHolder" id="matchersDescription">${
+        this.rdMode ? html`` : html`
         <div class="bracket"></div>
         <p>
         Pairs are selected so that these constraints are respected. When
@@ -164,7 +177,7 @@ export class HelpUi extends LitElement {
         <br>
         Numerical fields can be matched with a relative tolerance. If so, pairs
         are selected to minimize the difference of the values of these fields.
-        </p>
+        </p>`}
       </div>
 
       <div class="descriptionHolder" id="metricsDescription">
@@ -188,10 +201,14 @@ export class HelpUi extends LitElement {
           bits-per-pixel usually seen on the web
           <mwc-icon>open_in_new</mwc-icon></a>.<br>
         Click the visibility button to show or hide a specific batch in the plot
-        and in the SUMMARY tab.<br>
+        and in the SUMMARY tab.<br>${
+        this.rdMode ? html`
+        The statistics for the fields selected as metrics are displayed in the
+        right-most columns.` :
+                      html`
         The statistics relative to the reference batch for the fields selected
         as metrics are displayed in the right-most columns. The aggregation
-        method can be changed in the Settings.
+        method can be changed in the Settings.`}
         </p>
       </div>`;
   }
@@ -203,10 +220,19 @@ export class HelpUi extends LitElement {
         <p>
         These media assets were compressed and decompressed with the codecs
         presented here to compare their relative performance.<br>
-        <br>
+        <br>${
+        this.rdMode ? html`
         The count associated with each asset corresponds to the number of
-        matched pairs based on that asset accross all batches.<br>
-        Each image can be toggled on or off across all batches.
+        data points based on that asset accross all batches.` :
+                      html`
+        The count associated with each asset corresponds to the number of
+        matched pairs based on that asset accross all batches.`}<br>
+        Each image can be toggled on or off across all batches.<br>
+        <br>Images can be toggled on or off in bulk using the filter tags.<br>
+        "<mwc-icon>add</mwc-icon>TAG" enables all images associated with that
+        TAG.<br>
+        "<mwc-icon>remove</mwc-icon>TAG" disables all images associated with that
+        TAG.
         </p>
       </div>`;
   }
@@ -227,13 +253,19 @@ export class HelpUi extends LitElement {
                                               this.renderDatasetHelp()}
 
       <div class="descriptionHolder" id="graphDescription">
-        <p>
+        <p>${
+        this.rdMode ? html`
+        The codecs are plotted on this graph as curves, with the metric fields
+        as axes. Each curve corresponds to one source image and one codec.<br>
+        Each data point on a curve corresponds to one quality encoding setting.
+        Click on any to display the details of that data point.` :
+                      html`
         The codecs are plotted on this graph as large disks, with the metric
         fields as axes. If any, batches sharing the same codec are linked with
         straight lines, usually to represent multiple encoding efforts.<br>
         If enabled in the Settings, each matched pair is displayed as a tiny
         dot. Click on any to display the details of the reference batch and of
-        the compared batch.<br>
+        the compared batch.`}<br>
         <br>
         For an introduction to image file formats, please see this
         <a href="https://en.wikipedia.org/wiki/Image_file_format"

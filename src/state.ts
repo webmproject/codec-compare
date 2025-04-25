@@ -87,6 +87,9 @@ export class State {
   /** Deduced during initialize(). */
   batchesAreLikelyLossless = false;
 
+  /** Deduced after each matcher or metric change. */
+  rdMode = false;
+
   /** Sets all other fields up based on the contents of the batches field. */
   initialize() {
     if (this.batches.length === 0) return;
@@ -237,6 +240,7 @@ export class State {
     });
 
     listen(EventType.MATCHER_OR_METRIC_CHANGED, () => {
+      this.rdMode = this.guessRdMode();
       if (this.plotMetricHorizontal === undefined ||
           !this.plotMetricHorizontal.enabled) {
         this.plotMetricHorizontal =
@@ -266,6 +270,8 @@ export class State {
 
   /** Part of initialize() to be done once URL parameters were parsed. */
   initializePostUrlStateLoad() {
+    this.rdMode = this.guessRdMode();
+
     // Adapt the default plot axis to the selected metrics, that may have
     // changed because of URL parameters. Only set the plot axis to their
     // default values if they were not explicitly set through URL parameters.
@@ -281,5 +287,54 @@ export class State {
     for (const batchSelection of this.batchSelections) {
       batchSelection.updateFilteredRows(this.commonFields);
     }
+  }
+
+  /**
+   * Returns whether it is estimated that the Codec-Compare framework is used
+   * to display independent Rate-Distortion curves instead of a comparison based
+   * on matched pairs.
+   * When this mode is enabled, everything match-related is disabled or hidden.
+   */
+  private guessRdMode() {
+    if (this.batches.length === 0) return false;
+    if (this.batchesAreLikelyLossless) return false;
+    if (!this.showEachPoint) return false;
+    if (!this.matchRepeatedly) return false;
+    if (this.showRelativeRatios) return false;
+
+    // An enabled non-mandatory match criterion implies inter-dependent curves.
+    if (this.matchers.find(
+            matcher => matcher.enabled &&
+                this.batches[0].fields[matcher.fieldIndices[0]].id !==
+                    FieldId.SOURCE_IMAGE_NAME) !== undefined) {
+      return false;
+    }
+
+    // A Rate-Distortion curve requires a Rate axis and a Distortion axis.
+    if (this.metrics.find(
+            metric => metric.enabled &&
+                (this.batches[0].fields[metric.fieldIndices[0]].id ===
+                     FieldId.ENCODED_SIZE ||
+                 this.batches[0].fields[metric.fieldIndices[0]].id ===
+                     FieldId.ENCODED_BITS_PER_PIXEL)) === undefined ||
+        this.metrics.find(
+            metric => metric.enabled &&
+                DISTORTION_METRIC_FIELD_IDS.includes(
+                    this.batches[0].fields[metric.fieldIndices[0]].id)) ===
+            undefined) {
+      return false;
+    }
+
+    // A curve requires more than one data point.
+    for (const batch of this.batches) {
+      const source_image_name_field =
+          batch.fields.find(field => field.id === FieldId.SOURCE_IMAGE_NAME);
+      if (source_image_name_field !== undefined &&
+          batch.rows.length <=
+              source_image_name_field.uniqueValuesArray.length) {
+        return false;
+      }
+    }
+    return true;
   }
 }

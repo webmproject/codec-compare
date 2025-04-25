@@ -22,9 +22,10 @@ import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
-import {Batch} from './entry';
+import {Batch, FieldId} from './entry';
 import {EventType, listen} from './events';
 import {State} from './state';
+import {getRdModeHash} from './state_hash';
 
 /**
  * Component displaying each Match between a given batch and the reference
@@ -48,6 +49,12 @@ export class MatchesUi extends LitElement {
     const rowIndex = this.matchIndex === undefined ?
         undefined :
         this.batchSelection.matchedDataPoints.rows[this.matchIndex].leftIndex;
+
+    const rdModeHash = rowIndex === undefined ?
+        undefined :
+        getRdModeHash(
+            this.state, this.batchSelection.batch,
+            this.referenceSelection.batch, rowIndex, window.location.hash);
 
     return html`
       <div class="leftVerticalFlex">
@@ -83,7 +90,17 @@ export class MatchesUi extends LitElement {
           .batch=${this.batchSelection.batch}
           .rowIndex=${rowIndex}>
         </constants-table-ui>
-        <match-image-ui .state=${this.state}
+        ${rdModeHash === undefined ? html`` : html`
+        <a href="#${rdModeHash}" target="_blank">
+          <mwc-button
+            raised
+            icon="show_chart"
+            label="Rate-Distortion"
+            title="Display the Rate-Distortion curve containing this data point">
+            <mwc-icon>open_in_new</mwc-icon>
+          </mwc-button>
+        </a>`}
+        <match-image-ui .referenceSelection=${this.referenceSelection}
           .batchSelection=${this.batchSelection}
           .matchIndex=${this.matchIndex === undefined ? 0 : this.matchIndex}>
         </match-image-ui>
@@ -113,6 +130,7 @@ export class MatchesUi extends LitElement {
     }
     .rightVerticalFlex {
       flex: 1;
+      align-items: center;
     }
 
     #batchesHeader {
@@ -137,8 +155,9 @@ export class MatchesUi extends LitElement {
       margin: 0;
     }
 
-    match-image-ui {
-      align-self: center;
+    mwc-button mwc-icon {
+      margin-left: 8px;
+      font-size: 16px;
     }
   `;
 }

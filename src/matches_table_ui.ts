@@ -80,9 +80,11 @@ export class MatchesTableUi extends LitElement {
 
     const referenceStyle = {'color': reference.color};
     if (selection.index === reference.index) {
+      // Note that referenceValue may differ from selectionValue when
+      // this.state.matchRepeatedly is true.
       return html`
           <td colspan=3 style=${styleMap(referenceStyle)} class="${cssClass}">
-            ${referenceValue}
+            ${selectionValue}
           </td>`;
     }
 

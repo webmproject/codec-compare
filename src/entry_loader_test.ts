@@ -21,8 +21,8 @@ describe('loadBatchJson', () => {
   it('loads a JSON file', async () => {
     const batch = await loadBatchJson('/assets/demo_batch_webp_installed.json');
     expect(batch).toBeDefined();
-    expect(batch.name).toBe('libwebp');
-    expect(batch.codec).toBe('WebP');
+    expect(batch.name).toBe('WebP');
+    expect(batch.codec).toBe('libwebp');
     expect(batch.constants.length).toBeGreaterThan(1);
     expect(batch.fields.length).toBeGreaterThan(1);
     expect(batch.rows.length).toBeGreaterThan(1);
