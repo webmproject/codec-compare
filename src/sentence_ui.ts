@@ -234,7 +234,8 @@ export class SentenceUi extends LitElement {
     const batch = referenceBatch.batch;
     return html`
       <p id="referenceBatch">
-        as <batch-name-ui .batch=${batch} @click=${() => {
+        as <batch-name-ui id="referenceBatchNameUi" .batch=${batch}
+            @click=${() => {
       dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
     }}></batch-name-ui>${this.renderFilters(referenceBatch)},
       </p>`;
@@ -245,14 +246,15 @@ export class SentenceUi extends LitElement {
       const batch = referenceBatch.batch;
       return html`
         <p id="referenceBatch">
-          compared to <batch-name-ui .batch=${batch} @click=${() => {
+          compared to <batch-name-ui id="referenceBatchNameUi" .batch=${batch}
+                        @click=${() => {
         dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex: batch.index});
       }}></batch-name-ui>${this.renderFilters(referenceBatch)},</p>`;
     }
     return html`<p id="referenceBatch">on average,</p>`;
   }
 
-  override render() {
+  private renderMatches() {
     let referenceBatch: BatchSelection|undefined = undefined;
     if (this.state.referenceBatchSelectionIndex >= 0 &&
         this.state.referenceBatchSelectionIndex <
@@ -266,7 +268,21 @@ export class SentenceUi extends LitElement {
         ${this.renderMatchers()}
         ${referenceBatch ? this.renderMatcherReference(referenceBatch) : ''}
       </div>
-      ${referenceBatch ? this.renderReference(referenceBatch) : ''}
+      ${referenceBatch ? this.renderReference(referenceBatch) : ''}`;
+  }
+
+  private renderRdMode() {
+    // Keep element ids as in renderMatches() for consistency, even if they do
+    // not really relate.
+    return html`
+      <div id="matchers">
+        <p id="referenceBatch">On average,</p>
+      </div>`;
+  }
+
+  override render() {
+    return html`
+      ${this.state.rdMode ? this.renderRdMode() : this.renderMatches()}
       <div id="batches">
         ${this.renderBatches()}
       </div>`;

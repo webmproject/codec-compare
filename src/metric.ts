@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {getFinalValue} from './constant';
-import {areFieldsComparable, Batch, Field, FieldId} from './entry';
+import {areFieldsComparable, Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId} from './entry';
 import {GeometricMean} from './geometric_mean';
 import {Match} from './matcher';
 import {Quantile} from './quantile';
@@ -151,10 +151,24 @@ export function selectPlotMetrics(firstBatch: Batch, metrics: FieldMetric[]):
     return firstBatch.fields[metric.fieldIndices[0]].id;
   };
 
-  // Try ENCODED_SIZE as x and ENCODING_DURATION as y (or DECODING_DURATION as
-  // y otherwise) if they are enabled.
+  // Try to plot Rate-Distortion curves if bpp is enabled as a metric.
+  xMetric = metrics.find(
+      m => m.enabled && metricToFieldId(m) === FieldId.ENCODED_BITS_PER_PIXEL);
+  yMetric = metrics.find(
+      m => m.enabled &&
+          DISTORTION_METRIC_FIELD_IDS.includes(metricToFieldId(m)));
+  if (xMetric !== undefined && yMetric !== undefined) {
+    return [xMetric, yMetric];
+  }
+  // File size works as well if bpp is unavailable.
   xMetric = metrics.find(
       m => m.enabled && metricToFieldId(m) === FieldId.ENCODED_SIZE);
+  if (xMetric !== undefined && yMetric !== undefined) {
+    return [xMetric, yMetric];
+  }
+
+  // Try ENCODED_SIZE as x and ENCODING_DURATION as y (or DECODING_DURATION as
+  // y otherwise) if they are enabled.
   yMetric = metrics.find(
       m => m.enabled && metricToFieldId(m) === FieldId.ENCODING_DURATION);
   if (yMetric === undefined) {

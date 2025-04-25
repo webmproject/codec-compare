@@ -10,12 +10,12 @@
     {"decoding_cmd": "The command used to decode the encoded image"}
   ],
   "constant_values": [
-    "libwebp",
     "WebP",
+    "libwebp",
     "installed",
     "2022-11-08T12:34:56",
     "rainbow.png",
-    "rainbow_q0.webp",
+    "assets/rainbow_q0.webp",
     "cwebp ${original_path} -s ${effort} -q ${quality} -o ${encoded_path}",
     "dwebp ${encoded_path} -o ${decoded_path}"
   ],

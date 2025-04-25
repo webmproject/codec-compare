@@ -69,7 +69,7 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
-          <span title="Hide the matched pairs in the graph">
+          <span title="Hide the individual data points in the graph">
             Hide data points
           </span>
           <mwc-switch id="settingShowEachPoint"
@@ -79,7 +79,7 @@ export class SettingsUi extends LitElement {
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
           </mwc-switch>
-          <span title="Show each matched pair as a small dot in the graph (${
+          <span title="Show each individual data point as a small dot in the graph (${
         slownessWarning})">
             Show data points
           </span>
@@ -100,7 +100,7 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
-          <span title="Display the absolute values of the matched data points">
+          <span title="Display the absolute values of the data points">
             Absolute metrics
           </span>
           <mwc-switch id="settingShowRelativeRatios"
@@ -115,7 +115,7 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
-          <span title="Aggregate the metrics using the arithmetic mean of the values of the matched data points">
+          <span title="Aggregate the metrics using the arithmetic mean of the values of the data points">
             Arithmetic mean
           </span>
           <mwc-switch id="settingUseGeometricMean" ?selected=${
@@ -174,7 +174,7 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
-          <span title="Only display the first rows of the filtered or matched data point tables">
+          <span title="Only display the first rows of the data point tables">
             Show some rows
           </span>
           <mwc-switch id="settingShowAllRows"
@@ -183,7 +183,7 @@ export class SettingsUi extends LitElement {
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
           </mwc-switch>
-          <span title="Display all rows of the filtered or matched data point tables (${
+          <span title="Display all rows of the data point tables (${
         slownessWarning})">
             Show all rows
           </span>

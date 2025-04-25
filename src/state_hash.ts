@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Field} from './entry';
+import {Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId} from './entry';
 import {FieldFilter} from './filter';
 import {selectPlotMetrics} from './metric';
 import {State} from './state';
@@ -282,4 +282,131 @@ export function trimDefaultStateMapping(
     }
   }
   return values;
+}
+
+/** Returns the hash part of the URL to a Rate-Distortion curve plot. */
+export function getRdModeHash(
+    state: State, batch: Batch, reference: Batch, rowIndex: number|undefined,
+    currentHash: string) {
+  // No distortion means no Rate-Distortion curve.
+  if (state.batchesAreLikelyLossless) return undefined;
+
+  const hash =
+      new URLSearchParams(currentHash.length > 3 ? currentHash.slice(1) : '');
+
+  // Disable all matchers.
+  for (const matcher of state.matchers) {
+    if (!matcher.enabled) continue;
+    const field = batch.fields[matcher.fieldIndices[batch.index]];
+    if (field.id === FieldId.SOURCE_IMAGE_NAME) {
+      // This one is mandatory and handled by the RD mode.
+    } else {
+      hash.set('matcher_' + field.name, 'off');
+    }
+  }
+
+  // Find the Rate and Distortion metrics.
+  let rateField: Field|undefined = undefined;
+  let distortionField: Field|undefined = undefined;
+  function findRdFields(
+      field: Field, rateField: Field|undefined,
+      distortionField: Field|undefined): [Field|undefined, Field|undefined] {
+    if (!field.isNumber) return [rateField, distortionField];
+    if (field.rangeStart === field.rangeEnd)
+      return [rateField, distortionField];
+    // Favor bits-per-pixel but still accept byte counts.
+    if (field.id === FieldId.ENCODED_BITS_PER_PIXEL) {
+      rateField = field;
+    } else if (field.id === FieldId.ENCODED_SIZE && rateField === undefined) {
+      rateField = field;
+    }
+    // Arbitrarily favor the first encountered distortion metric.
+    if (distortionField === undefined &&
+        DISTORTION_METRIC_FIELD_IDS.includes(field.id)) {
+      distortionField = field;
+    }
+    return [rateField, distortionField];
+  }
+  // Pick the fields used as enabled matchers if possible.
+  for (const matcher of state.matchers) {
+    if (matcher.enabled) {
+      [rateField, distortionField] = findRdFields(
+          batch.fields[matcher.fieldIndices[batch.index]], rateField,
+          distortionField);
+    }
+  }
+  // Look into the fields used as enabled metrics if necessary.
+  for (const metric of state.metrics) {
+    if (metric.enabled) {
+      [rateField, distortionField] = findRdFields(
+          batch.fields[metric.fieldIndices[batch.index]], rateField,
+          distortionField);
+    }
+  }
+  // Use any relevant field as a last resort.
+  for (const field of batch.fields) {
+    [rateField, distortionField] =
+        findRdFields(field, rateField, distortionField);
+  }
+  if (rateField === undefined || distortionField === undefined) {
+    return undefined;
+  }
+  // Enable the Rate and Distortion metrics.
+  hash.set('metric_' + rateField.name, 'on');
+  hash.set('metric_' + distortionField.name, 'on');
+
+  if (rowIndex === undefined) {
+    // Only display the selected batch.
+    if (state.batchSelections.length <= 1) {
+      hash.delete('shown');
+    } else {
+      hash.set(
+          'shown',
+          getBase16Bitmask(
+              state.batchSelections.length, (i: number) => i === batch.index));
+    }
+  } else {
+    // Only display the selected batch and the reference, if any.
+    if (state.batchSelections.length <= 2) {
+      hash.delete('shown');
+    } else {
+      hash.set(
+          'shown',
+          getBase16Bitmask(
+              state.batchSelections.length,
+              (i: number) => i === batch.index || i === reference.index));
+    }
+  }
+  // Use the default reference because it has no impact in RD mode.
+  hash.delete('ref');
+
+  if (rowIndex !== undefined) {
+    // Only display the selected image.
+    const source_image = state.commonFields.find(
+        (common) => common.field.id === FieldId.SOURCE_IMAGE_NAME);
+    if (source_image === undefined) {
+      return undefined;
+    }
+    if (source_image.field.uniqueValuesArray.length < 2) {
+      hash.delete(source_image.field.name);
+    } else {
+      const source_image_name =
+          batch.rows[rowIndex][source_image.fieldIndices[batch.index]];
+      hash.set(
+          source_image.field.name,
+          getBase16Bitmask(
+              source_image.field.uniqueValuesArray.length,
+              (elementIndex: number) =>
+                  source_image.field.uniqueValuesArray[elementIndex] ===
+                  batch
+                      .rows[rowIndex][source_image.fieldIndices[batch.index]]));
+    }
+  }
+
+  // Enable settings that toggle the Rate-Distortion curve mode.
+  hash.set('each_point', 'show');
+  hash.set('metrics', 'abs');
+  hash.set('multimatch', 'on');
+
+  return hash.toString();
 }

@@ -23,6 +23,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {Batch} from './entry';
 import {EventType, listen} from './events';
 import {State} from './state';
+import {getRdModeHash} from './state_hash';
 
 /** Component displaying the details of a batch. */
 @customElement('batch-ui')
@@ -51,6 +52,9 @@ export class BatchUi extends LitElement {
     const twoBatchLink = `?batch=${this.state.batches[minIndex].url}&batch=${
         this.state.batches[maxIndex].url}${
         stateHash.size > 0 ? `#${stateHash.toString()}` : ''}`;
+
+    const rdModeHash = getRdModeHash(
+        this.state, this.batch, this.batch, undefined, window.location.hash);
 
     return html`
       <constants-table-ui .batch=${this.batch}></constants-table-ui>
@@ -91,6 +95,17 @@ export class BatchUi extends LitElement {
           </mwc-button>
         </a>
       `}
+
+      ${rdModeHash === undefined ? html`` : html`
+        <a href="#${rdModeHash}" target="_blank">
+          <mwc-button
+            raised
+            icon="stacked_line_chart"
+            label="Rate-Distortion"
+            title="Display the Rate-Distortion curves for this batch">
+            <mwc-icon>open_in_new</mwc-icon>
+          </mwc-button>
+        </a>`}
       </div>`;
   }
 
@@ -99,7 +114,7 @@ export class BatchUi extends LitElement {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      gap: 20px;
+      gap: 10px;
       overflow: hidden;
     }
 
@@ -117,6 +132,7 @@ export class BatchUi extends LitElement {
       flex-direction: row;
       justify-content: space-evenly;
       gap: 20px;
+      margin-bottom: 8px;  /* Leave some room for the shadow. */
     }
 
     .left-margin {

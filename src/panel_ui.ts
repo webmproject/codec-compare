@@ -96,6 +96,7 @@ export class PanelUi extends LitElement {
         this.state.batchSelections[this.batch.index];
     const batchIndex: number = this.batch.index;
     const activeIndex: number = this.currentTab;
+    const showRowsOnly = this.state.rdMode || batchIndex === reference.index;
 
     return html`
       <div id="background" @click=${onClose}></div>
@@ -126,7 +127,8 @@ export class PanelUi extends LitElement {
               <mwc-list-item ?activated=${otherBatch.index === batch.index}>
                 <batch-name-ui .batch=${otherBatch}></batch-name-ui>
                 ${
-                otherBatch.index === this.state.referenceBatchSelectionIndex ?
+                (!this.state.rdMode &&
+                 otherBatch.index === this.state.referenceBatchSelectionIndex) ?
                     html`<span class="referenceBatchChip">reference</span>` :
                     html``}
               </mwc-list-item>`)}
@@ -134,9 +136,12 @@ export class PanelUi extends LitElement {
           </h1>
 
         ${
-        batchIndex === this.state.referenceBatchSelectionIndex ?
+        this.state.rdMode ?
+            // Rate-Distortion curve mode does not use any batch as reference.
+            '' :
+            batchIndex === this.state.referenceBatchSelectionIndex ?
             // disabled mwc-button title does not appear. Use a div.
-            html`
+                html`
           <div title="This batch is already the reference batch">
             <mwc-button
               raised
@@ -146,7 +151,7 @@ export class PanelUi extends LitElement {
             </mwc-button>
           </div>
         ` :
-            html`
+                html`
           <mwc-button
             raised
             icon="center_focus_weak"
@@ -170,11 +175,10 @@ export class PanelUi extends LitElement {
           <mwc-tab label="Metadata" icon="info" id="metadataTab"></mwc-tab>
           <mwc-tab label="Filters and rows" icon="filter_alt" id="rowsTab">
           </mwc-tab>
-          <mwc-tab label="${
-        batch.index === reference.index ? 'Rows' : 'Matches'}" icon="${
-        batch.index === reference.index ?
-            'photo_library' :
-            'join_inner'}" id="matchesTab"></mwc-tab>
+          <mwc-tab label="${showRowsOnly ? 'Rows' : 'Matches'}"
+            icon="${showRowsOnly ? 'photo_library' : 'join_inner'}"
+            id="matchesTab">
+          </mwc-tab>
         </mwc-tab-bar>
 
         <batch-ui .state=${this.state} .batch=${batch}
@@ -186,7 +190,8 @@ export class PanelUi extends LitElement {
         activeIndex === BatchTab.FILTERS_AND_ROWS ? '' : 'display: none'}>
         </batch-selection-ui>
         <matches-ui .state=${this.state}
-          .referenceSelection=${referenceSelection}
+          .referenceSelection=${
+        showRowsOnly ? batchSelection : referenceSelection}
           .batchSelection=${batchSelection} .matchIndex=${this.matchIndex}
           style=${activeIndex === BatchTab.MATCHES ? '' : 'display: none'}>
         </matches-ui>

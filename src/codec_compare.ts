@@ -180,11 +180,16 @@ export class CodecCompare extends LitElement {
           <div id="advancedInterface">
             <div class="scrollFriendlyPadding"></div>
             ${truncatedResults ? this.renderTruncatedResults() : ''}
-            <p id="numComparisons" style="position: relative;">
+            <p id="numComparisons" style="position: relative;">${
+        this.state.rdMode ?
+            html`
+              Based on ${numComparisonsStr} data points per batch` :
+            html`
               Based on ${numComparisonsStr} comparisons
               ${
-        referenceBatch ? html`with ${this.renderReference(referenceBatch)}` :
-                         ''},
+                referenceBatch ?
+                    html`with ${this.renderReference(referenceBatch)}` :
+                    ''}`},
             </p>
             <matchers-ui .state=${this.state} id="matchers"></matchers-ui>
             <metrics-ui .state=${this.state} id="metrics"></metrics-ui>
@@ -245,7 +250,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare version 0.6.1<br>
+            Codec Compare version 0.6.2<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -254,7 +259,8 @@ export class CodecCompare extends LitElement {
       </div>
 
       <panel-ui .state=${this.state}></panel-ui>
-      <help-ui .displayedTab=${this.currentTab}></help-ui>
+      <help-ui .displayedTab=${this.currentTab} .rdMode=${this.state.rdMode}>
+      </help-ui>
       ${this.isLoaded ? html`` : html`<loading-ui></loading-ui>`}
     `;
   }

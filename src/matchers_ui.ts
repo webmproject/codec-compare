@@ -22,6 +22,7 @@ import {Menu} from '@material/mwc-menu';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
+import {FieldId} from './entry';
 import {dispatch, EventType, listen} from './events';
 import {FieldMatcher} from './matcher';
 import {State} from './state';
@@ -79,10 +80,14 @@ export class MatchersUi extends LitElement {
 
   private renderMatcher(
       matcher: FieldMatcher, index: number, numEnabledMatchers: number) {
+    const fieldId = this.state.batches[0].fields[matcher.fieldIndices[0]].id;
+    if (this.state.rdMode && fieldId === FieldId.SOURCE_IMAGE_NAME) {
+      return html``;
+    }
+
     let isNumber = true;
     let displayName = '';
     let description = '';
-    const fieldId = this.state.batches[0].fields[matcher.fieldIndices[0]].id;
     for (const batch of this.state.batches) {
       const field = batch.fields[matcher.fieldIndices[batch.index]];
       isNumber = isNumber && field.isNumber;
