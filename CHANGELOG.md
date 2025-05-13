@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.3
+
+- Fix the alignment in the first paragraph of the Advanced tab.
+
 ## v0.6.2
 
 - Add buttons to show the "RD-Curve" mode in a new tab.
