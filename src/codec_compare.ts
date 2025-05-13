@@ -74,14 +74,17 @@ export class CodecCompare extends LitElement {
   @query('#referenceMenu') private readonly referenceMenu!: Menu;
 
   private renderReference(referenceBatch: Batch) {
+    // Use a span to avoid breaking the line between the button and the comma.
     return html`
-      <mwc-button icon="arrow_drop_down" trailingIcon raised
-          title="Change the reference batch to compare other codecs with"
-          id="referenceButton" @click=${() => {
+      <span style="text-wrap-mode: nowrap;">
+        <mwc-button icon="arrow_drop_down" trailingIcon raised
+            title="Change the reference batch to compare other codecs with"
+            id="referenceButton" @click=${() => {
       this.referenceMenu.show();
     }}>
-        <batch-name-ui .batch=${referenceBatch}></batch-name-ui>
-      </mwc-button>
+          <batch-name-ui .batch=${referenceBatch}></batch-name-ui>
+        </mwc-button>,
+      </span>
       <mwc-menu
         .anchor=${this.referenceMenu}
         corner="BOTTOM_LEFT"
@@ -183,13 +186,12 @@ export class CodecCompare extends LitElement {
             <p id="numComparisons" style="position: relative;">${
         this.state.rdMode ?
             html`
-              Based on ${numComparisonsStr} data points per batch` :
+              Based on ${numComparisonsStr} data points per batch,` :
             html`
-              Based on ${numComparisonsStr} comparisons
-              ${
+              Based on ${numComparisonsStr} comparisons${
                 referenceBatch ?
-                    html`with ${this.renderReference(referenceBatch)}` :
-                    ''}`},
+                    html` with ${this.renderReference(referenceBatch)}` :
+                    ','}`}
             </p>
             <matchers-ui .state=${this.state} id="matchers"></matchers-ui>
             <metrics-ui .state=${this.state} id="metrics"></metrics-ui>
@@ -250,7 +252,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare version 0.6.2<br>
+            Codec Compare version 0.6.3<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -415,8 +417,7 @@ export class CodecCompare extends LitElement {
     #referenceButton {
       --mdc-theme-primary: white;
       --mdc-theme-on-primary: var(--mdc-theme-text);
-      /* Align the following comma to the bottom of the button. */
-      vertical-align: bottom;
+      vertical-align: middle;
     }
     #referenceButton batch-name-ui {
       color: var(--mdc-theme-text);
