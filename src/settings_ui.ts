@@ -174,7 +174,7 @@ export class SettingsUi extends LitElement {
           </span>
         </div>
         <div class="settingGroup">
-          <span title="Only display the first rows of the data point tables">
+          <span title="Only display a few rows of the data point tables">
             Show some rows
           </span>
           <mwc-switch id="settingShowAllRows"
