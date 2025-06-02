@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.4
+
+- Fix the MatchImageUi component displaying the wrong image when filtering out
+  the first match, then clicking on the first new match.
+
 ## v0.6.3
 
 - Fix the alignment in the first paragraph of the Advanced tab.

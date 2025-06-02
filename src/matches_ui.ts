@@ -19,11 +19,11 @@ import './match_image_ui';
 import './matches_table_ui';
 
 import {css, html, LitElement} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {customElement, property, query} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
-import {Batch, FieldId} from './entry';
 import {EventType, listen} from './events';
+import {MatchImageUi} from './match_image_ui';
 import {State} from './state';
 import {getRdModeHash} from './state_hash';
 
@@ -38,9 +38,15 @@ export class MatchesUi extends LitElement {
   @property({attribute: false}) batchSelection!: BatchSelection;
   @property({attribute: false}) matchIndex!: number|undefined;
 
+  @query('match-image-ui') private readonly matchImageUi!: MatchImageUi;
+
   override connectedCallback() {
     super.connectedCallback();
     listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
+      // batchSelection and matchIndex may stay the same, while the underlying
+      // data points changed, so this.matchImageUi could display the wrong
+      // image. Explicitly update it in this case.
+      this.matchImageUi.requestUpdate();
       this.requestUpdate();
     });
   }
