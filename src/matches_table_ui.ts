@@ -32,7 +32,7 @@ import {State} from './state';
 @customElement('matches-table-ui')
 export class MatchesTableUi extends LitElement {
   @property({attribute: false}) state!: State;
-  @property({attribute: false}) referenceSelection!: BatchSelection;
+  @property({attribute: false}) referenceSelection!: BatchSelection|undefined;
   @property({attribute: false}) batchSelection!: BatchSelection;
   @property({attribute: false}) matchIndex!: number|undefined;
 
@@ -114,37 +114,38 @@ export class MatchesTableUi extends LitElement {
   // Header rows (two needed because some cells use a rowspan)
 
   private renderFirstHeaderRow(
-      reference: Batch, matchers: FieldMatcher[], metrics: FieldMetric[],
-      referenceSharedFieldIndices: number[]) {
+      batch: Batch, matchers: FieldMatcher[], metrics: FieldMetric[],
+      fieldIndices: number[]) {
     return html`<tr>
       <th colspan=${matchers.length * 3} class="headerRow">Matchers</th>
       <th colspan=${metrics.length * 3} class="headerRow">Metrics</th>
-      ${referenceSharedFieldIndices.map((fieldIndex) => {
-      return this.renderFieldHeader(reference, fieldIndex, /*rowspan=*/ 2);
+      ${fieldIndices.map((fieldIndex) => {
+      return this.renderFieldHeader(batch, fieldIndex, /*rowspan=*/ 2);
     })}
     </tr>`;
   }
 
   private renderSecondHeaderRow(
-      reference: Batch, matchers: FieldMatcher[], metrics: FieldMetric[]) {
+      batch: Batch, matchers: FieldMatcher[], metrics: FieldMetric[]) {
     // Other columns were "rowspanned" out.
     return html`<tr>
       ${matchers.map((matcher) => {
       return this.renderFieldHeader(
-          reference, matcher.fieldIndices[reference.index], /*rowspan=*/ 1);
+          batch, matcher.fieldIndices[batch.index], /*rowspan=*/ 1);
     })}
       ${metrics.map((metric) => {
       return this.renderFieldHeader(
-          reference, metric.fieldIndices[reference.index], /*rowspan=*/ 1);
+          batch, metric.fieldIndices[batch.index], /*rowspan=*/ 1);
     })}
     </tr>`;
   }
 
   private renderMeanRows(
-      reference: BatchSelection, numColumns: number, matchers: FieldMatcher[],
-      metricIndices: number[], selectionSharedFieldIndices: number[]) {
+      selection: BatchSelection, reference: BatchSelection, numColumns: number,
+      matchers: FieldMatcher[], metricIndices: number[],
+      selectionSharedFieldIndices: number[]) {
     const referenceStyle = {'color': reference.batch.color};
-    const selectionStyle = {'color': this.batchSelection.batch.color};
+    const selectionStyle = {'color': selection.batch.color};
     return html`
       <tr>
         <th colspan=${numColumns * 3}>Arithmetic means</th>
@@ -152,15 +153,14 @@ export class MatchesTableUi extends LitElement {
       <tr>
         <td colspan=${matchers.length * 3} class="missing"></td>
         ${metricIndices.map((metricIndex) => {
-      const relativeMean =
-          this.batchSelection.stats[metricIndex].getRelativeMean(
-              /*geometric=*/ false);
+      const relativeMean = selection.stats[metricIndex].getRelativeMean(
+          /*geometric=*/ false);
       const selectionAbsoluteMean =
-          this.batchSelection.stats[metricIndex].getAbsoluteMean();
+          selection.stats[metricIndex].getAbsoluteMean();
       const referenceAbsoluteMean = selectionAbsoluteMean / relativeMean;
       const metric = this.state.metrics[metricIndex];
-      const fieldIndex = metric.fieldIndices[this.batchSelection.batch.index];
-      const field = this.batchSelection.batch.fields[fieldIndex];
+      const fieldIndex = metric.fieldIndices[selection.batch.index];
+      const field = selection.batch.fields[fieldIndex];
       return html`
         <td class="numberCell" style=${styleMap(referenceStyle)}>
           ${referenceAbsoluteMean}${fieldUnit(field.id)}
@@ -182,7 +182,7 @@ export class MatchesTableUi extends LitElement {
       <tr>
         <td colspan=${matchers.length * 3} class="missing"></td>
         ${metricIndices.map((metricIndex) => {
-      const mean = this.batchSelection.stats[metricIndex].getRelativeMean(
+      const mean = selection.stats[metricIndex].getRelativeMean(
           /*geometric=*/ true);
       return html`
         <td colspan=2 class="numberCell">${getRelativePercent(mean)}</td>
@@ -194,9 +194,9 @@ export class MatchesTableUi extends LitElement {
   }
 
   private renderMeanRowsSingleBatch(
-      numColumns: number, matchers: FieldMatcher[], metricIndices: number[],
-      selectionSharedFieldIndices: number[]) {
-    const selectionStyle = {'color': this.batchSelection.batch.color};
+      selection: BatchSelection, numColumns: number, matchers: FieldMatcher[],
+      metricIndices: number[], selectionSharedFieldIndices: number[]) {
+    const selectionStyle = {'color': selection.batch.color};
     return html`
       <tr>
         <th colspan=${numColumns * 3}>Arithmetic means</th>
@@ -204,10 +204,10 @@ export class MatchesTableUi extends LitElement {
       <tr>
         <td colspan=${matchers.length * 3} class="missing"></td>
         ${metricIndices.map((metricIndex) => {
-      const mean = this.batchSelection.stats[metricIndex].getAbsoluteMean();
+      const mean = selection.stats[metricIndex].getAbsoluteMean();
       const metric = this.state.metrics[metricIndex];
-      const fieldIndex = metric.fieldIndices[this.batchSelection.batch.index];
-      const field = this.batchSelection.batch.fields[fieldIndex];
+      const fieldIndex = metric.fieldIndices[selection.batch.index];
+      const field = selection.batch.fields[fieldIndex];
       return html`
         <td colspan=3 class="numberCell" style=${styleMap(selectionStyle)}>
           ${mean}${fieldUnit(field.id)}
@@ -218,9 +218,10 @@ export class MatchesTableUi extends LitElement {
       </tr>`;
   }
 
-  override render() {
-    const reference = this.referenceSelection.batch;
-    const selection = this.batchSelection.batch;
+  private renderBatchAndReference(
+      batchSelection: BatchSelection, referenceSelection: BatchSelection) {
+    const reference = referenceSelection.batch;
+    const selection = batchSelection.batch;
     const selectionIndex = selection.index;
 
     // Remember the used fields to avoid displaying them twice.
@@ -262,7 +263,8 @@ export class MatchesTableUi extends LitElement {
     const selectionSharedFieldIndices: number[] = [];
 
     for (const [referenceIndex, referenceField] of reference.fields.entries()) {
-      // Only keep number fields.
+      // Only keep number fields. Other fields can be displayed when selecting
+      // a row.
       if (!referenceField.isNumber) continue;
       if (referenceFieldIndicesUsed[referenceIndex]) continue;
       const selectionFieldIndex =
@@ -300,65 +302,15 @@ export class MatchesTableUi extends LitElement {
       })}
             ${selectionSharedFieldIndices.map((fieldIndex, i) => {
         return this.renderField(
-            selection, fieldIndex, match.leftIndex, reference,
-            referenceSharedFieldIndices[i], match.rightIndex);
+            selection, fieldIndex, match.leftIndex,  //
+            reference, referenceSharedFieldIndices[i], match.rightIndex);
       })}
           </tr>
     `;
     };
 
-    const numColumns =
-        matchers.length + metrics.length + selectionSharedFieldIndices.length;
-    let rows = this.batchSelection.matchedDataPoints.rows;
-    let firstDisplayedRowIndex = 0;
-    let numDisplayedRows = FilteredImagesUi.DEFAULT_NUM_DISPLAYED_ROWS;
-    let truncatedRowsBefore = html``;
-    let truncatedRowsAfter = html``;
-    // +2 in case one or two placeholder rows below are replaced by actual
-    // single data rows.
-    if (this.state.showAllRows || rows.length <= numDisplayedRows + 2) {
-      numDisplayedRows = rows.length;
-    } else {
-      const onDisplayHiddenRow = () => {
-        this.state.showAllRows = true;
-        dispatch(EventType.SETTINGS_CHANGED);
-        this.requestUpdate();
-      };
-      if (this.matchIndex !== undefined && this.matchIndex > 10) {
-        firstDisplayedRowIndex =
-            Math.min(this.matchIndex - 10, rows.length - numDisplayedRows);
-        if (firstDisplayedRowIndex === 1) {
-          // Display the data row directly instead of showing a "1 hidden row"
-          // placeholder.
-          firstDisplayedRowIndex = 0;
-          numDisplayedRows += 1;
-        } else {
-          truncatedRowsBefore = html`
-            <tr>
-              <td @click=${onDisplayHiddenRow} colspan=${numColumns * 3}
-                class="hiddenRow">
-                ${firstDisplayedRowIndex} hidden rows. Click to expand.
-              </td>
-            </tr>`;
-        }
-      }
-      if (firstDisplayedRowIndex + numDisplayedRows + 1 >= rows.length) {
-        // Display the data row directly instead of showing a "1 hidden row"
-        // placeholder.
-        numDisplayedRows += 1;
-      }
-      const endRow = firstDisplayedRowIndex + numDisplayedRows;
-      if (endRow < rows.length) {
-        truncatedRowsAfter = html`
-          <tr>
-            <td @click=${onDisplayHiddenRow} colspan=${numColumns * 3}
-              class="hiddenRow">
-              ${rows.length - endRow} hidden rows. Click to expand.
-            </td>
-          </tr>`;
-      }
-      rows = rows.slice(firstDisplayedRowIndex, endRow);
-    }
+    const rowsToRender = this.getRowsToRender(
+        batchSelection, matchers, metrics, referenceSharedFieldIndices);
 
     return html`
       <table>
@@ -366,21 +318,200 @@ export class MatchesTableUi extends LitElement {
         this.renderFirstHeaderRow(
             reference, matchers, metrics, referenceSharedFieldIndices)}
         ${this.renderSecondHeaderRow(reference, matchers, metrics)}
-        ${truncatedRowsBefore}
+        ${rowsToRender.truncatedRowsBefore}
         ${
-        rows.map(
+        rowsToRender.rows.map(
             (match: Match, index: number) =>
-                renderRow(match, firstDisplayedRowIndex + index))}
-        ${truncatedRowsAfter}
+                renderRow(match, rowsToRender.firstDisplayedRowIndex + index))}
+        ${rowsToRender.truncatedRowsAfter}
         ${
-        selection.index === reference.index ?
-            this.renderMeanRowsSingleBatch(
-                numColumns, matchers, metricIndices,
-                selectionSharedFieldIndices) :
-            this.renderMeanRows(
-                this.referenceSelection, numColumns, matchers, metricIndices,
-                selectionSharedFieldIndices)}
+        this.renderMeanRows(
+            batchSelection, referenceSelection, rowsToRender.numColumns,
+            matchers, metricIndices, selectionSharedFieldIndices)}
       </table>`;
+  }
+
+  private getRowsToRender(
+      batchSelection: BatchSelection, matchers: FieldMatcher[],
+      metrics: FieldMetric[], remainingFieldIndices: number[]): RowsToRender {
+    // numColumns = 0;
+    // rows = new Array<Match>();
+    // firstDisplayedRowIndex = 0;
+    // truncatedRowsBefore = html``;
+    // truncatedRowsAfter = html``;
+    let rowsToRender = new RowsToRender();
+    rowsToRender.numColumns =
+        matchers.length + metrics.length + remainingFieldIndices.length;
+    rowsToRender.rows = batchSelection.matchedDataPoints.rows;
+    rowsToRender.firstDisplayedRowIndex = 0;
+    let numDisplayedRows = FilteredImagesUi.DEFAULT_NUM_DISPLAYED_ROWS;
+    rowsToRender.truncatedRowsBefore = html``;
+    rowsToRender.truncatedRowsAfter = html``;
+    // +2 in case one or two placeholder rows below are replaced by actual
+    // single data rows.
+    if (this.state.showAllRows ||
+        rowsToRender.rows.length <= numDisplayedRows + 2) {
+      numDisplayedRows = rowsToRender.rows.length;
+    } else {
+      const onDisplayHiddenRow = () => {
+        this.state.showAllRows = true;
+        dispatch(EventType.SETTINGS_CHANGED);
+        this.requestUpdate();
+      };
+      if (this.matchIndex !== undefined && this.matchIndex > 10) {
+        rowsToRender.firstDisplayedRowIndex = Math.min(
+            this.matchIndex - 10, rowsToRender.rows.length - numDisplayedRows);
+        if (rowsToRender.firstDisplayedRowIndex === 1) {
+          // Display the data row directly instead of showing a "1 hidden row"
+          // placeholder.
+          rowsToRender.firstDisplayedRowIndex = 0;
+          numDisplayedRows += 1;
+        } else {
+          rowsToRender.truncatedRowsBefore = html`
+            <tr>
+              <td @click=${onDisplayHiddenRow} colspan=${
+              rowsToRender.numColumns * 3}
+                class="hiddenRow">
+                ${
+              rowsToRender.firstDisplayedRowIndex} hidden rows. Click to expand.
+              </td>
+            </tr>`;
+        }
+      }
+      if (rowsToRender.firstDisplayedRowIndex + numDisplayedRows + 1 >=
+          rowsToRender.rows.length) {
+        // Display the data row directly instead of showing a "1 hidden row"
+        // placeholder.
+        numDisplayedRows += 1;
+      }
+      const endRow = rowsToRender.firstDisplayedRowIndex + numDisplayedRows;
+      if (endRow < rowsToRender.rows.length) {
+        rowsToRender.truncatedRowsAfter = html`
+          <tr>
+            <td @click=${onDisplayHiddenRow} colspan=${
+            rowsToRender.numColumns * 3}
+              class="hiddenRow">
+              ${rowsToRender.rows.length - endRow} hidden rows. Click to expand.
+            </td>
+          </tr>`;
+      }
+      rowsToRender.rows =
+          rowsToRender.rows.slice(rowsToRender.firstDisplayedRowIndex, endRow);
+    }
+    return rowsToRender;
+  }
+
+  // Same behavior as renderBatchAndReference() above but simplified for when
+  // there is no reference batch or when the reference batch is the same batch
+  // as the compared batch.
+  private renderSingleBatch(batchSelection: BatchSelection) {
+    const selection = batchSelection.batch;
+    const selectionIndex = selection.index;
+
+    // Remember the used fields to avoid displaying them twice.
+    const selectionFieldIndicesUsed = Array
+                                          .from<boolean>({
+                                            length: selection.fields.length,
+                                          })
+                                          .fill(false);
+
+    // Count enabled matchers and metrics.
+    const matchers: FieldMatcher[] = [];
+    for (const matcher of this.state.matchers) {
+      if (matcher.enabled) {
+        matchers.push(matcher);
+        selectionFieldIndicesUsed[matcher.fieldIndices[selection.index]] = true;
+      }
+    }
+    const metrics: FieldMetric[] = [];
+    const metricIndices: number[] = [];
+    for (const [metricIndex, metric] of this.state.metrics.entries()) {
+      if (metric.enabled) {
+        // Do not check for fields already used for matchers.
+        // Display it twice if it is both a matcher and a metric.
+        metrics.push(metric);
+        metricIndices.push(metricIndex);
+        selectionFieldIndicesUsed[metric.fieldIndices[selection.index]] = true;
+      }
+    }
+
+    // Remaining fields.
+    const remainingFieldIndices: number[] = [];
+
+    for (const [selectionFieldIndex, selectionField] of selection.fields
+             .entries()) {
+      // Only keep number fields. Other fields can be displayed when selecting
+      // a row.
+      if (!selectionField.isNumber) continue;
+      if (!selectionFieldIndicesUsed[selectionFieldIndex]) {
+        remainingFieldIndices.push(selectionFieldIndex);
+        selectionFieldIndicesUsed[selectionFieldIndex] = true;
+      }
+    }
+
+    const renderRow = (match: Match, matchIndex: number) => {
+      // match.rightIndex refers to the reference batch which is missing. Only
+      // use leftIndex.
+      const onMatchInfoRequest = () => {
+        dispatch(EventType.MATCH_INFO_REQUEST, {
+          batchIndex: selectionIndex,
+          matchIndex: matchIndex === this.matchIndex ? undefined : matchIndex
+        });
+      };
+      // Reuse renderField() implementation by passing twice the same batch.
+      return html`
+          <tr @click=${onMatchInfoRequest} class="${
+          matchIndex === this.matchIndex ? 'matchRowSelected' : 'matchRow'}">
+            ${matchers.map((matcher) => {
+        return this.renderField(
+            selection, matcher.fieldIndices[selection.index], match.leftIndex,
+            selection, matcher.fieldIndices[selection.index], match.leftIndex);
+      })}
+            ${metrics.map((metric) => {
+        return this.renderField(
+            selection, metric.fieldIndices[selection.index], match.leftIndex,
+            selection, metric.fieldIndices[selection.index], match.leftIndex);
+      })}
+            ${remainingFieldIndices.map((fieldIndex) => {
+        return this.renderField(
+            selection, fieldIndex, match.leftIndex,  //
+            selection, fieldIndex, match.leftIndex);
+      })}
+          </tr>
+    `;
+    };
+
+    const rowsToRender = this.getRowsToRender(
+        batchSelection, matchers, metrics, remainingFieldIndices);
+
+    return html`
+      <table>
+        ${
+        this.renderFirstHeaderRow(
+            selection, matchers, metrics, remainingFieldIndices)}
+        ${this.renderSecondHeaderRow(selection, matchers, metrics)}
+        ${rowsToRender.truncatedRowsBefore}
+        ${
+        rowsToRender.rows.map(
+            (match: Match, index: number) =>
+                renderRow(match, rowsToRender.firstDisplayedRowIndex + index))}
+        ${rowsToRender.truncatedRowsAfter}
+        ${
+        this.renderMeanRowsSingleBatch(
+            batchSelection, rowsToRender.numColumns, matchers, metricIndices,
+            remainingFieldIndices)}
+      </table>`;
+  }
+
+  override render() {
+    if (this.referenceSelection === undefined ||
+        this.referenceSelection.batch.index ===
+            this.batchSelection.batch.index) {
+      return this.renderSingleBatch(this.batchSelection);
+    } else {
+      return this.renderBatchAndReference(
+          this.batchSelection, this.referenceSelection);
+    }
   }
 
   static override styles = css`
@@ -446,4 +577,13 @@ export class MatchesTableUi extends LitElement {
       background: var(--mdc-theme-surface);
     }
   `;
+}
+
+// Helper class only used to return different types from getRowsToRender().
+class RowsToRender {
+  numColumns = 0;
+  rows = new Array<Match>();
+  firstDisplayedRowIndex = 0;
+  truncatedRowsBefore = html``;
+  truncatedRowsAfter = html``;
 }

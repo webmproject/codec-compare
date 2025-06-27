@@ -109,6 +109,12 @@ export class ImageVisualizer extends LitElement {
     setImageText(this.leftImage, this.leftText, url, 'limg', 'ltxt');
     this.backgroundImage.src = this.bottomImage.src;
 
+    if (url.get('rimg') === url.get('limg') &&
+        url.get('rtxt') === url.get('ltxt')) {
+      // Only compare one image with the bottom image because left and right are
+      // identical.
+      this.horizontalImageWindow.hidden = true;
+    }
     this.addEventListener('mousemove', this.onMouseMove);
   }
 
