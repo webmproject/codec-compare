@@ -22,8 +22,6 @@ import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
 import {BatchSelection} from './batch_selection';
-import {EventType, listen} from './events';
-import {MatchImageUi} from './match_image_ui';
 import {State} from './state';
 import {getRdModeHash} from './state_hash';
 
@@ -34,29 +32,17 @@ import {getRdModeHash} from './state_hash';
 @customElement('matches-ui')
 export class MatchesUi extends LitElement {
   @property({attribute: false}) state!: State;
-  @property({attribute: false}) referenceSelection!: BatchSelection;
+  @property({attribute: false}) referenceSelection!: BatchSelection|undefined;
   @property({attribute: false}) batchSelection!: BatchSelection;
   @property({attribute: false}) matchIndex!: number|undefined;
-
-  @query('match-image-ui') private readonly matchImageUi!: MatchImageUi;
-
-  override connectedCallback() {
-    super.connectedCallback();
-    listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
-      // batchSelection and matchIndex may stay the same, while the underlying
-      // data points changed, so this.matchImageUi could display the wrong
-      // image. Explicitly update it in this case.
-      this.matchImageUi.requestUpdate();
-      this.requestUpdate();
-    });
-  }
 
   override render() {
     const rowIndex = this.matchIndex === undefined ?
         undefined :
         this.batchSelection.matchedDataPoints.rows[this.matchIndex].leftIndex;
 
-    const rdModeHash = rowIndex === undefined ?
+    const rdModeHash =
+        (this.referenceSelection === undefined || rowIndex === undefined) ?
         undefined :
         getRdModeHash(
             this.state, this.batchSelection.batch,
@@ -67,16 +53,18 @@ export class MatchesUi extends LitElement {
         <div id="batchesHeader">
           <div id="matchChip">
             <mwc-icon>${
-        this.batchSelection.batch.index ===
-                this.referenceSelection.batch.index ?
+        this.referenceSelection === undefined ||
+                this.batchSelection.batch.index ===
+                    this.referenceSelection.batch.index ?
             'photo_library' :
             'join_inner'}</mwc-icon>
             ${this.batchSelection.matchedDataPoints.rows.length}
           </div>
           <h2>
         ${
-        this.batchSelection.batch.index ===
-                this.referenceSelection.batch.index ?
+        this.referenceSelection === undefined ||
+                this.batchSelection.batch.index ===
+                    this.referenceSelection.batch.index ?
             html`filtered data points` :
             html`matches with
             <batch-name-ui .batch=${this.referenceSelection.batch}>
@@ -108,7 +96,7 @@ export class MatchesUi extends LitElement {
         </a>`}
         <match-image-ui .referenceSelection=${this.referenceSelection}
           .batchSelection=${this.batchSelection}
-          .matchIndex=${this.matchIndex === undefined ? 0 : this.matchIndex}>
+          .matchIndex=${this.matchIndex}>
         </match-image-ui>
       </div>`;
   }

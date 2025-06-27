@@ -23,57 +23,60 @@ import {customElement, property} from 'lit/decorators.js';
 import {BatchSelection} from './batch_selection';
 import {getFinalValue} from './constant';
 import {FieldId} from './entry';
-import {State} from './state';
 
 /** Component displaying the source image of one selected Match. */
 @customElement('match-image-ui')
 export class MatchImageUi extends LitElement {
-  @property({attribute: false}) referenceSelection!: BatchSelection;
+  @property({attribute: false}) referenceSelection!: BatchSelection|undefined;
   /** The selected batch and the index of the Match. */
   @property({attribute: false}) batchSelection!: BatchSelection;
-  @property({attribute: false}) matchIndex!: number;
+  @property({attribute: false}) matchIndex!: number|undefined;
 
   override render() {
-    if (!this.referenceSelection) return html``;
-    if (!this.batchSelection) return html``;
-    const reference = this.referenceSelection.batch;
+    if (this.batchSelection === undefined) return html``;
+    if (this.matchIndex === undefined) return html``;
     const match = this.batchSelection.matchedDataPoints.rows[this.matchIndex];
-
-    const sourceImagePath = getFinalValue(
-        reference, reference.rows[match.rightIndex], FieldId.SOURCE_IMAGE_PATH);
-    if (sourceImagePath === undefined) return html``;
-
-    let referenceImagePath = getFinalValue(
-        reference, reference.rows[match.rightIndex],
-        FieldId.DECODED_IMAGE_PATH);
-    if (referenceImagePath === undefined) {
-      referenceImagePath = getFinalValue(
-          reference, reference.rows[match.rightIndex],
-          FieldId.ENCODED_IMAGE_PATH);
+    const leftBatch = this.batchSelection.batch;
+    const leftIndex = match.leftIndex;
+    let rightBatch;
+    let rightIndex;
+    if (this.referenceSelection !== undefined) {
+      rightBatch = this.referenceSelection.batch;
+      rightIndex = match.rightIndex;
+    } else {
+      rightBatch = leftBatch;
+      rightIndex = leftIndex;
     }
 
-    let selectionImagePath = getFinalValue(
-        this.batchSelection.batch,
-        this.batchSelection.batch.rows[match.leftIndex],
-        FieldId.DECODED_IMAGE_PATH);
-    if (selectionImagePath === undefined) {
-      selectionImagePath = getFinalValue(
-          this.batchSelection.batch,
-          this.batchSelection.batch.rows[match.leftIndex],
+    const sourceImagePath = getFinalValue(
+        rightBatch, rightBatch.rows[rightIndex], FieldId.SOURCE_IMAGE_PATH);
+    if (sourceImagePath === undefined) return html``;
+
+    let rightImagePath = getFinalValue(
+        rightBatch, rightBatch.rows[rightIndex], FieldId.DECODED_IMAGE_PATH);
+    if (rightImagePath === undefined) {
+      rightImagePath = getFinalValue(
+          rightBatch, rightBatch.rows[rightIndex], FieldId.ENCODED_IMAGE_PATH);
+    }
+
+    let leftImagePath = getFinalValue(
+        leftBatch, leftBatch.rows[match.leftIndex], FieldId.DECODED_IMAGE_PATH);
+    if (leftImagePath === undefined) {
+      leftImagePath = getFinalValue(
+          leftBatch, leftBatch.rows[match.leftIndex],
           FieldId.ENCODED_IMAGE_PATH);
     }
 
     let link;
-    const compare =
-        referenceImagePath !== undefined && selectionImagePath !== undefined;
+    const compare = rightImagePath !== undefined && leftImagePath !== undefined;
     if (compare) {
       const params = new URLSearchParams();
       params.set('bimg', String(sourceImagePath));
       params.set('btxt', 'original');
-      params.set('rimg', String(referenceImagePath));
-      params.set('rtxt', reference.name);
-      params.set('limg', String(selectionImagePath));
-      params.set('ltxt', this.batchSelection.batch.name);
+      params.set('rimg', String(rightImagePath));
+      params.set('rtxt', rightBatch.name);
+      params.set('limg', String(leftImagePath));
+      params.set('ltxt', leftBatch.name);
       link = `visualizer.html?${params.toString()}`;
     } else {
       link = String(sourceImagePath);

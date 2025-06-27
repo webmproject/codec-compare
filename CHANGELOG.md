@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.5
+
+- Fix the MatchImageUi component displaying the wrong image when there is no
+  reference batch.
+- Support two-way on top of three-way image comparisons in the visualizer.
+
 ## v0.6.4
 
 - Fix the MatchImageUi component displaying the wrong image when filtering out

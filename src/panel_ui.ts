@@ -72,6 +72,12 @@ export class PanelUi extends LitElement {
       this.style.display = 'block';
       this.requestUpdate();
     });
+    listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
+      // The index points to an element of a set that no longer exists.
+      // Invalidate it. This should trickle down till MatchImageUi.
+      this.matchIndex = undefined;
+      this.requestUpdate();
+    });
   }
 
   override render() {
@@ -191,7 +197,7 @@ export class PanelUi extends LitElement {
         </batch-selection-ui>
         <matches-ui .state=${this.state}
           .referenceSelection=${
-        showRowsOnly ? batchSelection : referenceSelection}
+        this.state.rdMode ? undefined : referenceSelection}
           .batchSelection=${batchSelection} .matchIndex=${this.matchIndex}
           style=${activeIndex === BatchTab.MATCHES ? '' : 'display: none'}>
         </matches-ui>
