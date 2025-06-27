@@ -334,11 +334,6 @@ export class MatchesTableUi extends LitElement {
   private getRowsToRender(
       batchSelection: BatchSelection, matchers: FieldMatcher[],
       metrics: FieldMetric[], remainingFieldIndices: number[]): RowsToRender {
-    // numColumns = 0;
-    // rows = new Array<Match>();
-    // firstDisplayedRowIndex = 0;
-    // truncatedRowsBefore = html``;
-    // truncatedRowsAfter = html``;
     let rowsToRender = new RowsToRender();
     rowsToRender.numColumns =
         matchers.length + metrics.length + remainingFieldIndices.length;
@@ -584,6 +579,7 @@ class RowsToRender {
   numColumns = 0;
   rows = new Array<Match>();
   firstDisplayedRowIndex = 0;
+  // Initialize these fields to deduce their type.
   truncatedRowsBefore = html``;
   truncatedRowsAfter = html``;
 }
