@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {css, html, LitElement} from 'lit';
+import {css, html, HTMLTemplateResult, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {styleMap} from 'lit/directives/style-map.js';
 
@@ -334,14 +334,15 @@ export class MatchesTableUi extends LitElement {
   private getRowsToRender(
       batchSelection: BatchSelection, matchers: FieldMatcher[],
       metrics: FieldMetric[], remainingFieldIndices: number[]): RowsToRender {
-    let rowsToRender = new RowsToRender();
-    rowsToRender.numColumns =
-        matchers.length + metrics.length + remainingFieldIndices.length;
-    rowsToRender.rows = batchSelection.matchedDataPoints.rows;
-    rowsToRender.firstDisplayedRowIndex = 0;
     let numDisplayedRows = FilteredImagesUi.DEFAULT_NUM_DISPLAYED_ROWS;
-    rowsToRender.truncatedRowsBefore = html``;
-    rowsToRender.truncatedRowsAfter = html``;
+    let rowsToRender: RowsToRender = {
+      numColumns:
+          matchers.length + metrics.length + remainingFieldIndices.length,
+      rows: batchSelection.matchedDataPoints.rows,
+      firstDisplayedRowIndex: 0,
+      truncatedRowsBefore: html``,
+      truncatedRowsAfter: html``
+    };
     // +2 in case one or two placeholder rows below are replaced by actual
     // single data rows.
     if (this.state.showAllRows ||
@@ -575,11 +576,10 @@ export class MatchesTableUi extends LitElement {
 }
 
 // Helper class only used to return different types from getRowsToRender().
-class RowsToRender {
-  numColumns = 0;
-  rows = new Array<Match>();
-  firstDisplayedRowIndex = 0;
-  // Initialize these fields to deduce their type.
-  truncatedRowsBefore = html``;
-  truncatedRowsAfter = html``;
+interface RowsToRender {
+  numColumns: number;
+  rows: Match[];
+  firstDisplayedRowIndex: number;
+  truncatedRowsBefore: HTMLTemplateResult;
+  truncatedRowsAfter: HTMLTemplateResult;
 }
