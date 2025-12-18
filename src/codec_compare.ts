@@ -252,7 +252,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare version 0.6.5<br>
+            Codec Compare version 0.6.6<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>

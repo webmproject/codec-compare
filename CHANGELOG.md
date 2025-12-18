@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.6
+
+- Add a scrollbar to the right panel of the Matches tab.
+
 ## v0.6.5
 
 - Fix the MatchImageUi component displaying the wrong image when there is no

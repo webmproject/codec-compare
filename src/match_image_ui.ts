@@ -97,6 +97,7 @@ export class MatchImageUi extends LitElement {
       overflow: hidden;
       display: flex;
       justify-content: center;
+      min-height: 100px;
     }
     a {
       box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px 0px;
