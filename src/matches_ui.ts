@@ -80,6 +80,10 @@ export class MatchesUi extends LitElement {
 
       <div class="rightVerticalFlex"
         style=${this.matchIndex !== undefined ? '' : 'display: none'}>
+        <match-image-ui .referenceSelection=${this.referenceSelection}
+          .batchSelection=${this.batchSelection}
+          .matchIndex=${this.matchIndex}>
+        </match-image-ui>
         <constants-table-ui
           .batch=${this.batchSelection.batch}
           .rowIndex=${rowIndex}>
@@ -94,10 +98,6 @@ export class MatchesUi extends LitElement {
             <mwc-icon>open_in_new</mwc-icon>
           </mwc-button>
         </a>`}
-        <match-image-ui .referenceSelection=${this.referenceSelection}
-          .batchSelection=${this.batchSelection}
-          .matchIndex=${this.matchIndex}>
-        </match-image-ui>
       </div>`;
   }
 
@@ -115,16 +115,17 @@ export class MatchesUi extends LitElement {
       flex-direction: column;
       justify-content: flex-start;
       gap: 10px;
-      overflow: hidden;
     }
     .leftVerticalFlex {
       flex: 4;
       /* Prevents unnecessarily wide table but breaks scrollbars. */
       /* align-items: flex-start; */
+      overflow: hidden;
     }
     .rightVerticalFlex {
       flex: 1;
       align-items: center;
+      overflow: auto;
     }
 
     #batchesHeader {
