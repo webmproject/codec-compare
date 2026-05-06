@@ -42,7 +42,7 @@ export class BatchNameUi extends LitElement {
       vertical-align: middle;
     }
     .mono {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
       font-family: monospace;
       vertical-align: middle;
     }

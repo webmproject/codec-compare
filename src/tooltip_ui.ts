@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon';
+import '@material/web/icon/icon';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
@@ -27,7 +27,7 @@ export class TooltipUi extends LitElement {
 
   override render() {
     return html`
-        <mwc-icon>${this.icon}</mwc-icon>
+        <md-icon>${this.icon}</md-icon>
         <p>${this.text}</p>`;
   }
 
@@ -36,8 +36,8 @@ export class TooltipUi extends LitElement {
       position: relative; /* For "position: absolute;" below to work. */
     }
 
-    mwc-icon {
-      color: var(--mdc-theme-primary);
+    md-icon {
+      color: var(--md-sys-color-primary);
       font-size: 24px;
       vertical-align: middle;
     }
@@ -51,8 +51,8 @@ export class TooltipUi extends LitElement {
       padding: 6px;
       border-radius: 6px;
       box-shadow: rgba(0, 0, 0, 0.3) 0px 0px 6px 0px;
-      background-color: var(--mdc-theme-background);
-      color: var(--mdc-theme-text);
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-text);
       font-size: 12px;
       text-align: justify;
 
@@ -60,7 +60,7 @@ export class TooltipUi extends LitElement {
       display: none;
     }
 
-    mwc-icon:hover~p, p:hover {
+    md-icon:hover~p, p:hover {
       display: block;
     }
   `;

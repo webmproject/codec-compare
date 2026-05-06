@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-button';
-import '@material/mwc-textfield';
+import '@material/web/button/filled-button';
+import '@material/web/icon/icon';
 
 import {css, html, LitElement} from 'lit';
-import {customElement, property, query} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 import {Field} from './entry';
 import {dispatch, EventType, listen} from './events';
@@ -39,7 +39,7 @@ export class FilterUiWebBpp extends LitElement {
         Megapixels buckets as described at
         <a target="_blank" href="https://github.com/webmproject/codec-compare/wiki/Bits-per-pixel-of-Internet-images/750494dff5ca33f8bf1cc5beb468aaa2e4e66b8d#2024">
           Bits-per-pixel of Internet images
-          <mwc-icon>open_in_new</mwc-icon></a>:
+          <md-icon>open_in_new</md-icon></a>:
       </p>
       <table>
         <tr>
@@ -60,23 +60,21 @@ export class FilterUiWebBpp extends LitElement {
                 bucket[BUCKET_FILTER_MAX_INCLUSIVE].toFixed(2)}]</td>
         </tr>`)}
       </table>
-      <mwc-button
-        raised
-        dense
+      <md-filled-icon-button
         @click=${() => {
       this.filter.enabled = false;
       dispatch(EventType.FILTER_CHANGED, {batchIndex: this.batchIndex});
     }}
         title="Delete filter">
-        <mwc-icon>filter_alt_off</mwc-icon>
-      </mwc-button>
+        <md-icon>filter_alt_off</md-icon>
+      </md-filled-icon-button>
     `;
   }
 
   static override styles = css`
     :host {
       display: block;
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
       margin: 0;
       padding: 10px;
       border-radius: 10px;
@@ -90,11 +88,18 @@ export class FilterUiWebBpp extends LitElement {
 
     p {
       margin: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 20px;
     }
-    mwc-icon {
+    md-icon {
       vertical-align: top;
+    }
+
+    md-filled-icon-button {
+      --md-filled-icon-button-icon-size: 24px;
+      --md-filled-icon-button-container-width: 32px;
+      --md-filled-icon-button-container-height: 32px;
+      overflow: hidden;
     }
   `;
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon';
+import '@material/web/icon/icon';
 import './batch_selection_actions_ui';
 
 import {css, html, LitElement} from 'lit';
@@ -111,7 +111,7 @@ export class BatchSelectionsUi extends LitElement {
           EventType.FILTERED_DATA_INFO_REQUEST,
           {batchIndex: batchSelection.batch.index});
     }}>
-        <mwc-icon>filter_alt</mwc-icon>
+        <md-icon>filter_alt</md-icon>
         ${field.displayName}=${this.filterChipText(field, fieldFilter)}
       </div>`;
   }
@@ -187,14 +187,14 @@ export class BatchSelectionsUi extends LitElement {
   static override styles = css`
     :host {
       box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 6px 0px;
-      /* Necessary for mwc-menus to work properly without hacks. */
+      /* Necessary for md-menus to work properly without hacks. */
       overflow: visible;
       /* Does not work without overflow: hidden; */
       border-radius: 5px;
     }
 
     table {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       width: 100%;
       white-space: nowrap;
       border-collapse: collapse;
@@ -206,21 +206,21 @@ export class BatchSelectionsUi extends LitElement {
       border-style: solid;
     }
     th {
-      border-color: var(--mdc-theme-background);
-      background: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-background);
+      background: var(--md-sys-color-surface);
       font-size: 20px;
     }
     td {
-      border-color: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-surface);
       font-family: monospace;
       font-size: 16px;
     }
 
     tr {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
     }
     tr:hover {
-      box-shadow: inset 0 0 8px 4px var(--mdc-theme-surface);
+      box-shadow: inset 0 0 8px 4px var(--md-sys-color-surface);
     }
     tr:not(:hover) batch-selection-actions-ui {
       /* Dim the action buttons when the table row is not hovered. */
@@ -249,12 +249,12 @@ export class BatchSelectionsUi extends LitElement {
     }
 
     #filterChip {
-      --mdc-icon-size: 12px;
+      --md-icon-size: 12px;
       font-size: 10px;
       padding: 2px 4px;
       border-radius: 30px;
-      background: var(--mdc-theme-primary);
-      color: var(--mdc-theme-background);
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-background);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -265,8 +265,8 @@ export class BatchSelectionsUi extends LitElement {
     }
 
     .referenceBatchChip {
-      background: var(--mdc-theme-primary);
-      color: var(--mdc-theme-background);
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-background);
       border-radius: 16px;
       padding: 2px 8px;
       font-size: 12px;

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.0
+
+- Upgrade to Material 3 Web Components (https://material-web.dev/).
+- Use Web Test Runner instead of Karma.
+
 ## v0.6.6
 
 - Add a scrollbar to the right panel of the Matches tab.

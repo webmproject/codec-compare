@@ -20,19 +20,21 @@
 <head>
   <title>Codec Compare</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" />
   <style>
     :root {
       font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
     }
 
     * {
-      /* For raised mwc-buttons and the left menu bar. */
-      --mdc-theme-primary: #6A67BB;
-      /* For mwc-fabs. */
-      --mdc-theme-secondary: #6A67BB;
-      --mdc-theme-surface: #F0F3FA;
-      --mdc-theme-background: #FFFFFF;
-      --mdc-theme-text: #0A101F;
+      /* See https://material-web.dev/theming/material-theming/. */
+      --md-sys-color-primary: #6A67BB;
+      --md-sys-color-secondary: #6A67BB;
+      --md-sys-color-tertiary: #6A67BB;
+      --md-sys-color-surface: #F0F3FA;
+      --md-sys-color-background: #FFFFFF;
+      --md-sys-color-text: #0A101F;
+      --md-menu-container-color: #FFFFFF;
     }
 
     html,
@@ -45,8 +47,8 @@
 
     @media (prefers-color-scheme: light) {
       :root {
-        color: var(--mdc-theme-text);
-        background: var(--mdc-theme-background);
+        color: var(--md-sys-color-text);
+        background: var(--md-sys-color-background);
       }
     }
 
@@ -74,8 +76,50 @@
       cursor: default;
     }
   </style>
+  <script>
+    // Disable animations and transitions for all Material 3 web components when running tests.
+    (function() {
+      const isTest = (function() {
+        try {
+          if (window.__karma__ || (window.parent && window.parent.__karma__) || (window.top && window.top.__karma__)) {
+            return true;
+          }
+        } catch (e) {}
+        try {
+          if (window.__wd_test_runner__ || (window.parent && window.parent.__wd_test_runner__) || (window.top && window.top.__wd_test_runner__)) {
+            return true;
+          }
+        } catch (e) {}
+        if (window.location.pathname.includes('/base/')) {
+          return true;
+        }
+        return false;
+      })();
+
+      if (!isTest) return;
+
+      const originalAttachShadow = Element.prototype.attachShadow;
+      Element.prototype.attachShadow = function(init) {
+        const shadowRoot = originalAttachShadow.call(this, init);
+        if (this.tagName.toLowerCase().startsWith('md-')) {
+          const style = document.createElement('style');
+          style.id = 'disable-m3-animations';
+          style.textContent = `
+            *, *::before, *::after {
+              transition: none !important;
+              animation: none !important;
+            }
+            md-ripple {
+              display: none;
+            }
+          `;
+          shadowRoot.appendChild(style);
+        }
+        return shadowRoot;
+      };
+    })();
+  </script>
   <script type="module" src="/src/codec_compare.ts"></script>
-  <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
 </head>
 
 <body>

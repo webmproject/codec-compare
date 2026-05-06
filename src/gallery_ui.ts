@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon';
+import '@material/web/button/filled-button';
+import '@material/web/checkbox/checkbox';
+import '@material/web/icon/icon';
 import './batch_name_ui';
 import './matcher_ui';
 
@@ -110,34 +112,34 @@ export class GalleryUi extends LitElement {
         ${Array.from(this.tagToAssetNames.keys()).map(tag => html`
         <tr>
           <td>
-            <mwc-button dense @click=${() => addTag(tag)}
+            <md-filled-button dense @click=${() => addTag(tag)}
               title="Enable all assets tagged as ${tag}">
-              <mwc-icon>add</mwc-icon>
+              <md-icon slot="icon">add</md-icon>
               ${tag}
-            </mwc-button>
+            </md-filled-button>
           </td>
           <td>
-            <mwc-button dense @click=${() => removeTag(tag)}
+            <md-filled-button dense @click=${() => removeTag(tag)}
               title="Disable all assets tagged as ${tag}">
-              <mwc-icon>remove</mwc-icon>
+              <md-icon slot="icon">remove</md-icon>
               ${tag}
-            </mwc-button>
+            </md-filled-button>
           </td>
         </tr>`)}
         <tr>
           <td>
-            <mwc-button dense @click=${addAll}
+            <md-filled-button dense @click=${addAll}
               title="Enable all assets">
-              <mwc-icon>add</mwc-icon>
+              <md-icon slot="icon">add</md-icon>
               All
-            </mwc-button>
+            </md-filled-button>
           </td>
           <td>
-            <mwc-button dense @click=${removeAll}
+            <md-filled-button dense @click=${removeAll}
               title="Disable all assets">
-              <mwc-icon>remove</mwc-icon>
+              <md-icon slot="icon">remove</md-icon>
               All
-            </mwc-button>
+            </md-filled-button>
           </td>
         </tr>
       </table>`;
@@ -177,9 +179,9 @@ export class GalleryUi extends LitElement {
             <img src="${asset.previewPath}" class="constrainedSize"
               alt="${asset.sourceName}">
             <span class="countBubble">${asset.count}</span>
-            <div class="linkOverlay"><mwc-icon>open_in_new</mwc-icon></div>
-            <mwc-checkbox ?checked=${checked} @click=${onCheckboxClick}>
-            </mwc-checkbox>
+            <div class="linkOverlay"><md-icon>open_in_new</md-icon></div>
+            <md-checkbox ?checked=${checked} @click=${onCheckboxClick}>
+            </md-checkbox>
           </a>`;
       }
 
@@ -200,9 +202,9 @@ export class GalleryUi extends LitElement {
           <img src="${asset.sourcePath}" class="constrainedSize"
             alt="${asset.sourceName}" loading="lazy">
           <span class="countBubble">${asset.count}</span>
-          <div class="linkOverlay"><mwc-icon>open_in_new</mwc-icon></div>
-          <mwc-checkbox ?checked=${checked} @click=${onCheckboxClick}>
-          </mwc-checkbox>
+          <div class="linkOverlay"><md-icon>open_in_new</md-icon></div>
+          <md-checkbox ?checked=${checked} @click=${onCheckboxClick}>
+          </md-checkbox>
         </a>`;
     }
     return html`
@@ -241,7 +243,7 @@ export class GalleryUi extends LitElement {
     }
 
     table {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       border-collapse: collapse;
       box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2);
     }
@@ -252,16 +254,16 @@ export class GalleryUi extends LitElement {
       border-style: solid;
     }
     th {
-      border-color: var(--mdc-theme-background);
-      background: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-background);
+      background: var(--md-sys-color-surface);
     }
     td {
-      border-color: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-surface);
       font-family: monospace;
       word-break: break-word;
     }
     tr {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
     }
 
     #tags td {
@@ -283,7 +285,7 @@ export class GalleryUi extends LitElement {
       overflow: hidden;
       overflow-wrap: break-word;
       text-align: center;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 4px 0px;
     }
     #gallery > a {
@@ -317,12 +319,12 @@ export class GalleryUi extends LitElement {
     .linkOverlay:hover{
       opacity: 1;
     }
-    .linkOverlay > mwc-icon {
-      color: var(--mdc-theme-background);
+    .linkOverlay > md-icon {
+      color: var(--md-sys-color-background);
       font-size: 16px;
     }
 
-    mwc-checkbox {
+    md-checkbox {
       position: absolute;
       top: 0;
       left: 0;
@@ -339,8 +341,8 @@ export class GalleryUi extends LitElement {
       padding: 2px 4px;
       border-radius: 3px;
       font-size: 12px;
-      color: var(--mdc-theme-background);
-      background: var(--mdc-theme-primary);
+      color: var(--md-sys-color-background);
+      background: var(--md-sys-color-primary);
     }
   `;
 }

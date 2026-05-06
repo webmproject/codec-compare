@@ -519,7 +519,7 @@ export class MatchesTableUi extends LitElement {
     }
 
     table {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       width: 100%;
       white-space: nowrap;
       border-collapse: collapse;
@@ -531,8 +531,8 @@ export class MatchesTableUi extends LitElement {
       border-style: solid;
     }
     th {
-      border-color: var(--mdc-theme-background);
-      background: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-background);
+      background: var(--md-sys-color-surface);
       font-size: 12px;
     }
     .headerRow {
@@ -541,7 +541,7 @@ export class MatchesTableUi extends LitElement {
       border-top: 0;
     }
     td {
-      border-color: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-surface);
       font-family: monospace;
       font-size: 10px;
     }
@@ -550,14 +550,14 @@ export class MatchesTableUi extends LitElement {
     }
 
     tr {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
     }
     .matchRow:hover {
-      background: var(--mdc-theme-surface);
+      background: var(--md-sys-color-surface);
       cursor: pointer;
     }
     .matchRowSelected {
-      background: var(--mdc-theme-surface);
+      background: var(--md-sys-color-surface);
       cursor: pointer;
     }
     .hiddenRow {
@@ -570,7 +570,7 @@ export class MatchesTableUi extends LitElement {
     }
 
     .missing {
-      background: var(--mdc-theme-surface);
+      background: var(--md-sys-color-surface);
     }
   `;
 }

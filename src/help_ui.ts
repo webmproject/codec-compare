@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-fab';
-import '@material/mwc-icon';
+import '@material/web/fab/fab';
+import '@material/web/icon/icon';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
@@ -199,7 +199,7 @@ export class HelpUi extends LitElement {
         <a href="https://github.com/webmproject/codec-compare/wiki/Bits-per-pixel-of-Internet-images"
           target="_blank">
           bits-per-pixel usually seen on the web
-          <mwc-icon>open_in_new</mwc-icon></a>.<br>
+          <md-icon>open_in_new</md-icon></a>.<br>
         Click the visibility button to show or hide a specific batch in the plot
         and in the SUMMARY tab.<br>${
         this.rdMode ? html`
@@ -229,9 +229,9 @@ export class HelpUi extends LitElement {
         matched pairs based on that asset accross all batches.`}<br>
         Each image can be toggled on or off across all batches.<br>
         <br>Images can be toggled on or off in bulk using the filter tags.<br>
-        "<mwc-icon>add</mwc-icon>TAG" enables all images associated with that
+        "<md-icon>add</md-icon>TAG" enables all images associated with that
         TAG.<br>
-        "<mwc-icon>remove</mwc-icon>TAG" disables all images associated with that
+        "<md-icon>remove</md-icon>TAG" disables all images associated with that
         TAG.
         </p>
       </div>`;
@@ -270,18 +270,18 @@ export class HelpUi extends LitElement {
         For an introduction to image file formats, please see this
         <a href="https://en.wikipedia.org/wiki/Image_file_format"
           target="_blank">
-          Wikipedia article <mwc-icon>open_in_new</mwc-icon></a>.
+          Wikipedia article <md-icon>open_in_new</md-icon></a>.
         <br>
         For any question or comment on this tool, please open an issue on
         <a href="https://github.com/webmproject/codec-compare/issues"
           target="_blank">
-          GitHub <mwc-icon>open_in_new</mwc-icon></a>.
+          GitHub <md-icon>open_in_new</md-icon></a>.
         </p>
       </div>
 
-      <mwc-fab mini id="closeButton" icon="close" title="Close"
-        @click=${onClose}>
-      </mwc-fab>
+      <md-fab id="closeButton" title="Close" @click=${onClose}>
+        <md-icon slot="icon">close</md-icon>
+      </md-fab>
       `;
   }
 
@@ -340,9 +340,9 @@ export class HelpUi extends LitElement {
     a {
       color: white;
     }
-
-    mwc-icon {
-      font-size: 0.8em;
+    md-icon {
+      vertical-align: middle;
+      --md-icon-size: 1em;
     }
   `;
 }

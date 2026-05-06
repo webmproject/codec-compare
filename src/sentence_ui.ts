@@ -294,7 +294,7 @@ export class SentenceUi extends LitElement {
     }
     p {
       margin: 10px 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 20px;
     }
     batch-name-ui:hover {

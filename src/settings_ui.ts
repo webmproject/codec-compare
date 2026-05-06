@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-switch';
+import '@material/web/switch/switch';
 import './filtered_images_ui';
 import './filters_ui';
 
@@ -42,13 +42,13 @@ export class SettingsUi extends LitElement {
           <span title="Use a linear scale for the horizontal axis">
             Linear x axis
           </span>
-          <mwc-switch id="settingHorizontalLogScale"
+          <md-switch id="settingHorizontalLogScale"
             ?selected=${this.state.horizontalLogScale} @click=${() => {
       this.state.horizontalLogScale = !this.state.horizontalLogScale;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Use a logarithmic scale for the horizontal axis">
             Logarithmic x axis
           </span>
@@ -57,13 +57,13 @@ export class SettingsUi extends LitElement {
           <span title="Use a linear scale for the vertical axis">
             Linear y axis
           </span>
-          <mwc-switch id="settingVerticalLogScale"
+          <md-switch id="settingVerticalLogScale"
             ?selected=${this.state.verticalLogScale} @click=${() => {
       this.state.verticalLogScale = !this.state.verticalLogScale;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Use a logarithmic scale for the vertical axis">
             Logarithmic y axis
           </span>
@@ -72,13 +72,13 @@ export class SettingsUi extends LitElement {
           <span title="Hide the individual data points in the graph">
             Hide data points
           </span>
-          <mwc-switch id="settingShowEachPoint"
+          <md-switch id="settingShowEachPoint"
             ?selected=${this.state.showEachPoint} @click=${() => {
       this.state.showEachPoint = !this.state.showEachPoint;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Show each individual data point as a small dot in the graph (${
         slownessWarning})">
             Show data points
@@ -88,13 +88,13 @@ export class SettingsUi extends LitElement {
           <span title="Multiple data points from the same batch cannot be matched with the same data point from the reference batch">
             Match set
           </span>
-          <mwc-switch id="settingMatchRepeatedly"
+          <md-switch id="settingMatchRepeatedly"
             ?selected=${this.state.matchRepeatedly} @click=${() => {
       this.state.matchRepeatedly = !this.state.matchRepeatedly;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Multiple data points from the same batch can be matched with the same data point from the reference batch">
             Match multiset
           </span>
@@ -103,13 +103,13 @@ export class SettingsUi extends LitElement {
           <span title="Display the absolute values of the data points">
             Absolute metrics
           </span>
-          <mwc-switch id="settingShowRelativeRatios"
+          <md-switch id="settingShowRelativeRatios"
             ?selected=${this.state.showRelativeRatios} @click=${() => {
       this.state.showRelativeRatios = !this.state.showRelativeRatios;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Display the relative ratios of the matched pairs">
             Relative ratios
           </span>
@@ -118,7 +118,7 @@ export class SettingsUi extends LitElement {
           <span title="Aggregate the metrics using the arithmetic mean of the values of the data points">
             Arithmetic mean
           </span>
-          <mwc-switch id="settingUseGeometricMean" ?selected=${
+          <md-switch id="settingUseGeometricMean" ?selected=${
         this.state.showRelativeRatios && this.state.useGeometricMean}
             ?disabled=${!this.state.showRelativeRatios}
             @click=${() => {
@@ -126,7 +126,7 @@ export class SettingsUi extends LitElement {
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Aggregate the metrics using the geometric mean of the ratios of the matched pairs">
             Geometric mean
           </span>
@@ -135,7 +135,7 @@ export class SettingsUi extends LitElement {
           <span title="Do not show horizontal error bars">
             Hide X error bars
           </span>
-          <mwc-switch id="settingUseHorizontalErrorBars" ?selected=${
+          <md-switch id="settingUseHorizontalErrorBars" ?selected=${
     !this.state.showRelativeRatios && !this.state.useGeometricMean &&
         this.state.horizontalQuantile === 0.1}
             ?disabled=${
@@ -147,7 +147,7 @@ export class SettingsUi extends LitElement {
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Display the 10th and 90th percentiles as horizontal error bars">
             Show X error bars
           </span>
@@ -156,7 +156,7 @@ export class SettingsUi extends LitElement {
           <span title="Do not show vertical error bars">
             Hide Y error bars
           </span>
-          <mwc-switch id="settingUseVerticalErrorBars" ?selected=${
+          <md-switch id="settingUseVerticalErrorBars" ?selected=${
     !this.state.showRelativeRatios && !this.state.useGeometricMean &&
         this.state.verticalQuantile === 0.1}
             ?disabled=${
@@ -168,7 +168,7 @@ export class SettingsUi extends LitElement {
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Display the 10th and 90th percentiles as vertical error bars">
             Show Y error bars
           </span>
@@ -177,12 +177,12 @@ export class SettingsUi extends LitElement {
           <span title="Only display a few rows of the data point tables">
             Show some rows
           </span>
-          <mwc-switch id="settingShowAllRows"
+          <md-switch id="settingShowAllRows"
             ?selected=${this.state.showAllRows} @click=${() => {
       this.state.showAllRows = !this.state.showAllRows;
       dispatch(EventType.SETTINGS_CHANGED);
     }}>
-          </mwc-switch>
+          </md-switch>
           <span title="Display all rows of the data point tables (${
         slownessWarning})">
             Show all rows
@@ -201,6 +201,20 @@ export class SettingsUi extends LitElement {
     .settingGroup {
       display: flex;
       gap: 20px;
+    }
+
+    md-switch {
+      --md-switch-selected-handle-color: var(--md-sys-color-primary);
+      --md-switch-selected-track-color: var(--md-sys-color-surface);
+      --md-switch-selected-focus-track-color: var(--md-sys-color-background);
+      --md-switch-selected-hover-track-color: var(--md-sys-color-background);
+      --md-switch-touch-target-size: 24px;
+      --md-switch-track-height: 14px;
+      --md-switch-track-width: 36px;
+      --md-switch-handle-height: 8px;
+      --md-switch-handle-width: 8px;
+      --md-switch-selected-handle-height: 10px;
+      --md-switch-selected-handle-width: 10px;
     }
   `;
 }

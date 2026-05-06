@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-fab';
-import '@material/mwc-menu';
+import '@material/web/fab/fab';
+import '@material/web/menu/menu';
+import '@material/web/menu/menu-item';
+import '@material/web/icon/icon';
 import './metric_ui';
 
-import {Fab} from '@material/mwc-fab';
-import {Menu} from '@material/mwc-menu';
+import {MdFab} from '@material/web/fab/fab';
+import {MdMenu} from '@material/web/menu/menu';
+import {MenuItem} from '@material/web/menu/menu-item';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
@@ -30,8 +33,8 @@ import {State} from './state';
 export class MetricsUi extends LitElement {
   @property({attribute: false}) state!: State;
 
-  @query('#addMetricMenu') private readonly addMetricMenu!: Menu;
-  @query('#addMetricButton') private readonly addMetricButton!: Fab;
+  @query('#addMetricMenu') private readonly addMetricMenu!: MdMenu;
+  @query('#addMetricButton') private readonly addMetricButton!: MdFab;
 
   override connectedCallback() {
     super.connectedCallback();
@@ -44,35 +47,32 @@ export class MetricsUi extends LitElement {
     return html`${this.state.metrics.map((metric: FieldMetric) => {
       const fieldName =
           this.state.batches[0].fields[metric.fieldIndices[0]].displayName;
-      return metric.enabled ?
-          html`<mwc-list-item disabled class="menuItemDisabled"
-            >${fieldName}</mwc-list-item
-          >` :
-          html`<mwc-list-item>${fieldName}</mwc-list-item>`;
+      return metric.enabled ? html`<md-menu-item disabled>
+            ${fieldName}</md-menu-item>` :
+                              html`<md-menu-item
+            @click=${() => {
+                                metric.enabled = true;
+                                dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+                              }}>${fieldName}</md-menu-item>`;
     })}`;
   }
 
   private renderAddMetricMenu() {
-    // mwc-menu and its anchor need a parent with position set to relative.
+    // md-menu and its anchor need a parent with position set to relative.
     return html`<span class="cornered" style="position: relative;">
-      <mwc-fab
-        mini
-        icon="add"
-        title="Add metric"
+      <md-fab
         @click=${() => {
-      this.addMetricMenu.show();
+      this.addMetricMenu.open = !this.addMetricMenu.open;
     }}
-        id="addMetricButton"></mwc-fab>
-      <mwc-menu
-        .anchor=${this.addMetricButton}
-        menuCorner="END"
-        id="addMetricMenu"
-        @action=${(e: CustomEvent) => {
-      this.state.metrics[e.detail.index].enabled = true;
-      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
-    }}>
+        id="addMetricButton">
+        <md-icon slot="icon">add</md-icon>
+      </md-fab>
+      <md-menu
+        anchor="addMetricButton"
+        positioning="popover"
+        id="addMetricMenu">
         ${this.renderAddMetricMenuItems()}
-      </mwc-menu>
+      </md-menu>
     </span>`;
   }
 
@@ -106,7 +106,7 @@ export class MetricsUi extends LitElement {
 
   static override styles = css`
     :host {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
       padding: 6px;
       box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2);
       border-radius: 16px;
@@ -120,13 +120,17 @@ export class MetricsUi extends LitElement {
       align-self: flex-end;
       margin-left: auto;
     }
-    .menuItemDisabled {
-      color: grey;
-    }
 
     #addMetricButton {
-      /* Save screen space. */
-      margin: -6px;
+      --md-fab-container-width: 32px;
+      --md-fab-container-height: 32px;
+      --md-fab-icon-size: 20px;
+    }
+
+    md-menu-item {
+      --md-menu-item-one-line-container-height: 20px;
+      --md-menu-item-top-space: 0;
+      --md-menu-item-bottom-space: 0;
     }
   `;
 }

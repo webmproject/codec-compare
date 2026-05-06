@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-button';
-import '@material/mwc-icon';
-import '@material/mwc-menu';
-import '@material/mwc-tab-bar';
-import '@material/mwc-tab';
+import '@material/web/button/filled-button';
+import '@material/web/button/text-button';
+import '@material/web/icon/icon';
+import '@material/web/menu/menu';
+import '@material/web/tabs/tabs';
+import '@material/web/tabs/primary-tab';
 import './batch_name_ui';
 import './batch_selections_ui';
 import './help_ui';
@@ -24,13 +25,12 @@ import './gallery_ui';
 import './loading_ui';
 import './matchers_ui';
 import './metrics_ui';
-import './mwc_button_fit';
 import './panel_ui';
 import './sentence_ui';
 import './settings_ui';
 
-import {ActionDetail} from '@material/mwc-list';
-import {Menu} from '@material/mwc-menu';
+import {MdMenu} from '@material/web/menu/menu';
+import {MdTabs} from '@material/web/tabs/tabs';
 import {css, html, LitElement} from 'lit';
 import {customElement, query} from 'lit/decorators.js';
 
@@ -71,40 +71,41 @@ export class CodecCompare extends LitElement {
   @query('help-ui') private readonly helpUi!: HelpUi;
   @query('loading-ui') private readonly loadingUi!: LoadingUi;
 
-  @query('#referenceMenu') private readonly referenceMenu!: Menu;
+  @query('#referenceMenu') private readonly referenceMenu!: MdMenu;
 
   private renderReference(referenceBatch: Batch) {
     // Use a span to avoid breaking the line between the button and the comma.
     return html`
-      <span style="text-wrap-mode: nowrap;">
-        <mwc-button icon="arrow_drop_down" trailingIcon raised
+      <span style="text-wrap-mode: nowrap;" id="menuAnchor">
+        <md-filled-button trailing-icon
             title="Change the reference batch to compare other codecs with"
             id="referenceButton" @click=${() => {
       this.referenceMenu.show();
     }}>
           <batch-name-ui .batch=${referenceBatch}></batch-name-ui>
-        </mwc-button>,
+          <md-icon slot="icon">arrow_drop_down</md-icon>
+        </md-filled-button>,
       </span>
-      <mwc-menu
-        .anchor=${this.referenceMenu}
-        corner="BOTTOM_LEFT"
-        menuCorner="START"
-        id="referenceMenu"
-        @action=${(e: CustomEvent<ActionDetail>) => {
-      this.state.referenceBatchSelectionIndex = e.detail.index;
-      dispatch(EventType.REFERENCE_CHANGED);
-    }}>
+      <md-menu
+        anchor="menuAnchor"
+        anchor-corner="end-start"
+        menu-corner="start-start"
+        id="referenceMenu">
         ${
         this.state.batches.map(
             (batch) => html`
-        <mwc-list-item ?activated=${batch.index === referenceBatch.index}>
+        <md-menu-item ?selected=${batch.index === referenceBatch.index}
+            @click=${() => {
+              this.state.referenceBatchSelectionIndex = batch.index;
+              dispatch(EventType.REFERENCE_CHANGED);
+            }}>
           <batch-name-ui .batch=${batch}></batch-name-ui>
           ${
                 batch.index === referenceBatch.index ?
                     html`<span class="referenceBatchChip">reference</span>` :
                     html``}
-        </mwc-list-item>`)}
-      </mwc-menu>`;
+        </md-menu-item>`)}
+      </md-menu>`;
   }
 
   private renderSentence() {
@@ -128,7 +129,7 @@ export class CodecCompare extends LitElement {
   private renderTruncatedResults() {
     return html`
       <div id="truncatedResults">
-        <mwc-icon>warning</mwc-icon>
+        <md-icon>warning</md-icon>
         <p>
         The results are partial because there are too many possible comparisons.
         Consider filtering input rows out.
@@ -203,40 +204,45 @@ export class CodecCompare extends LitElement {
       ${displaySentence ? this.renderSentence() : ''}
       ${displayGallery ? this.renderGallery() : ''}
 
-      <mwc-tab-bar activeIndex=${activeIndex}
-        @MDCTabBar:activated=${(event: CustomEvent<{index: number}>) => {
-      this.currentTab = event.detail.index;
-      this.requestUpdate();
+      <md-tabs activeIndex=${activeIndex}
+        @change=${(event: Event) => {
+      if (event.target instanceof MdTabs) {
+        this.currentTab = event.target.activeTabIndex;
+        this.requestUpdate();
+      }
     }}>
-        <mwc-tab label="Summary" icon="short_text" id="summaryTab"></mwc-tab>
-        <mwc-tab label="Advanced" icon="tune" id="advancedTab"></mwc-tab>
-        <mwc-tab label="Data set" icon="photo_library" id="galleryTab">
-        </mwc-tab>
-      </mwc-tab-bar>
+        <md-primary-tab id="summaryTab"><md-icon>short_text</md-icon>Summary</md-primary-tab>
+        <md-primary-tab id="advancedTab"><md-icon>tune</md-icon>Advanced</md-primary-tab>
+        <md-primary-tab id="galleryTab"><md-icon>photo_library</md-icon>Data set</md-primary-tab>
+      </md-tabs>
 
       <div id="leftBar">
         <div id="leftBarContent">
-          <mwc-button-fit @click=${() => {
+          <md-filled-button @click=${() => {
       navigator.clipboard.writeText(window.location.href);
     }}>
-            <mwc-icon>share</mwc-icon> Copy URL to clipboard
-          </mwc-button-fit>
+            Copy URL to clipboard
+            <md-icon slot="icon">share</md-icon>
+          </md-filled-button>
 
-          <mwc-button-fit disabled>
-            <mwc-icon>settings</mwc-icon> Settings
-          </mwc-button-fit>
+          <md-filled-button disabled>
+            Settings
+            <md-icon slot="icon">settings</md-icon>
+          </md-filled-button>
 
           <settings-ui .state=${this.state}></settings-ui>
 
-          <mwc-button-fit id="helpButton" @click=${() => {
+          <md-filled-button id="helpButton" @click=${() => {
       this.helpUi.onOpen();
     }}>
-            <mwc-icon>help</mwc-icon> Help
-          </mwc-button-fit>
+            Help
+            <md-icon slot="icon">help</md-icon>
+          </md-filled-button>
 
-          <mwc-button-fit disabled>
-            <mwc-icon>open_in_new</mwc-icon> Resources
-          </mwc-button-fit>
+          <md-filled-button disabled>
+            Resources
+            <md-icon slot="icon">open_in_new</md-icon>
+          </md-filled-button>
 
           <p id="presets">
             <a target="_blank" href="https://storage.googleapis.com/demos.webmproject.org/webp/cmp/index.html">
@@ -252,7 +258,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare version 0.6.6<br>
+            Codec Compare version 0.7.0<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -358,11 +364,11 @@ export class CodecCompare extends LitElement {
     }
     p {
       margin: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 20px;
     }
 
-    mwc-tab-bar {
+    md-tabs {
       position: absolute;
       top: 0;
       left: 60px;  /* Width of #leftBar. */
@@ -403,8 +409,8 @@ export class CodecCompare extends LitElement {
       overflow-y: auto;
       overflow-x: hidden;
     }
-    mwc-tab-bar, #sentenceContainer, #galleryContainer, #advancedInterfaceContainerContainer {
-      background: var(--mdc-theme-surface);
+    md-tabs, #sentenceContainer, #galleryContainer, #advancedInterfaceContainerContainer {
+      background: var(--md-sys-color-surface);
       /* Simulate the shadow of the plot on the right. */
       box-shadow: inset -4px 0 8px 0 rgba(0, 0, 0, 0.2);
     }
@@ -415,22 +421,23 @@ export class CodecCompare extends LitElement {
       cursor: pointer;
     }
     #referenceButton {
-      --mdc-theme-primary: white;
-      --mdc-theme-on-primary: var(--mdc-theme-text);
-      vertical-align: middle;
+      --md-sys-color-primary: var(--md-sys-color-background);
+      --md-sys-color-on-primary: var(--md-sys-color-text);
     }
     #referenceButton batch-name-ui {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 16px;
       white-space: nowrap;
-      text-transform: none;
+      /* text-transform: none; */
     }
     #referenceMenu {
-      --mdc-menu-item-height: 20px;
+      --md-menu-item-one-line-container-height: 20px;
+      --md-menu-item-top-space: 0;
+      --md-menu-item-bottom-space: 0;
     }
     .referenceBatchChip {
-      background: var(--mdc-theme-primary);
-      color: var(--mdc-theme-background);
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-background);
       border-radius: 16px;
       padding: 2px 8px;
       font-size: 12px;
@@ -443,9 +450,9 @@ export class CodecCompare extends LitElement {
       display: flex;
       align-items: center;
       gap: 16px;
-      --mdc-icon-size: 64px;
+      --md-icon-size: 64px;
     }
-    #truncatedResults mwc-icon, #truncatedResults p {
+    #truncatedResults md-icon, #truncatedResults p {
       color: white;
     }
 
@@ -469,40 +476,44 @@ export class CodecCompare extends LitElement {
       left: 0;
       bottom: 0;
       width: 500px;
-      background: var(--mdc-theme-primary);
+      background: var(--md-sys-color-primary);
       padding: 6px;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
+      /* Otherwise the active tab goes in front of the left bar. */
+      z-index: 1;
     }
-    #leftBarContent > mwc-button-fit {
-      --mdc-theme-primary: var(--mdc-theme-background);
-      --mdc-typography-button-font-size: 20px;
-    }
-    #leftBarContent > mwc-button-fit > mwc-icon {
-      font-size: 42px;
-      margin-right: 16px;
+    #leftBarContent > md-filled-button {
+      --md-filled-button-container-height: 50px;
+      --md-filled-button-label-text-line-height: 24px;
+      --md-filled-button-label-text-size: 24px;
+      --md-filled-button-icon-size: 32px;
+      --md-filled-button-container-color: var(--md-sys-color-primary);
+      --md-filled-button-disabled-container-color: var(--md-sys-color-primary);
+      overflow: visible;
+      --md-filled-button-container-shape: 0px;
     }
 
     #presets {
       margin-left: 70px;
-      color: var(--mdc-theme-background);
+      color: var(--md-sys-color-background);
       font-family: Roboto, sans-serif;
       font-size: 16px;
     }
     #presets > a {
-      color: var(--mdc-theme-background);
+      color: var(--md-sys-color-background);
     }
 
     #credits {
       margin-left: 70px;
       margin-top: auto;
       font-size: 16px;
-      color: var(--mdc-theme-background);
+      color: var(--md-sys-color-background);
     }
     #credits > a {
-      color: var(--mdc-theme-background);
+      color: var(--md-sys-color-background);
     }
   `;
 }

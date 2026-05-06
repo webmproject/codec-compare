@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-fab';
-import '@material/mwc-menu';
+import '@material/web/fab/fab';
+import '@material/web/menu/menu';
+import '@material/web/menu/menu-item';
+import '@material/web/icon/icon';
 import './matcher_ui';
 
-import {Fab} from '@material/mwc-fab';
-import {ActionDetail} from '@material/mwc-list';
-import {Menu} from '@material/mwc-menu';
+import {MdFab} from '@material/web/fab/fab';
+import {MdMenu} from '@material/web/menu/menu';
+import {MenuItem} from '@material/web/menu/menu-item';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
@@ -32,8 +34,8 @@ import {State} from './state';
 export class MatchersUi extends LitElement {
   @property({attribute: false}) state!: State;
 
-  @query('#addMatcherMenu') private readonly addMatcherMenu!: Menu;
-  @query('#addMatcherButton') private readonly addMatcherButton!: Fab;
+  @query('#addMatcherMenu') private readonly addMatcherMenu!: MdMenu;
+  @query('#addMatcherButton') private readonly addMatcherButton!: MdFab;
 
   override connectedCallback() {
     super.connectedCallback();
@@ -47,34 +49,31 @@ export class MatchersUi extends LitElement {
       const fieldName =
           this.state.batches[0].fields[matcher.fieldIndices[0]].displayName;
       return matcher.enabled ?
-          html`<mwc-list-item disabled class="menuItemDisabled"
-            >${fieldName}</mwc-list-item
-          >` :
-          html`<mwc-list-item>${fieldName}</mwc-list-item>`;
+          html`<md-menu-item disabled>
+            ${fieldName}</md-menu-item>` :
+          html`<md-menu-item @click=${(e: CustomEvent<{item: MenuItem}>) => {
+            matcher.enabled = true;
+            dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+          }}>${fieldName}</md-menu-item>`;
     })}`;
   }
 
   private renderAddMatcherMenu() {
-    // mwc-menu and its anchor need a parent with position set to relative.
+    // md-menu and its anchor need a parent with position set to relative.
     return html`<span class="cornered" style="position: relative;">
-      <mwc-fab
-        mini
-        icon="add"
-        title="Add matcher"
+      <md-fab
         @click=${() => {
-      this.addMatcherMenu.show();
+      this.addMatcherMenu.open = !this.addMatcherMenu.open;
     }}
-        id="addMatcherButton"></mwc-fab>
-      <mwc-menu
-        .anchor=${this.addMatcherButton}
-        menuCorner="END"
-        id="addMatcherMenu"
-        @action=${(e: CustomEvent<ActionDetail>) => {
-      this.state.matchers[e.detail.index].enabled = true;
-      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
-    }}>
+        id="addMatcherButton">
+        <md-icon slot="icon">add</md-icon>
+      </md-fab>
+      <md-menu
+        anchor="addMatcherButton"
+        positioning="popover"
+        id="addMatcherMenu">
         ${this.renderAddMatcherMenuItems()}
-      </mwc-menu>
+      </md-menu>
     </span>`;
   }
 
@@ -122,7 +121,7 @@ export class MatchersUi extends LitElement {
 
   static override styles = css`
     :host {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
       padding: 6px;
       box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2);
       border-radius: 16px;
@@ -138,13 +137,16 @@ export class MatchersUi extends LitElement {
       margin-left: auto;
     }
 
-    .menuItemDisabled {
-      color: grey;
+    #addMatcherButton {
+      --md-fab-container-width: 32px;
+      --md-fab-container-height: 32px;
+      --md-fab-icon-size: 20px;
     }
 
-    #addMatcherButton {
-      /* Save screen space. */
-      margin: -6px;
+    md-menu-item {
+      --md-menu-item-one-line-container-height: 20px;
+      --md-menu-item-top-space: 0;
+      --md-menu-item-bottom-space: 0;
     }
   `;
 }

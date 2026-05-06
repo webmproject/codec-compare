@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon';
-import '@material/mwc-button';
+import '@material/web/icon/icon';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
@@ -75,7 +74,7 @@ export class FilteredImagesUi extends LitElement {
     return html`
         <div class="horizontalFlex">
           <div id="imageChip">
-            <mwc-icon>photo_library</mwc-icon>
+            <md-icon>photo_library</md-icon>
             ${this.batchSelection.filteredRowIndices.length} / ${
         batch.rows.length}
           </div>
@@ -112,8 +111,8 @@ export class FilteredImagesUi extends LitElement {
       padding: 0 15px;
       height: 40px;
       border-radius: 30px;
-      background: var(--mdc-theme-primary);
-      color: var(--mdc-theme-background);
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-background);
       display: flex;
       align-items: center;
       gap: 5px;
@@ -121,7 +120,7 @@ export class FilteredImagesUi extends LitElement {
     }
     h2 {
       margin: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
     }
 
     .tableParent {
@@ -136,7 +135,7 @@ export class FilteredImagesUi extends LitElement {
     }
 
     table {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       width: 100%;
       white-space: nowrap;
       border-collapse: collapse;
@@ -148,24 +147,24 @@ export class FilteredImagesUi extends LitElement {
       border-style: solid;
     }
     th {
-      border-color: var(--mdc-theme-background);
-      background: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-background);
+      background: var(--md-sys-color-surface);
       font-size: 12px;
       position: sticky;
       top: 0;
       border-top: 0;
     }
     td {
-      border-color: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-surface);
       font-family: monospace;
       font-size: 10px;
     }
 
     tr {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
     }
     tr:hover {
-      background: var(--mdc-theme-surface);
+      background: var(--md-sys-color-surface);
     }
     .excluded {
       color: grey;

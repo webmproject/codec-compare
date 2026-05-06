@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon';
-import './mwc_button_fit';
+import '@material/web/icon/icon';
 import './tooltip_ui';
 
 import {css, html, LitElement} from 'lit';
@@ -33,24 +32,23 @@ export class MetricUi extends LitElement {
 
   private renderDeleteButton() {
     if (this.isFirst && this.isLast) {
-      // title on a disabled mwc-button-fit does not work. Encapsulate in a div.
+      // title on a disabled button does not work. Encapsulate in a div.
       return html`<div
         title="This metric cannot be deleted. There must be at least one metric.">
-        <mwc-button-fit raised dense disabled
-          ><mwc-icon>delete</mwc-icon></mwc-button-fit
-        >
+        <md-filled-icon-button disabled>
+          <md-icon>delete</md-icon>
+        </md-filled-icon-button>
       </div>`;
     }
-    return html`<mwc-button-fit
-      raised
-      dense
-      @click=${() => {
+    return html`
+      <md-filled-icon-button
+        @click=${() => {
       this.metric.enabled = false;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
     }}
-      title="Delete metric"
-      ><mwc-icon>delete</mwc-icon></mwc-button-fit
-    >`;
+        title="Delete metric">
+        <md-icon>delete</md-icon>
+      </md-filled-icon-button>`;
   }
 
   override render() {
@@ -71,7 +69,7 @@ export class MetricUi extends LitElement {
 
   static override styles = css`
     :host {
-      background-color: var(--mdc-theme-surface);
+      background-color: var(--md-sys-color-surface);
       margin: 0;
       padding: 6px;
       border-radius: 6px;
@@ -82,12 +80,14 @@ export class MetricUi extends LitElement {
     }
     p {
       margin: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 20px;
     }
 
-    mwc-icon {
-      font-size: 20px;
+    md-filled-icon-button {
+      --md-filled-icon-button-icon-size: 20px;
+      --md-filled-icon-button-container-width: 24px;
+      --md-filled-icon-button-container-height: 24px;
     }
   `;
 }

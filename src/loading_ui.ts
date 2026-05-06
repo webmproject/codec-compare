@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-linear-progress';
+import '@material/web/progress/linear-progress';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
@@ -25,14 +25,11 @@ export class LoadingUi extends LitElement {
   @property({type: Number}) progress = 0;
 
   override render() {
-    const progressFirstHalf = Math.min(1, this.progress * 2);
-    const progressSecondHalf = Math.max(0, this.progress * 2 - 1);
     return html`<div class="card">
       <p>${this.text}</p>
-      <mwc-linear-progress
-        progress="${progressSecondHalf}"
-        buffer="${progressFirstHalf}">
-      </mwc-linear-progress>
+      <md-linear-progress
+        value="${this.progress}">
+      </md-linear-progress>
     </div>`;
   }
 
@@ -49,7 +46,7 @@ export class LoadingUi extends LitElement {
       align-items: center;
       overflow: hidden;
       z-index: 10;
-      background: var(--mdc-theme-surface);
+      background: var(--md-sys-color-surface);
       opacity: 1;
       transition: opacity 0.3s;
       cursor: wait;
@@ -57,7 +54,7 @@ export class LoadingUi extends LitElement {
 
     .card {
       padding: 16px;
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
       box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2);
       border-radius: 20px;
       display: flex;
@@ -70,7 +67,7 @@ export class LoadingUi extends LitElement {
     p {
       margin: 10px;
       padding: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 26px;
     }
   `;

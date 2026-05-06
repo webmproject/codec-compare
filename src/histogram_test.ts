@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'jasmine';
-
 import {mergeHistograms} from './batch_merger';
 import {BatchSelection} from './batch_selection';
 import {Batch, Field, FieldId} from './entry';

@@ -12,16 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-button';
-import '@material/mwc-menu';
+import '@material/web/button/filled-button';
+import '@material/web/menu/menu';
+import '@material/web/menu/menu-item';
+import '@material/web/icon/icon';
 
-import {Button} from '@material/mwc-button';
-import {ActionDetail} from '@material/mwc-list';
-import {Menu} from '@material/mwc-menu';
+import {MdFilledButton} from '@material/web/button/filled-button';
+import {MdMenu} from '@material/web/menu/menu';
+import {MenuItem} from '@material/web/menu/menu-item';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
-import {FieldId, DISTORTION_METRIC_FIELD_IDS} from './entry';
+import {DISTORTION_METRIC_FIELD_IDS, FieldId} from './entry';
 import {dispatch, EventType} from './events';
 import {FieldMetric} from './metric';
 import {State} from './state';
@@ -38,7 +40,8 @@ function fieldIdToString(id: FieldId) {
   if (id === FieldId.FLIP) return 'better looking';
   if (id === FieldId.LPIPS) return 'better looking';
   if (id === FieldId.P3NORM) return 'better looking';
-  if (DISTORTION_METRIC_FIELD_IDS.includes(id)) return null;  // Should not happen.
+  if (DISTORTION_METRIC_FIELD_IDS.includes(id))
+    return null;  // Should not happen.
   if (id === FieldId.ENCODED_SIZE) return 'smaller file';
   if (id === FieldId.ENCODING_DURATION) return 'faster encoding';
   if (id === FieldId.DECODING_DURATION) return 'faster decoding';
@@ -51,10 +54,11 @@ function fieldIdToString(id: FieldId) {
 export class PlotOverlayUi extends LitElement {
   @property({attribute: false}) state: State|undefined = undefined;
 
-  @query('#verticalMenu') private readonly verticalMenu!: Menu;
-  @query('#verticalButton') private readonly verticalButton!: Button;
-  @query('#horizontalMenu') private readonly horizontalMenu!: Menu;
-  @query('#horizontalButton') private readonly horizontalButton!: Button;
+  @query('#verticalMenu') private readonly verticalMenu!: MdMenu;
+  @query('#verticalButton') private readonly verticalButton!: MdFilledButton;
+  @query('#horizontalMenu') private readonly horizontalMenu!: MdMenu;
+  @query('#horizontalButton')
+  private readonly horizontalButton!: MdFilledButton;
 
   override render() {
     let verticalFieldIndex = -1;
@@ -77,12 +81,10 @@ export class PlotOverlayUi extends LitElement {
       horizontalTitle = `${field.displayName} (click to change)`;
     }
 
-    const fieldIndices: number[] = [];
     const enabledMetrics: FieldMetric[] = [];
     if (this.state !== undefined) {
       for (const metric of this.state.metrics) {
         if (!metric.enabled) continue;
-        fieldIndices.push(metric.fieldIndices[0]);
         enabledMetrics.push(metric);
       }
     }
@@ -90,50 +92,65 @@ export class PlotOverlayUi extends LitElement {
     return html`
       <div id="vertical">
         <div style="position: relative;">
-          <mwc-button icon="arrow_forward" trailingIcon title="${verticalTitle}"
+          <md-filled-button title="${verticalTitle}" trailing-icon
             id="verticalButton" @click=${() => {
-      this.verticalMenu.show();
+      this.verticalMenu.open = !this.verticalMenu.open;
     }}>
+            <md-icon slot="icon">arrow_forward</md-icon>
             <span>${verticalString}</span>
-          </mwc-button>
-          <mwc-menu
-            .anchor=${this.verticalButton}
-            corner="TOP_LEFT"
-            menuCorner="START"
-            id="verticalMenu"
-            @action=${(e: CustomEvent<ActionDetail>) => {
-      this.state!.plotMetricVertical = enabledMetrics[e.detail.index];
-      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
-    }}>
-            ${fieldIndices.map((fieldIndex) => html`
-            <mwc-list-item ?activated=${fieldIndex === verticalFieldIndex}>
-              ${this.state!.batches[0].fields[fieldIndex].displayName}
-            </mwc-list-item>`)}
-          </mwc-menu>
+          </md-filled-button>
+          <md-menu
+            anchor="verticalButton"
+            positioning="popover"
+            anchor-corner="start-end"
+            menu-corner="start-start"
+            id="verticalMenu">
+            ${
+        enabledMetrics.map(
+            (metric) => html`
+            <md-menu-item ?selected=${
+                metric.fieldIndices[0] === verticalFieldIndex}
+            @click=${() => {
+              this.state!.plotMetricVertical = metric;
+              console.log(this.state!.plotMetricVertical);
+              dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+            }}>
+              ${
+                this.state!.batches[0]
+                    .fields[metric.fieldIndices[0]]
+                    .displayName}
+            </md-menu-item>`)}
+          </md-menu>
         </div>
       </div>
       <div id="horizontal">
         <div style="position: relative;">
-          <mwc-button icon="arrow_backward" title="${horizontalTitle}"
+          <md-filled-button title="${horizontalTitle}"
             id="horizontalButton" @click=${() => {
-      this.horizontalMenu.show();
+      this.horizontalMenu.open = !this.horizontalMenu.open;
     }}>
+            <md-icon slot="icon">arrow_back</md-icon>
             <span>${horizontalString}</span>
-          </mwc-button>
-          <mwc-menu
-            .anchor=${this.horizontalButton}
-            corner="TOP_RIGHT"
-            menuCorner="END"
-            id="horizontalMenu"
-            @action=${(e: CustomEvent<ActionDetail>) => {
-      this.state!.plotMetricHorizontal = enabledMetrics[e.detail.index];
-      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
-    }}>
-            ${fieldIndices.map((fieldIndex) => html`
-            <mwc-list-item ?activated=${fieldIndex === horizontalFieldIndex}>
-              ${this.state!.batches[0].fields[fieldIndex].displayName}
-            </mwc-list-item>`)}
-          </mwc-menu>
+          </md-filled-button>
+          <md-menu
+            anchor="horizontalButton"
+            positioning="popover"
+            id="horizontalMenu">
+            ${
+        enabledMetrics.map(
+            (metric) => html`
+            <md-menu-item ?selected=${
+                metric.fieldIndices[0] === horizontalFieldIndex}
+            @click=${() => {
+              this.state!.plotMetricHorizontal = metric;
+              dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+            }}>
+              ${
+                this.state!.batches[0]
+                    .fields[metric.fieldIndices[0]]
+                    .displayName}
+            </md-menu-item>`)}
+          </md-menu>
         </div>
       </div>`;
   }
@@ -174,7 +191,8 @@ export class PlotOverlayUi extends LitElement {
     #horizontalButton {
       margin: 0;
       pointer-events: auto;
-      --mdc-theme-primary: black;
+      --md-sys-color-primary: white;
+      --md-sys-color-on-primary: black;
       position: relative;
     }
     #verticalButton span,

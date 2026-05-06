@@ -15,7 +15,9 @@ page can understand what is shown, but also useful to experts, by offering a
 convenient interactive user interface with matcher, metric and filter settings.
 The presented data should be easily reproducible and up-to-date.
 
-In contrast to more traditional
+Codec-Compare is based on
+[Rate-Complexity Clouds](https://doi.org/10.1109/PCS65673.2025.11417613) rather
+than Rate-Distortion Curves. In contrast to more traditional
 [comparative benchmarks](https://storage.googleapis.com/avif-comparison/index.html),
 Codec-Compare aims to aggregate statistics after comparing pairs of two
 similarly encoded images, to avoid some of the bias brought by comparing already
@@ -82,7 +84,7 @@ Codec-Compare has:
     `npm run build`).
   - A `vite.config.js` Vite configuration file (used by `npm run dev` and `npm
     run build`).
-  - A `karma.conf.js` Karma configuration file (used by `npm run test`).
+  - A `web-test-runner.config.mjs` configuration file (used by `npm run test`).
 
 Note: See
 https://lit.dev/docs/components/properties/#avoiding-issues-with-class-fields

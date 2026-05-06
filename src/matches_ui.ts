@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-button';
-import '@material/mwc-icon';
+import '@material/web/button/filled-button';
+import '@material/web/icon/icon';
 import './batch_name_ui';
 import './match_image_ui';
 import './matches_table_ui';
@@ -52,12 +52,12 @@ export class MatchesUi extends LitElement {
       <div class="leftVerticalFlex">
         <div id="batchesHeader">
           <div id="matchChip">
-            <mwc-icon>${
+            <md-icon>${
         this.referenceSelection === undefined ||
                 this.batchSelection.batch.index ===
                     this.referenceSelection.batch.index ?
             'photo_library' :
-            'join_inner'}</mwc-icon>
+            'join_inner'}</md-icon>
             ${this.batchSelection.matchedDataPoints.rows.length}
           </div>
           <h2>
@@ -90,13 +90,12 @@ export class MatchesUi extends LitElement {
         </constants-table-ui>
         ${rdModeHash === undefined ? html`` : html`
         <a href="#${rdModeHash}" target="_blank">
-          <mwc-button
-            raised
-            icon="show_chart"
-            label="Rate-Distortion"
+          <md-filled-button raised
             title="Display the Rate-Distortion curve containing this data point">
-            <mwc-icon>open_in_new</mwc-icon>
-          </mwc-button>
+            Rate-Distortion
+            <md-icon slot="icon">show_chart</md-icon>
+            <md-icon slot="icon">open_in_new</md-icon>
+          </md-filled-button>
         </a>`}
       </div>`;
   }
@@ -138,8 +137,8 @@ export class MatchesUi extends LitElement {
       padding: 0 15px;
       height: 40px;
       border-radius: 30px;
-      background: var(--mdc-theme-primary);
-      color: var(--mdc-theme-background);
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-background);
       display: flex;
       align-items: center;
       gap: 5px;
@@ -150,7 +149,7 @@ export class MatchesUi extends LitElement {
       margin: 0;
     }
 
-    mwc-button mwc-icon {
+    md-filled-button md-icon {
       margin-left: 8px;
       font-size: 16px;
     }

@@ -12,50 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon-button';
-import '@material/mwc-snackbar';
+import '@material/web/iconbutton/filled-icon-button';
+import '@material/web/icon/icon';
 
-import {Snackbar} from '@material/mwc-snackbar';
 import {css, html, LitElement} from 'lit';
-import {customElement, property, query} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 /** Component that copies text to the clipboard when clicked. */
 @customElement('copy-button')
 export class CopyButton extends LitElement {
   @property() textToCopyInClipboard!: string;
 
-  // There should be only one snackbar per page but one snackbar per CopyButton
-  // is easier to reference.
-  @query('mwc-snackbar') private readonly snackbar!: Snackbar;
-
   override render() {
     return html`
-      <mwc-icon-button title="Copy to clipboard" icon="content_copy"
+      <md-filled-icon-button title="Copy to clipboard"
         @click=${() => {
       if (window.isSecureContext) {
         navigator.clipboard.writeText(this.textToCopyInClipboard);
-        this.snackbar.labelText = 'Copied to clipboard';
-        this.snackbar.show();
-      } else {
-        this.snackbar.labelText = 'Copy to clipboard failed';
-        this.snackbar.show();
       }
     }}>
-      </mwc-icon-button>
-      <mwc-snackbar></mwc-snackbar>`;
+        <md-icon>content_copy</md-icon>
+      </md-filled-icon-button>`;
   }
 
   static override styles = css`
     :host {
       float: right;
     }
-    mwc-icon-button {
-      color: var(--mdc-theme-text);
-      /* Make the background disk that appears when hovered slightly bigger
-       * than the icon itself, which is 24px. */
-      --mdc-icon-button-size: 28px;
-      /* Tighten the buttons to save space. */
-      margin: -2px;
+    md-filled-icon-button {
+      --md-filled-icon-button-icon-size: 20px;
+      --md-filled-icon-button-container-width: 24px;
+      --md-filled-icon-button-container-height: 24px;
+      overflow: hidden;
     }
   `;
 }

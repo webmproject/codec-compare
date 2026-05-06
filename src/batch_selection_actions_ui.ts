@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon-button';
+import '@material/web/iconbutton/icon-button';
+import '@material/web/icon/icon';
 
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
@@ -36,26 +37,27 @@ export class BatchSelectionActionsUi extends LitElement {
     const batchSelection = this.state.batchSelections[this.batchSelectionIndex];
     return html`
       <span title="${batchSelection.isDisplayed ? 'Hide' : 'Show'}">
-        <mwc-icon-button
-          icon=${batchSelection.isDisplayed ? 'visibility' : 'visibility_off'}
+        <md-icon-button
           @click=${() => {
       batchSelection.isDisplayed = !batchSelection.isDisplayed;
       dispatch(EventType.MATCHED_DATA_POINTS_CHANGED);
       this.requestUpdate();
     }}>
-        </mwc-icon-button>
+          <md-icon>${
+        batchSelection.isDisplayed ? 'visibility' : 'visibility_off'}</md-icon>
+        </md-icon-button>
       </span>
         `;
   }
 
   static override styles = css`
-    mwc-icon-button {
-      color: var(--mdc-theme-text);
-      /* Make the background disk that appears when hovered slightly bigger
-       * than the icon itself, which is 24px. */
-      --mdc-icon-button-size: 28px;
-      /* Tighten the buttons to save space. */
-      margin: -2px;
+    md-icon-button {
+      color: var(--md-sys-color-text);
+      --md-icon-button-icon-size: 20px;
+      --md-icon-button-state-layer-width: 24px;
+      --md-icon-button-state-layer-height: 24px;
+      /* The touch area is hardcoded as at least 48px by 48px. */
+      overflow: hidden;
     }
   `;
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-icon';
+import '@material/web/icon/icon';
 import './batch_name_ui';
 import './filtered_images_ui';
 import './filters_ui';
@@ -86,8 +86,8 @@ export class MatchImageUi extends LitElement {
       <a href="${link}" target="_blank">
         <img src="${String(sourceImagePath)}"/>
         <div id="imageOverlay">
-          <mwc-icon>${compare ? 'compare' : 'image'}</mwc-icon>
-          <mwc-icon>open_in_new</mwc-icon>
+          <md-icon>${compare ? 'compare' : 'image'}</md-icon>
+          <md-icon>open_in_new</md-icon>
         </div>
       </a>`;
   }
@@ -134,8 +134,8 @@ export class MatchImageUi extends LitElement {
     #imageOverlay:hover{
       opacity: 1;
     }
-    #imageOverlay > mwc-icon {
-      color: var(--mdc-theme-background);
+    #imageOverlay > md-icon {
+      color: var(--md-sys-color-background);
       font-size: 26px;
     }
   `;

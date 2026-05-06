@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-menu';
-import './mwc_button_fit';
+import '@material/web/menu/menu';
+import '@material/web/menu/menu-item';
+import '@material/web/icon/icon';
 import './tooltip_ui';
 
-import {Button} from '@material/mwc-button';
-import {Menu} from '@material/mwc-menu';
+import {MdMenu} from '@material/web/menu/menu';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
@@ -41,67 +41,66 @@ export class MatcherUi extends LitElement {
   private readonly AVAILABLE_TOLERANCE =
       [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.20];
 
-  @query('#toleranceButton') private readonly toleranceButton!: Button;
-  @query('#toleranceMenu') private readonly toleranceMenu!: Menu;
+  @query('#toleranceButton') private readonly toleranceButton!: any;
+  @query('#toleranceMenu') private readonly toleranceMenu!: MdMenu;
 
   private renderToleranceButton() {
     if (!this.isNumber) {
       return html``;
     }
 
-    // mwc-menu and its anchor need a parent with position set to relative.
+    // md-menu and its anchor need a parent with position set to relative.
     return html`<span style="position: relative;">
-      <mwc-button-fit
-        raised
-        dense
-        label="${toleranceRangePercent(this.matcher.tolerance)}"
+      <md-filled-button
         title="The images are matched if they have a ratio of ${
         this.displayName} within ${
         toleranceRange(
             this.matcher
                 .tolerance)}. Click to set the tolerance to a different value."
         @click=${() => {
-      this.toleranceMenu.show();
+      this.toleranceMenu.open = !this.toleranceMenu.open;
     }}
-        id="toleranceButton"></mwc-button-fit>
-      <mwc-menu
-        .anchor=${this.toleranceButton}
-        @action=${(e: CustomEvent) => {
-      this.matcher.tolerance = this.AVAILABLE_TOLERANCE[e.detail.index];
-      dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
-      this.requestUpdate();
-    }}
+        id="toleranceButton">
+        ${toleranceRangePercent(this.matcher.tolerance)}
+      </md-filled-button>
+      <md-menu
+        anchor="toleranceButton"
         id="toleranceMenu">
-        ${this.AVAILABLE_TOLERANCE.map((availableTolerance: number) => html`
-        <mwc-list-item>
+        ${
+        this.AVAILABLE_TOLERANCE.map(
+            (availableTolerance: number) => html`
+        <md-menu-item
+            @click=${() => {
+              this.matcher.tolerance = availableTolerance;
+              dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
+              this.requestUpdate();
+            }}>
           Set tolerance to ${toleranceRangePercent(availableTolerance)}
-        </mwc-list-item>`)}
-      </mwc-menu>
+        </md-menu-item>`)}
+      </md-menu>
     </span>`;
   }
 
   private renderDeleteButton() {
     if (this.fieldId === FieldId.SOURCE_IMAGE_NAME) {
-      // title on a disabled mwc-button-fit does not work. Encapsulate in a div.
+      // title on a disabled button does not work. Encapsulate in a div.
       return html`<div
         title="This matcher cannot be deleted. Two codecs can only be compared when encoding the same source image.">
-        <mwc-button-fit raised dense disabled
-          ><mwc-icon>delete</mwc-icon></mwc-button-fit
-        >
+        <md-filled-icon-button disabled>
+          <md-icon>delete</md-icon>
+        </md-filled-icon-button>
       </div>`;
     }
 
     return html`
-      <mwc-button-fit
-        raised
-        dense
+      <md-filled-icon-button
         @click=${() => {
       this.matcher.enabled = false;
       dispatch(EventType.MATCHER_OR_METRIC_CHANGED);
     }}
         title="Delete matcher">
-        <mwc-icon>delete</mwc-icon>
-      </mwc-button-fit>`;
+        <md-icon>delete</md-icon>
+      </md-filled-icon-button>`;
   }
 
   override render() {
@@ -133,7 +132,7 @@ export class MatcherUi extends LitElement {
 
   static override styles = css`
     :host {
-      background-color: var(--mdc-theme-surface);
+      background-color: var(--md-sys-color-surface);
       margin: 0;
       padding: 6px;
       border-radius: 6px;
@@ -144,12 +143,29 @@ export class MatcherUi extends LitElement {
     }
     p {
       margin: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 20px;
     }
 
-    mwc-icon {
-      font-size: 20px;
+    #toleranceButton {
+      --md-filled-button-container-height: 20px;
+      --md-filled-button-label-text-size: 14px;
+      --md-filled-button-leading-space: 4px;
+      --md-filled-button-trailing-space: 4px;
+      --md-filled-button-container-shape: 2px;
+    }
+
+    md-filled-icon-button {
+      --md-filled-icon-button-icon-size: 20px;
+      --md-filled-icon-button-container-width: 24px;
+      --md-filled-icon-button-container-height: 24px;
+    }
+
+    md-menu-item {
+      --md-menu-item-one-line-container-height: 20px;
+      --md-menu-item-top-space: 0;
+      --md-menu-item-bottom-space: 0;
+      white-space: nowrap;
     }
   `;
 }

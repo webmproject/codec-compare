@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-menu';
-import '@material/mwc-icon';
-import '@material/mwc-button';
+import '@material/web/menu/menu';
+import '@material/web/menu/menu-item';
+import '@material/web/icon/icon';
+import '@material/web/button/filled-button';
 import './filter_generic_ui';
 import './filter_range_ui';
 import './filter_string_set_ui';
 import './filter_web_bpp_ui';
 
-import {Button} from '@material/mwc-button';
-import {ActionDetail} from '@material/mwc-list';
-import {Menu} from '@material/mwc-menu';
+import {MdFilledButton} from '@material/web/button/filled-button';
+import {MdMenu} from '@material/web/menu/menu';
+import {MenuItem} from '@material/web/menu/menu-item';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
@@ -39,8 +40,8 @@ export class FiltersUi extends LitElement {
   @property({attribute: false}) state!: State;
   @property() batchSelection!: BatchSelection;
 
-  @query('#addFilterMenu') private readonly addFilterMenu!: Menu;
-  @query('#addFilterButton') private readonly addFilterButton!: Button;
+  @query('#addFilterMenu') private readonly addFilterMenu!: MdMenu;
+  @query('#addFilterButton') private readonly addFilterButton!: MdFilledButton;
 
   private readonly onFilterChanged = (event: CustomEvent<FilterChanged>) => {
     if (event.detail.batchIndex === this.batchSelection.batch.index) {
@@ -59,41 +60,38 @@ export class FiltersUi extends LitElement {
   private renderAddFilterMenu() {
     const batch = this.batchSelection.batch;
     return html`<span id="addFilterParent">
-      <mwc-button
-        raised
-        dense
+      <md-filled-button raised
         @click=${() => {
-      this.addFilterMenu.show();
+      this.addFilterMenu.open = !this.addFilterMenu.open;
     }}
         title="Add filter"
         id="addFilterButton">
-        <mwc-icon>add</mwc-icon>
-        <mwc-icon>filter_alt</mwc-icon>
-      </mwc-button>
-      <mwc-menu
-        .anchor=${this.addFilterButton}
-        id="addFilterMenu"
-        @action=${(e: CustomEvent<ActionDetail>) => {
-      this.batchSelection.fieldFilters[e.detail.index].fieldFilter.enabled =
-          true;
-      dispatch(
-          EventType.FILTER_CHANGED,
-          {batchIndex: this.batchSelection.batch.index});
-    }}>
+        <md-icon>add</md-icon>
+        <md-icon>filter_alt</md-icon>
+      </md-filled-button>
+      <md-menu
+        anchor="addFilterButton"
+        id="addFilterMenu">
         ${
         this.batchSelection.fieldFilters.map(
             (filter: FieldFilterWithIndex) => filter.fieldFilter.enabled ?
-                html`<mwc-list-item disabled class="menuItemDisabled">
+                html`<md-menu-item disabled class="menuItemDisabled">
                 ${
                     filter.fieldFilter.displayName(
                         batch.fields[filter.fieldIndex])}
-              </mwc-list-item>` :
-                html`<mwc-list-item>
+              </md-menu-item>` :
+                html`<md-menu-item
+        @click=${() => {
+                  filter.fieldFilter.enabled = true;
+                  dispatch(
+                      EventType.FILTER_CHANGED,
+                      {batchIndex: this.batchSelection.batch.index});
+                }}>
                 ${
                     filter.fieldFilter.displayName(
                         batch.fields[filter.fieldIndex])}
-              </mwc-list-item>`)}
-      </mwc-menu>
+              </md-menu-item>`)}
+      </md-menu>
     </span>`;
   }
 
@@ -147,7 +145,7 @@ export class FiltersUi extends LitElement {
     return html`
         <div class="horizontalFlex">
           <div id="filterChip">
-            <mwc-icon>filter_alt</mwc-icon>
+            <md-icon>filter_alt</md-icon>
             ${numEnabledFilters}
           </div>
           <h2>active filters</h2>
@@ -181,8 +179,8 @@ export class FiltersUi extends LitElement {
       padding: 0 15px;
       height: 40px;
       border-radius: 30px;
-      background: var(--mdc-theme-primary);
-      color: var(--mdc-theme-background);
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-background);
       display: flex;
       align-items: center;
       gap: 5px;
@@ -190,23 +188,30 @@ export class FiltersUi extends LitElement {
     }
     h2 {
       margin: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
     }
 
     #addFilterParent {
-      /* mwc-menu and its anchor need a parent with position set to relative. */
+      /* md-menu and its anchor need a parent with position set to relative. */
       position: relative;
     }
-    mwc-menu {
+    #addFilterButton {
+      --md-filled-button-label-text-line-height: 1em;
+      --md-filled-button-container-height: 32px;
+    }
+    md-menu {
       /* Otherwise the menu is clipped by the parent's overflow:hidden.
        * Unfortunately this prevents the menu from properly reducing in height
        * when there is not enough space to display all items.
        */
       position: fixed;
       /* This way all items should fit on screen. */
-      --mdc-menu-item-height: 20px;
-      /* Otherwise the menu is rendered under the mwc checkboxes. */
+      --md-menu-item-one-line-container-height: 20px;
+      --md-menu-item-top-space: 0;
+      --md-menu-item-bottom-space: 0;
+      /* Otherwise the menu is rendered under the md checkboxes. */
       z-index: 6;
+      white-space: nowrap;
     }
     .menuItemDisabled {
       color: grey;

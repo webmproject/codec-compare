@@ -39,7 +39,7 @@ export function setColors(state: State) {
     let hue = 0.85 * groupIndex / (state.groups.length + 1);
     // Skip pure red which looks ominous.
     hue += 0.05;
-    // Skip colors close to --mdc-theme-primary.
+    // Skip colors close to --md-sys-color-primary.
     if (hue > 0.63) hue += 0.10;
     // Slightly greyish to avoid burning eyes.
     const saturation = 0.8;

@@ -98,7 +98,7 @@ export class ConstantsTableUi extends LitElement {
     }
 
     table {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       border-collapse: collapse;
       min-width: 100%;
     }
@@ -109,16 +109,16 @@ export class ConstantsTableUi extends LitElement {
       border-style: solid;
     }
     th {
-      border-color: var(--mdc-theme-background);
-      background: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-background);
+      background: var(--md-sys-color-surface);
     }
     td {
-      border-color: var(--mdc-theme-surface);
+      border-color: var(--md-sys-color-surface);
       font-family: monospace;
       word-break: break-word;
     }
     tr {
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
     }
     .description {
       font-style: italic;

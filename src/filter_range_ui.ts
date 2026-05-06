@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-button';
-import '@material/mwc-slider';
-import '@material/mwc-slider/slider-range';
-import '@material/mwc-textfield';
+import '@material/web/button/filled-button';
+import '@material/web/textfield/outlined-text-field';
+import '@material/web/slider/slider';
+import '@material/web/icon/icon';
 
-import {SliderRange} from '@material/mwc-slider/slider-range';
-import {TextField} from '@material/mwc-textfield';
+import {MdSlider} from '@material/web/slider/slider';
+import {MdOutlinedTextField} from '@material/web/textfield/outlined-text-field';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
@@ -33,21 +33,9 @@ export class FilterUiRange extends LitElement {
   @property({attribute: false}) field!: Field;
   @property({attribute: false}) filter!: FieldFilterRange;
 
-  @query('#numberMin') private readonly numberMin?: TextField;
-  @query('#numberMax') private readonly numberMax?: TextField;
-  @query('#numberSlider') private readonly numberSlider?: SliderRange;
-
-  override connectedCallback() {
-    super.connectedCallback();
-    // Hack to force refreshing the mwc-slider-range. Otherwise it may appear
-    // broken (probably due to being initialized in a display:none parent).
-    listen(EventType.FILTERED_DATA_INFO_REQUEST, async () => {
-      await new Promise(r => setTimeout(r, 1));
-      if (this.numberSlider !== undefined) {
-        await this.numberSlider.layout();
-      }
-    });
-  }
+  @query('#numberMin') private readonly numberMin?: MdOutlinedTextField;
+  @query('#numberMax') private readonly numberMax?: MdOutlinedTextField;
+  @query('#numberSlider') private readonly numberSlider?: MdSlider;
 
   private renderSingleUniqueValue() {
     const uniqueValue = this.field.uniqueValuesArray.length === 0 ?
@@ -77,9 +65,9 @@ export class FilterUiRange extends LitElement {
     };
 
     return html`
-      <mwc-textfield outlined .value=${this.filter.rangeStart.toString()}
+      <md-outlined-text-field value=${this.filter.rangeStart.toString()}
         @change=${onChangeMinText} id="numberMin">
-      </mwc-textfield>`;
+      </md-outlined-text-field>`;
   }
 
   private renderNumberMax() {
@@ -98,9 +86,9 @@ export class FilterUiRange extends LitElement {
     };
 
     return html`
-      <mwc-textfield outlined .value=${this.filter.rangeEnd.toString()}
+      <md-outlined-text-field .value=${this.filter.rangeEnd.toString()}
         @change=${onChangeMaxText} id="numberMax">
-      </mwc-textfield>`;
+      </md-outlined-text-field>`;
   }
 
   private renderNumberSlider() {
@@ -110,12 +98,12 @@ export class FilterUiRange extends LitElement {
       if (this.numberSlider === undefined) return;
 
       if (this.numberSlider.valueStart !== this.filter.rangeStart) {
-        this.filter.rangeStart = this.numberSlider.valueStart;
+        this.filter.rangeStart = this.numberSlider.valueStart!;
         this.numberMin.value = this.filter.rangeStart.toString();
         dispatch(EventType.FILTER_CHANGED, {batchIndex: this.batchIndex});
       }
       if (this.numberSlider.valueEnd !== this.filter.rangeEnd) {
-        this.filter.rangeEnd = this.numberSlider.valueEnd;
+        this.filter.rangeEnd = this.numberSlider.valueEnd!;
         this.numberMax.value = this.filter.rangeEnd.toString();
         dispatch(EventType.FILTER_CHANGED, {batchIndex: this.batchIndex});
       }
@@ -125,44 +113,43 @@ export class FilterUiRange extends LitElement {
     if (this.field.isInteger) {
       if (range < 30) {
         // withtickmarks is laggy with large values
-        return html`<mwc-slider-range
-          discrete
-          withtickmarks
+        return html`<md-slider
+          range
+          ticks
           min="${this.field.rangeStart}"
           max="${this.field.rangeEnd}"
-          valueStart="${this.filter.rangeStart}"
-          valueEnd="${this.filter.rangeEnd}"
+          value-start="${this.filter.rangeStart}"
+          value-end="${this.filter.rangeEnd}"
           step="1"
           @change=${onChangeSlider}
-          id="numberSlider"></mwc-slider-range>`;
+          id="numberSlider"></md-slider>`;
       }
-      return html`<mwc-slider-range
-        discrete
+      return html`<md-slider
+        range
         min="${this.field.rangeStart}"
         max="${this.field.rangeEnd}"
-        valueStart="${this.filter.rangeStart}"
-        valueEnd="${this.filter.rangeEnd}"
+        value-start="${this.filter.rangeStart}"
+        value-end="${this.filter.rangeEnd}"
         step="1"
         @change=${onChangeSlider}
-        id="numberSlider"></mwc-slider-range>`;
+        id="numberSlider"></md-slider>`;
     }
 
-    // Hack to bypass the inconvenient check at
-    // https://github.com/simonziegler/material-components-web/blob/78305b6d547b07aa06db04ad47b765b8f92851fa/packages/mdc-slider/foundation.ts#L1017-L1025
     const step = range / (256 * 256);
     const min = this.field.rangeStart;
     const valueStart =
         min + Math.round((this.filter.rangeStart - min) / step) * step;
     const valueEnd =
         min + Math.round((this.filter.rangeEnd - min) / step) * step;
-    return html`<mwc-slider-range
+    return html`<md-slider
+      range
       min="${this.field.rangeStart}"
       max="${this.field.rangeEnd}"
-      valueStart="${valueStart}"
-      valueEnd="${valueEnd}"
+      value-start="${valueStart}"
+      value-end="${valueEnd}"
       step="${step}"
       @change=${onChangeSlider}
-      id="numberSlider"></mwc-slider-range>`;
+      id="numberSlider"></md-slider>`;
   }
 
   private renderNumber() {
@@ -184,23 +171,21 @@ export class FilterUiRange extends LitElement {
         this.field.uniqueValuesArray.length < 2 ?
             this.renderSingleUniqueValue() :
             this.renderNumber()}
-      <mwc-button
-        raised
-        dense
+      <md-filled-icon-button
         @click=${() => {
       this.filter.enabled = false;
       dispatch(EventType.FILTER_CHANGED, {batchIndex: this.batchIndex});
     }}
         title="Delete filter">
-        <mwc-icon>filter_alt_off</mwc-icon>
-      </mwc-button>
+        <md-icon>filter_alt_off</md-icon>
+      </md-filled-icon-button>
     `;
   }
 
   static override styles = css`
     :host {
       display: block;
-      background: var(--mdc-theme-background);
+      background: var(--md-sys-color-background);
       margin: 0;
       padding: 10px;
       border-radius: 10px;
@@ -214,17 +199,28 @@ export class FilterUiRange extends LitElement {
 
     p {
       margin: 0;
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 20px;
       white-space: nowrap;
     }
 
-    mwc-textfield {
+    md-outlined-text-field {
       width: 80px;
       height: 35px;
+      --md-outlined-field-top-space: 2px;
+      --md-outlined-field-bottom-space: 2px;
+      --md-outlined-text-field-leading-space: 2px;
+      --md-outlined-text-field-trailing-space: 2px;
     }
-    mwc-slider-range {
+    md-slider {
       width: 400px;
+    }
+
+    md-filled-icon-button {
+      --md-filled-icon-button-icon-size: 24px;
+      --md-filled-icon-button-container-width: 32px;
+      --md-filled-icon-button-container-height: 32px;
+      overflow: hidden;
     }
   `;
 }

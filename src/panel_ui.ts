@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-button';
-import '@material/mwc-fab';
-import '@material/mwc-menu';
-import '@material/mwc-tab-bar';
-import '@material/mwc-tab';
+import '@material/web/button/filled-button';
+import '@material/web/fab/fab';
+import '@material/web/menu/menu';
+import '@material/web/menu/menu-item';
+import '@material/web/tabs/tabs';
+import '@material/web/tabs/secondary-tab';
 import './batch_name_ui';
 import './batch_selection_ui';
 import './batch_ui';
 import './matches_ui';
+import '@material/web/icon/icon';
 
-import {ActionDetail} from '@material/mwc-list';
-import {Menu} from '@material/mwc-menu';
+import {MdMenu} from '@material/web/menu/menu';
+import {MenuItem} from '@material/web/menu/menu-item';
 import {css, html, LitElement} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
@@ -43,7 +45,7 @@ export class PanelUi extends LitElement {
   /** Currently displayed component. */
   private currentTab = BatchTab.METADATA;
 
-  @query('#selectionMenu') private readonly selectionMenu!: Menu;
+  @query('#selectionMenu') private readonly selectionMenu!: MdMenu;
 
   override connectedCallback() {
     super.connectedCallback();
@@ -111,34 +113,32 @@ export class PanelUi extends LitElement {
     }}>
         <div class="horizontalFlex">
           <h1 style="position: relative;">
-            <mwc-button icon="arrow_drop_down" trailingIcon raised
-              title="Change the batch to display details for"
+            <md-filled-button raised trailing-icon
               id="selectionButton" @click=${() => {
-      this.selectionMenu.show();
+      this.selectionMenu.open = !this.selectionMenu.open;
     }}>
               <batch-name-ui .batch=${batch}></batch-name-ui>
-            </mwc-button>
-            <mwc-menu
-              .anchor=${this.selectionMenu}
-              corner="BOTTOM_LEFT"
-              menuCorner="START"
-              id="selectionMenu"
-              @action=${(e: CustomEvent<ActionDetail>) => {
-      this.batch = this.state.batches[e.detail.index];
-      this.requestUpdate();
-    }}>
+              <md-icon slot="icon">arrow_drop_down</md-icon>
+            </md-filled-button>
+            <md-menu
+              anchor="selectionButton"
+              id="selectionMenu">
               ${
         this.state.batches.map(
             (otherBatch) => html`
-              <mwc-list-item ?activated=${otherBatch.index === batch.index}>
+              <md-menu-item ?selected=${otherBatch.index === batch.index}
+                @click=${() => {
+              this.batch = otherBatch;
+              this.requestUpdate();
+            }}>
                 <batch-name-ui .batch=${otherBatch}></batch-name-ui>
                 ${
                 (!this.state.rdMode &&
                  otherBatch.index === this.state.referenceBatchSelectionIndex) ?
                     html`<span class="referenceBatchChip">reference</span>` :
                     html``}
-              </mwc-list-item>`)}
-            </mwc-menu>
+              </md-menu-item>`)}
+            </md-menu>
           </h1>
 
         ${
@@ -146,46 +146,46 @@ export class PanelUi extends LitElement {
             // Rate-Distortion curve mode does not use any batch as reference.
             '' :
             batchIndex === this.state.referenceBatchSelectionIndex ?
-            // disabled mwc-button title does not appear. Use a div.
+            // disabled md-filled-button title does not appear. Use a div.
                 html`
           <div title="This batch is already the reference batch">
-            <mwc-button
-              raised
-              icon="center_focus_strong"
-              label="Set as reference"
+            <md-filled-button
               disabled>
-            </mwc-button>
+              Set as reference
+            </md-filled-button>
           </div>
         ` :
                 html`
-          <mwc-button
-            raised
-            icon="center_focus_weak"
-            label="Set as reference"
+          <md-filled-button
             title="Use this batch as reference to compare other codecs with"
             @click=${onSetAsReference}>
-          </mwc-button>
+            Set as reference
+          </md-filled-button>
         `}
         </div>
 
-        <mwc-tab-bar activeIndex=${activeIndex}
-          @MDCTabBar:activated=${(event: CustomEvent<{index: number}>) => {
-      if (event.detail.index === BatchTab.METADATA) {
+        <md-tabs active-tab-index=${activeIndex}
+          @change=${(event: CustomEvent) => {
+      const activeTabIndex = (event.target as any).activeTabIndex;
+      if (activeTabIndex === BatchTab.METADATA) {
         dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex});
-      } else if (event.detail.index === BatchTab.FILTERS_AND_ROWS) {
+      } else if (activeTabIndex === BatchTab.FILTERS_AND_ROWS) {
         dispatch(EventType.FILTERED_DATA_INFO_REQUEST, {batchIndex});
-      } else if (event.detail.index === BatchTab.MATCHES) {
+      } else if (activeTabIndex === BatchTab.MATCHES) {
         dispatch(EventType.MATCHES_INFO_REQUEST, {batchIndex});
       }
     }}>
-          <mwc-tab label="Metadata" icon="info" id="metadataTab"></mwc-tab>
-          <mwc-tab label="Filters and rows" icon="filter_alt" id="rowsTab">
-          </mwc-tab>
-          <mwc-tab label="${showRowsOnly ? 'Rows' : 'Matches'}"
-            icon="${showRowsOnly ? 'photo_library' : 'join_inner'}"
-            id="matchesTab">
-          </mwc-tab>
-        </mwc-tab-bar>
+          <md-secondary-tab id="metadataTab">Metadata
+            <md-icon slot="icon">info</md-icon>
+          </md-secondary-tab>
+          <md-secondary-tab id="rowsTab">Filters and rows
+            <md-icon slot="icon">filter_alt</md-icon>
+          </md-secondary-tab>
+          <md-secondary-tab id="matchesTab">${showRowsOnly ? 'Rows' : 'Matches'}
+            <md-icon slot="icon">${
+        showRowsOnly ? 'photo_library' : 'join_inner'}</md-icon>
+          </md-secondary-tab>
+        </md-tabs>
 
         <batch-ui .state=${this.state} .batch=${batch}
           style=${activeIndex === BatchTab.METADATA ? '' : 'display: none'}>
@@ -202,8 +202,9 @@ export class PanelUi extends LitElement {
           style=${activeIndex === BatchTab.MATCHES ? '' : 'display: none'}>
         </matches-ui>
 
-        <mwc-fab id="closeButton" icon="close" title="Close" @click=${onClose}>
-        </mwc-fab>
+        <md-fab id="closeButton" title="Close" @click=${onClose}>
+          <md-icon slot="icon">close</md-icon>
+        </md-fab>
       </div>`;
   }
 
@@ -225,7 +226,7 @@ export class PanelUi extends LitElement {
     }
 
     #dialog {
-      background-color: var(--mdc-theme-surface);
+      background-color: var(--md-sys-color-surface);
       position: absolute;
       left: 40px;
       top: 40px;
@@ -241,8 +242,8 @@ export class PanelUi extends LitElement {
       overflow: hidden;
     }
 
-    mwc-tab-bar {
-      background: var(--mdc-theme-surface);
+    md-tabs {
+      background: var(--md-sys-color-surface);
     }
 
     #closeButton {
@@ -259,27 +260,30 @@ export class PanelUi extends LitElement {
       gap: 10px;
     }
     h1 {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
     }
     #selectionButton {
       margin: 0;
       pointer-events: auto;
-      --mdc-theme-primary: white;
-      --mdc-theme-on-primary: var(--mdc-theme-text);
+      --md-sys-color-primary: var(--md-sys-color-background);
+      --md-sys-color-on-primary: var(--md-sys-color-text);
       position: relative;
     }
     #selectionButton batch-name-ui {
-      color: var(--mdc-theme-text);
+      color: var(--md-sys-color-text);
       font-size: 20px;
       white-space: nowrap;
       text-transform: none;
     }
     #selectionMenu {
-      --mdc-menu-item-height: 20px;
+      --md-menu-item-one-line-container-height: 20px;
+      --md-menu-item-top-space: 0;
+      --md-menu-item-bottom-space: 0;
+      white-space: nowrap;
     }
     .referenceBatchChip {
-      background: var(--mdc-theme-primary);
-      color: var(--mdc-theme-background);
+      background: var(--md-sys-color-secondary);
+      color: var(--md-sys-color-background);
       border-radius: 16px;
       padding: 2px 8px;
       font-size: 12px;
