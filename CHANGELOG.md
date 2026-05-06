@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.1
+
+- Upgrade all dependencies to the latest npm versions, but not
+  web-test-runner-jasmine because it requires node>=24.0.0, and not jasmine-core
+  because of web-test-runner-jasmine.
+
 ## v0.7.0
 
 - Upgrade to Material 3 Web Components (https://material-web.dev/).

@@ -25,7 +25,8 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         visualizer: resolve(__dirname, 'visualizer.html')
       }
-    }
+    },
+    chunkSizeWarningLimit: 10000
   },
   publicDir: 'assets'
 })
