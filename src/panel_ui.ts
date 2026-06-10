@@ -34,60 +34,61 @@ import {Batch} from './entry';
 import {dispatch, EventType, listen} from './events';
 import {State} from './state';
 import {BatchTab} from './tab';
+import {UrlState} from './url_state';
 
 /** Component displaying the details of a batch. */
 @customElement('panel-ui')
 export class PanelUi extends LitElement {
   @property({attribute: false}) state!: State;
-  /** Currently selected batch. */
-  private batch?: Batch;
-  private matchIndex: number|undefined = undefined;
-  /** Currently displayed component. */
-  private currentTab = BatchTab.METADATA;
+  @property({attribute: false}) urlState!: UrlState;
 
   @query('#selectionMenu') private readonly selectionMenu!: MdMenu;
 
-  override connectedCallback() {
-    super.connectedCallback();
+  public registerEvents() {
     listen(EventType.BATCH_INFO_REQUEST, (event) => {
-      this.batch = this.state.batchSelections[event.detail.batchIndex].batch;
-      this.currentTab = BatchTab.METADATA;
-      this.style.display = 'block';
+      this.state.currentPanelBatchIndex = event.detail.batchIndex;
+      this.state.currentPanelTab = BatchTab.METADATA;
+      this.urlState.save(this.state);
       this.requestUpdate();
     });
     listen(EventType.FILTERED_DATA_INFO_REQUEST, (event) => {
-      this.batch = this.state.batchSelections[event.detail.batchIndex].batch;
-      this.currentTab = BatchTab.FILTERS_AND_ROWS;
-      this.style.display = 'block';
+      this.state.currentPanelBatchIndex = event.detail.batchIndex;
+      this.state.currentPanelTab = BatchTab.FILTERS_AND_ROWS;
+      this.urlState.save(this.state);
       this.requestUpdate();
     });
     listen(EventType.MATCHES_INFO_REQUEST, (event) => {
-      this.batch = this.state.batchSelections[event.detail.batchIndex].batch;
-      this.currentTab = BatchTab.MATCHES;
-      this.style.display = 'block';
+      this.state.currentPanelBatchIndex = event.detail.batchIndex;
+      this.state.currentPanelTab = BatchTab.MATCHES;
+      this.urlState.save(this.state);
       this.requestUpdate();
     });
     listen(EventType.MATCH_INFO_REQUEST, (event) => {
-      this.batch = this.state.batchSelections[event.detail.batchIndex].batch;
-      this.matchIndex = event.detail.matchIndex;
-      this.currentTab = BatchTab.MATCHES;
-      this.style.display = 'block';
+      this.state.currentPanelBatchIndex = event.detail.batchIndex;
+      this.state.currentPanelTab = BatchTab.MATCHES;
+      this.state.currentPanelMatchIndex = event.detail.matchIndex;
+      this.urlState.save(this.state);
       this.requestUpdate();
     });
     listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
       // The index points to an element of a set that no longer exists.
       // Invalidate it. This should trickle down till MatchImageUi.
-      this.matchIndex = undefined;
+      this.state.currentPanelMatchIndex = undefined;
+      this.urlState.save(this.state);
       this.requestUpdate();
     });
   }
 
   override render() {
-    if (this.batch === undefined) return html``;
+    this.style.display =
+        this.state.currentPanelBatchIndex === undefined ? 'none' : 'block';
+    if (this.state.currentPanelBatchIndex === undefined) {
+      return html``;
+    }
 
     const onClose = () => {
-      this.batch = undefined;
-      this.style.display = 'none';
+      this.state.currentPanelBatchIndex = undefined;
+      this.urlState.save(this.state);
       this.requestUpdate();
     };
     const onSetAsReference = () => {
@@ -99,11 +100,11 @@ export class PanelUi extends LitElement {
     const referenceSelection: BatchSelection =
         this.state.batchSelections[this.state.referenceBatchSelectionIndex];
     const reference: Batch = referenceSelection.batch;
-    const batch: Batch = this.batch;
     const batchSelection: BatchSelection =
-        this.state.batchSelections[this.batch.index];
-    const batchIndex: number = this.batch.index;
-    const activeIndex: number = this.currentTab;
+        this.state.batchSelections[this.state.currentPanelBatchIndex];
+    const batch: Batch = batchSelection.batch;
+    const batchIndex: number = batch.index;
+    const activeIndex: number = this.state.currentPanelTab;
     const showRowsOnly = this.state.rdMode || batchIndex === reference.index;
 
     return html`
@@ -128,7 +129,7 @@ export class PanelUi extends LitElement {
             (otherBatch) => html`
               <md-menu-item ?selected=${otherBatch.index === batch.index}
                 @click=${() => {
-              this.batch = otherBatch;
+              this.state.currentPanelBatchIndex = otherBatch.index;
               this.requestUpdate();
             }}>
                 <batch-name-ui .batch=${otherBatch}></batch-name-ui>
@@ -167,12 +168,14 @@ export class PanelUi extends LitElement {
         <md-tabs active-tab-index=${activeIndex}
           @change=${(event: CustomEvent) => {
       const activeTabIndex = (event.target as any).activeTabIndex;
-      if (activeTabIndex === BatchTab.METADATA) {
-        dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex});
-      } else if (activeTabIndex === BatchTab.FILTERS_AND_ROWS) {
-        dispatch(EventType.FILTERED_DATA_INFO_REQUEST, {batchIndex});
-      } else if (activeTabIndex === BatchTab.MATCHES) {
-        dispatch(EventType.MATCHES_INFO_REQUEST, {batchIndex});
+      if (activeTabIndex !== Number(this.state.currentPanelTab)) {
+        if (activeTabIndex === BatchTab.METADATA) {
+          dispatch(EventType.BATCH_INFO_REQUEST, {batchIndex});
+        } else if (activeTabIndex === BatchTab.FILTERS_AND_ROWS) {
+          dispatch(EventType.FILTERED_DATA_INFO_REQUEST, {batchIndex});
+        } else if (activeTabIndex === BatchTab.MATCHES) {
+          dispatch(EventType.MATCHES_INFO_REQUEST, {batchIndex});
+        }
       }
     }}>
           <md-secondary-tab id="metadataTab">Metadata
@@ -198,7 +201,8 @@ export class PanelUi extends LitElement {
         <matches-ui .state=${this.state}
           .referenceSelection=${
         this.state.rdMode ? undefined : referenceSelection}
-          .batchSelection=${batchSelection} .matchIndex=${this.matchIndex}
+          .batchSelection=${batchSelection}
+          .matchIndex=${this.state.currentPanelMatchIndex}
           style=${activeIndex === BatchTab.MATCHES ? '' : 'display: none'}>
         </matches-ui>
 
@@ -244,6 +248,7 @@ export class PanelUi extends LitElement {
 
     md-tabs {
       background: var(--md-sys-color-surface);
+      flex-shrink: 0;
     }
 
     #closeButton {

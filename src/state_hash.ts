@@ -16,6 +16,7 @@ import {Batch, DISTORTION_METRIC_FIELD_IDS, Field, FieldId} from './entry';
 import {FieldFilter} from './filter';
 import {selectPlotMetrics} from './metric';
 import {State} from './state';
+import {BatchTab, Tab} from './tab';
 import {applyBase16Bitmask, getBase16Bitmask} from './utils';
 
 /**
@@ -111,6 +112,21 @@ export function stateToMapping(state: State) {
   values.set('multimatch', state.matchRepeatedly ? 'on' : 'off');
   values.set('metrics', state.showRelativeRatios ? 'rel' : 'abs');
   values.set('mean', state.useGeometricMean ? 'geo' : 'arith');
+  values.set('tab', String(Number(state.currentTab)));
+  if (state.currentPanelBatchIndex !== undefined) {
+    values.set('panel_batch', String(state.currentPanelBatchIndex));
+    values.set('panel', String(Number(state.currentPanelTab)));
+  } else {
+    values.set('panel_batch', 'off');
+    values.set('panel', '0');
+  }
+  if (state.currentPanelBatchIndex !== undefined &&
+      state.currentPanelTab === BatchTab.MATCHES &&
+      state.currentPanelMatchIndex !== undefined) {
+    values.set('panel_match', String(state.currentPanelMatchIndex));
+  } else {
+    values.set('panel_match', 'off');
+  }
   return values;
 }
 
@@ -264,6 +280,33 @@ export function applyMappingToState(values: URLSearchParams, state: State) {
       state.useGeometricMean = true;
     } else if (mean === 'arith') {
       state.useGeometricMean = false;
+    }
+  }
+
+  const tab = values.get('tab');
+  if (tab && !isNaN(Number(tab)) && Number(tab) >= 0 && Number(tab) < 3) {
+    state.currentTab = Number(tab);
+  }
+
+  const panelBatch = values.get('panel_batch');
+  if (panelBatch) {
+    if (panelBatch === 'off') {
+      state.currentPanelBatchIndex = undefined;
+    } else if (!isNaN(Number(panelBatch))) {
+      state.currentPanelBatchIndex = Number(panelBatch);
+    }
+  }
+  const panelTab = values.get('panel');
+  if (panelTab && !isNaN(Number(panelTab)) && Number(panelTab) >= 0 &&
+      Number(panelTab) < 3) {
+    state.currentPanelTab = Number(panelTab);
+  }
+  const panelMatch = values.get('panel_match');
+  if (panelMatch) {
+    if (panelMatch === 'off') {
+      state.currentPanelMatchIndex = undefined;
+    } else if (!isNaN(Number(panelMatch))) {
+      state.currentPanelMatchIndex = Number(panelMatch);
     }
   }
 }

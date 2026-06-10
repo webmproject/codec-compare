@@ -17,6 +17,7 @@
 set -eu
 
 sed -i'' -e 's|"/\([/a-z0-9_-]*\).json"|"\1.json"|' dist/assets/main*.js
+sed -i'' -e 's|`/\([/a-z0-9_-]*\).json`|`\1.json`|' dist/assets/main*.js
 sed -i'' -e 's|load=/\([/a-z0-9_-]*\).json|load=\1.json|' dist/assets/main*.js
 sed -i'' -e 's|batch=/\([/a-z0-9_-]*\).json|batch=\1.json|g' dist/assets/main*.js
 sed -i'' -e 's|/transparency_checkerboard.webp|transparency_checkerboard.webp|' dist/assets/*.js

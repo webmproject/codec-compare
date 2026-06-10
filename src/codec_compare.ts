@@ -40,10 +40,11 @@ import {loadBatchJson, loadJsonContainingBatchJsonPaths} from './entry_loader';
 import {dispatch, EventType, listen} from './events';
 import {HelpUi} from './help_ui';
 import {LoadingUi} from './loading_ui';
+import {PanelUi} from './panel_ui';
 import {PlotUi} from './plot_ui';
 import {SettingsUi} from './settings_ui';
 import {State} from './state';
-import {Tab} from './tab';
+import {BatchTab, Tab} from './tab';
 import {UrlState} from './url_state';
 import {reverseMap} from './utils';
 
@@ -62,12 +63,11 @@ export class CodecCompare extends LitElement {
   private failure = false;
   /** Set once the top-level JSON has been parsed. */
   private numExpectedBatches = 0;
-  /** Currently displayed component. */
-  private currentTab = Tab.SUMMARY;
   /** The object rendering the state into a plot. */
   private readonly plotUi = new PlotUi(this.state);
 
   @query('settings-ui') private readonly settingsUi!: SettingsUi;
+  @query('panel-ui') private readonly panelUi!: PanelUi;
   @query('help-ui') private readonly helpUi!: HelpUi;
   @query('loading-ui') private readonly loadingUi!: LoadingUi;
 
@@ -169,9 +169,9 @@ export class CodecCompare extends LitElement {
               .batch;
     }
 
-    const activeIndex: number = this.currentTab;
-    const displaySentence = this.currentTab === Tab.SUMMARY;
-    const displayGallery = this.currentTab === Tab.GALLERY;
+    const activeTabIndex: number = this.state.currentTab;
+    const displaySentence = this.state.currentTab === Tab.SUMMARY;
+    const displayGallery = this.state.currentTab === Tab.GALLERY;
     // The advanced interface is always displayed, hidden by the other
     // components, because drop-down menu anchors are messed up otherwise.
 
@@ -204,10 +204,11 @@ export class CodecCompare extends LitElement {
       ${displaySentence ? this.renderSentence() : ''}
       ${displayGallery ? this.renderGallery() : ''}
 
-      <md-tabs activeIndex=${activeIndex}
+      <md-tabs active-tab-index=${activeTabIndex}
         @change=${(event: Event) => {
       if (event.target instanceof MdTabs) {
-        this.currentTab = event.target.activeTabIndex;
+        this.state.currentTab = event.target.activeTabIndex;
+        this.urlState.save(this.state);
         this.requestUpdate();
       }
     }}>
@@ -258,7 +259,7 @@ export class CodecCompare extends LitElement {
           </p>
 
           <p id="credits">
-            Codec Compare version 0.7.1<br>
+            Codec Compare version 0.7.2<br>
             <a href="https://github.com/webmproject/codec-compare">
               Sources on GitHub
             </a>
@@ -266,8 +267,9 @@ export class CodecCompare extends LitElement {
         </div>
       </div>
 
-      <panel-ui .state=${this.state}></panel-ui>
-      <help-ui .displayedTab=${this.currentTab} .rdMode=${this.state.rdMode}>
+      <panel-ui .state=${this.state} .urlState=${this.urlState}></panel-ui>
+      <help-ui .displayedTab=${this.state.currentTab} .rdMode=${
+        this.state.rdMode}>
       </help-ui>
       ${this.isLoaded ? html`` : html`<loading-ui></loading-ui>`}
     `;
@@ -303,13 +305,21 @@ export class CodecCompare extends LitElement {
     this.state.initializePostUrlStateDefaultValues();
     this.urlState.load(this.state);
     this.state.initializePostUrlStateLoad();
+
+    this.settingsUi.requestUpdate();  // Settings may have changed.
+    this.panelUi.requestUpdate();     // Tabs and selections may have changed.
+
     listen(EventType.MATCHED_DATA_POINTS_CHANGED, () => {
       this.urlState.save(this.state);
       this.requestUpdate();
     });
-    this.settingsUi.requestUpdate();  // Settings may have changed.
     // Trigger the computation of matches and stats.
     dispatch(EventType.REFERENCE_CHANGED);
+
+    // This needs to happen after the first MATCHED_DATA_POINTS_CHANGED event is
+    // dispatched so that currentPanelMatchIndex keeps the value defined in the
+    // URL.
+    this.panelUi.registerEvents();
 
     await this.plotUi.setupPlot();
     this.loadingUi.style.opacity = '0';

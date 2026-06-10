@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.2
+
+- Remember the selected tabs, batch, and match as URL parameters.
+- Prevent tab shrinking in panel UI.
+- Fix postbuild.sh.
+
 ## v0.7.1
 
 - Upgrade all dependencies to the latest npm versions, but not

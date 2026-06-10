@@ -21,6 +21,7 @@ import {dispatch, EventType, listen} from './events';
 import {enableDefaultFilters} from './filter';
 import {createMatchers, enableDefaultMatchers, FieldMatcher, getDataPointsSymmetric} from './matcher';
 import {computeHistogram, computeStats, createMetrics, enableDefaultMetrics, FieldMetric, selectPlotMetrics} from './metric';
+import {BatchTab, Tab} from './tab';
 
 /** The root data object containing the full state. */
 export class State {
@@ -80,6 +81,17 @@ export class State {
    * Only applies if showRelativeRatios is true.
    */
   useGeometricMean = true;
+
+  /** The currently displayed component/tab in the CodecCompare component. */
+  currentTab = Tab.SUMMARY;
+
+  /**
+   * The currently displayed component/tab/batch/match in the PanelUi component.
+   * currentPanelBatchIndex=undefined means that the PanelUi is not displayed.
+   */
+  currentPanelBatchIndex: number|undefined = undefined;
+  currentPanelTab = BatchTab.METADATA;
+  currentPanelMatchIndex: number|undefined = undefined;
 
   /** If true, each row is shown in the tables. NOT stored in URL params. */
   showAllRows = false;
