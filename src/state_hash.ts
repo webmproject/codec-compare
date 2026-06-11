@@ -327,13 +327,28 @@ export function trimDefaultStateMapping(
   return values;
 }
 
-/** Returns the hash part of the URL to a Rate-Distortion curve plot. */
+/** Returns the hash part of the URL for a two-batch view. */
+export function getTwoBatchViewHash(state: State, currentHash: string) {
+  // Get the current hash (the part after the '#' in the URL), if any.
+  const hash =
+      new URLSearchParams(currentHash.length > 3 ? currentHash.slice(1) : '');
+  // Remove any state that depends on indices.
+  hash.delete('shown');
+  hash.delete('panel_batch');
+  hash.delete('panel_match');
+  // Do not open the batch panel on load.
+  hash.delete('panel');
+  return hash.toString();
+}
+
+/** Returns the hash part of the URL for a Rate-Distortion curve plot. */
 export function getRdModeHash(
     state: State, batch: Batch, reference: Batch, rowIndex: number|undefined,
     currentHash: string) {
   // No distortion means no Rate-Distortion curve.
   if (state.batchesAreLikelyLossless) return undefined;
 
+  // Get the current hash (the part after the '#' in the URL), if any.
   const hash =
       new URLSearchParams(currentHash.length > 3 ? currentHash.slice(1) : '');
 
@@ -422,6 +437,11 @@ export function getRdModeHash(
   }
   // Use the default reference because it has no impact in RD mode.
   hash.delete('ref');
+  // Remove any state that depends on indices.
+  hash.delete('panel_batch');
+  hash.delete('panel_match');
+  // Do not open the batch panel on load.
+  hash.delete('panel');
 
   if (rowIndex !== undefined) {
     // Only display the selected image.

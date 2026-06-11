@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.3
+
+- Fix RD-curve and two-batch view links.
+
 ## v0.7.2
 
 - Remember the selected tabs, batch, and match as URL parameters.
