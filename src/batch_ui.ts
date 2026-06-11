@@ -24,7 +24,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {Batch} from './entry';
 import {EventType, listen} from './events';
 import {State} from './state';
-import {getRdModeHash} from './state_hash';
+import {getRdModeHash, getTwoBatchViewHash} from './state_hash';
 
 /** Component displaying the details of a batch. */
 @customElement('batch-ui')
@@ -46,13 +46,10 @@ export class BatchUi extends LitElement {
     // Keep the batches in the same order.
     const minIndex = Math.min(refIndex, batchIndex);
     const maxIndex = Math.max(refIndex, batchIndex);
-    // Remove any state that depends on batch indices.
-    const stateHash = new URLSearchParams(
-        window.location.hash.length > 3 ? window.location.hash.slice(1) : '');
-    stateHash.delete('shown');
+
     const twoBatchLink = `?batch=${this.state.batches[minIndex].url}&batch=${
-        this.state.batches[maxIndex].url}${
-        stateHash.size > 0 ? `#${stateHash.toString()}` : ''}`;
+        this.state.batches[maxIndex].url}#${
+        getTwoBatchViewHash(this.state, window.location.hash)}`;
 
     const rdModeHash = getRdModeHash(
         this.state, this.batch, this.batch, undefined, window.location.hash);
