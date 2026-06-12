@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Image format comparison</title>
+    <style>
+      body {
+        font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+        margin: 0;
+        background-color: #F1F3F9;
+      }
+      h2, h3 {
+        color: #6A67BB;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 900;
+      }
+      h2 {
+        margin: 0;
+        font-size: 1.4em;
+      }
+      h3 {
+        font-size: 1.2em;
+      }
+      p {
+        margin-bottom: 0;
+      }
+
+      #top_level_flex {
+        display: flex;
+        flex-flow: column;
+        overflow: auto;
+      }
+
+      #table_of_contents {
+        margin: 0;
+        padding: 0;
+        background-color: #6A67BB;
+        width: 100%;
+        box-shadow: rgba(0, 0, 0, 0.2) 4px 0px 8px;
+      }
+      #table_of_contents a {
+        display: block;
+        color: white;
+        padding: 16px;
+        text-decoration: none;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+      }
+      #table_of_contents a:hover {
+        background-color: #9694CB;
+      }
+      #table_of_contents a:focus {
+        background-color: #DFDFEF;
+      }
+
+      @media screen and (min-width: 700px) {
+        #table_of_contents {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 300px;
+          height: 100%;
+        }
+        #table_of_contents a {
+          text-align: center;
+        }
+        #top_level_flex {
+          margin-left: 300px;
+        }
+      }
+
+      section {
+        flex: 1;
+        background: #FFFFFF;
+        margin: 16px;
+        padding: 10px;
+        box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 8px 0px;
+        transition: box-shadow 0.2s;
+        border-radius: 16px;
+      }
+      section:target {
+        box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 8px 0px;
+      }
+
+      #footer {
+        padding: 20px;
+        text-align: center;
+        font-size: 0.7em;
+      }
+
+      .disclaimer {
+        font-style: italic;
+        font-size: 0.9em;
+      }
+      .example, .example > a {
+        color: grey;
+        font-style: italic;
+        font-size: 0.9em;
+      }
+
+      #comparisons > ul > li {
+        margin: 16px 0;
+      }
+      #references li {
+        font-size: 0.7em;
+      }
+      #references li:target {
+        background: yellow;
+      }
+    </style>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes">
+  </head>
+  <body>
+    <div id='top_level_flex'>
+      <section id="intro">
+        <h2>Image format comparison</h2>
+        <p>This page presents image format features and compares image codecs using Rate-Complexity Clouds<sup> <a href="#ref1">[1]</a></sup>.</p>
+      </section>
+
+      <nav id="table_of_contents">
+        <a href="#comparisons">Comparison of image codecs</a>
+        <a href="#image_formats">What are image formats?</a>
+        <a href="#features_of_image_formats">Features of image formats</a>
+        <a href="#how_to_compare_image_formats">How to compare image formats?</a>
+      </nav>
+
+      <section id="comparisons">
+        <h2>Latest comparisons</h2>
+        <p class="disclaimer">Disclaimer: the following pages are NOT mobile-friendly and may incur significant network usage.</p>
+        <ul>
+          <li><b title="libwebp 1.6.0">C libwebp</b> vs <b title="image-webp crate 0.2.4">Rust image-webp</b> (2026/06)
+            <ul>
+              <li>lossy 4:2:0
+                <ul>
+                  <li>photo CLIC dataset<sup> <a href="#ref4">[4]</a></sup>: <a href="20260608_webprs_clic/index.html?batch=batches/webp_420_4.json&batch=batches/webpencwebprsdec_420_4.json#matcher_quality=0&matcher_psnr=off&ploty=decoding_time&plotx=encoding_time&metrics=abs">default effort</a>, <a href="20260608_webprs_clic/index.html#matcher_quality=0&matcher_psnr=off&ploty=decoding_time&plotx=encoding_time">all efforts</a></li>
+                  <li>web-images dataset<sup> <a href="#ref5">[5]</a></sup>: <a href="20260608_webprs_web/index.html?batch=batches/webp_420_4.json&batch=batches/webpencwebprsdec_420_4.json#matcher_quality=0&matcher_psnr=off&ploty=decoding_time&plotx=encoding_time&x_scale=log&each_point=show&metrics=abs">default effort</a>, <a href="20260608_webprs_web/index.html#matcher_quality=0&matcher_psnr=off&ploty=decoding_time&plotx=encoding_time">all efforts</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>Older comparisons can be found at <a href="https://storage.googleapis.com/demos.webmproject.org/webp/cmp/index.html#comparisons">https://storage.googleapis.com/demos.webmproject.org/webp/cmp/index.html</a>.</li>
+          <!--
+          <li>
+            <a href="2025_08_22/index.html">2025/08/22</a> - lossy: <b title="libavif e21b0c2 (aom b7dea5a dav1d 1.5.1)">AVIF</b><sup>tune=SSIM</sup>, <b title="libavif e21b0c2 (aom b7dea5a dav1d 1.5.1)">AVIF</b><sup>tune=IQ</sup> (photo CLIC 2020 dataset, 4:4:4 default speed)<br>
+            <a href="2025_08_22/index.html?load=all_420.json">2025/08/22</a> - lossy: <b title="libavif e21b0c2 (aom b7dea5a dav1d 1.5.1)">AVIF</b><sup>tune=SSIM</sup>, <b title="libavif e21b0c2 (aom b7dea5a dav1d 1.5.1)">AVIF</b><sup>tune=IQ</sup> (photo CLIC 2020 dataset, 4:2:0 all speeds)<br>
+            <a href="2025_08_22/index.html?load=all_444.json">2025/08/22</a> - lossy: <b title="libavif e21b0c2 (aom b7dea5a dav1d 1.5.1)">AVIF</b><sup>tune=SSIM</sup>, <b title="libavif e21b0c2 (aom b7dea5a dav1d 1.5.1)">AVIF</b><sup>tune=IQ</sup> (photo CLIC 2020 dataset, 4:4:4 all speeds)
+          </li>
+          <li>
+            <a href="2025_05_22/index.html#WebP+m4+4%3A2%3A0-bpp_ranges=on&matcher_ssim=off&matcher_ssimulacra2=0.01">2025/05/22</a> - lossy: <b title="libavif 1.3.0 (aom 3.12.1 dav1d 1.5.1)">AVIF</b>, <b title="libjxl 0.11.1">JPEG XL</b>, <b title="mozjpeg 4.1.5">MozJPEG</b>, <b title="libwebp 1.5.0">WebP</b> (photo CLIC dataset, Web bits-per-pixel range)<br>
+            <a href="2025_05_22/index.html?load=jpeg_420.json#ref=MozJPEG+4%3A2%3A0&shown=7081&MozJPEG+4%3A2%3A0-bpp_ranges=on">2025/05/22</a> - lossy: <b title="openjpeg 2.5.3">JPEG 2000</b>, <b title="libjxl 0.11.1">jpegli</b>, <b title="mozjpeg 4.1.5">MozJPEG</b>,  <b title="sjpeg 4578abf">sJPEG</b>, <b title="libjpeg-turbo e287a35">TurboJPEG</b> (photo CLIC dataset, Web bits-per-pixel range)
+          </li>
+          <li>
+            <a href="2025_05_15/index.html">2025/05/15</a> - lossless: <b title="libavif 1.3.0 (aom 3.12.1 dav1d 1.5.1)">AVIF</b>, <b title="libavif 1.3.0 (aom 3.12.1 dav1d 1.5.1)">AVIF</b><sup>YCgCo-Re</sup>, <b title="libavif 1.3.0 (avm research-v9.0.0)">AVIF</b><sup>YCgCo-Re</sup><sub>AVM</sub>, <b title="ffmpeg 7.1.1">FFV1</b>, <b title="openjpeg 2.5.3">JPEG 2000</b>, <b title="libjxl 0.11.1">JPEG XL</b>, <b title="libwebp 1.5.0">WebP</b>, <b title="libwebp2 3fea374">WebP 2</b> (photo CLIC dataset)<br>
+          </li>
+          <li>
+            <a href="2025_05_12/index.html#shown=0fffffff7">2025/05/12</a> - lossless: <b title="libjxl 0.11.1">JPEG XL</b>, <b title="libwebp 1.5.0">WebP</b>, <b title="libwebp2 3fea374">WebP 2</b> (web-images dataset)<br>
+            <a href="2025_05_12/index.html">2025/05/12</a> - lossless: <b title="libavif 1.3.0 (aom 3.12.1 dav1d 1.5.1)">AVIF</b>, <b title="libavif 1.3.0 (aom 3.12.1 dav1d 1.5.1)">AVIF</b><sup>YCgCo-Re</sup>, <b title="ffmpeg 7.1.1">FFV1</b>, <b title="openjpeg 2.5.3">JPEG 2000</b>, <b title="libjxl 0.11.1">JPEG XL</b>, <b title="libwebp 1.5.0">WebP</b>, <b title="libwebp2 3fea374">WebP 2</b> (web-images dataset)<br>
+          </li>
+          <li>
+            <a href="2025_02_18/index.html?load=all.json#ref=WebP+m6+420&shown=104003800c2&WebP+m6+420-bpp_ranges=on&matcher_ssim=off&matcher_ssimulacra2=0.01">2025/02/18</a> - lossy: <b>AVIF</b>, <b>AVIF</b><sub>AVM</sub>, <b>JPEG 2000</b>, <b>JPEG XL</b>, <b>MozJPEG</b>, <b>WebP</b> (photo CLIC dataset, Web bits-per-pixel range)
+          </li>
+          -->
+        </ul>
+        <h2>Comparison of image codecs</h2>
+        <p>Comparisons of multiple image codecs are linked above.<br>
+        The Codec-Compare framework<sup> <a href="#ref2">[2]</a></sup> matches pairs of the same image encoded as two different formats with a similar amount of visual distortion. A single Rate-Complexity Cloud<sup> <a href="#ref1">[1]</a></sup> is formed (as opposed to one traditional Rate-Distortion Curve per format). The framework then aggregates the ratios given by each pair on some other dimensions such as file size, compression and decompression timings. Matching pairs ensures the selected data makes sense before aggregation. Unmatched data may be hidden by this selection process but should not be compared anyway.<br>
+        See the section <a href="#how_to_compare_image_formats">"How to compare image formats?"</a> above for an explanation on the chosen comparison criteria.</p>
+        <p>Codec-Compare-Gen<sup> <a href="#ref3">[3]</a></sup> was used to generate the data. All encodes and decodes are single-threaded. All metadata was stripped from the original images to only compare the compression rate of pixel values and mandatory format header sizes. The sRGB color profile is assumed where relevant.</p>
+        <p><b>Verification:</b> Verification is probably the MOST important part of any codec comparison when evaluating quality and performance. You, the reader, should be able to reproduce all of the results. All of the matched pairs in the Codec-Compare framework have the version of the tested codec and an associated command line, so you can independently verify the results.</p>
+      </section>
+
+      <section id="image_formats">
+        <h2>What are image formats?</h2>
+        <p>A digital image is a two-dimensional grid of pixels and can be stored in a file, using an <strong>image format</strong>. There are three main categories of image formats:</p>
+        <ul>
+          <li><b>Lossless</b> (compressed without loss): the pixel values are encoded to reduce the file size needed to store typical images without altering them. While this is often useful in formats dedicated to editing workflows, for the transmission use case typically "lossy" compression provides a better experience.<br>
+          <span class="example">Example: <a href="https://en.wikipedia.org/wiki/PNG">PNG</a></span></li>
+          <li><b>Lossy</b> (compressed with loss): the pixel values are encoded to reduce the file size needed to store typical images. The encoder usually has a quality setting that allows pixel values to be changed in order to further reduce the encoded file size, increasing the visual <a href="https://en.wikipedia.org/wiki/Compression_artifact">distortion</a> of the image once decoded.<br>
+          <span class="example">Examples: <a href="https://en.wikipedia.org/wiki/JPEG">JPEG</a></span></li>
+          <li><b>Raw</b> (uncompressed): the pixel values are stored without compression and without loss, one after another. This usually leads to huge files that are impractical for storage and transmission but are fast to read and especially to write.<br>
+          <span class="example">Example: <a href="https://en.wikipedia.org/wiki/BMP_file_format#Pixel_array_(bitmap_data)">uncompressed BMP</a></span></li>
+        </ul>
+        <p><i>Further reading: <a href="https://en.wikipedia.org/wiki/Image_file_format">Image file format</a>, <a href="https://en.wikipedia.org/wiki/Lossless_compression">Lossless compression</a>, <a href="https://en.wikipedia.org/wiki/Lossy_compression">Lossy compression</a> (Wikipedia)</i></p>
+        <h3>Codec</h3>
+        <p>A <strong>codec</strong> is the piece of software, called library, that is used to encode or decode images of a given format. There may exist multiple codecs for the same image format.<br>
+        <span class="example">Example: <a href="https://en.wikipedia.org/wiki/Libpng">libpng</a> for PNG</span></p>
+        <p>Note that some repacking tools exist to further compress already encoded image files or mixed media without loss. They are not presented further here because they are seen as transport-level compression schemes rather than image formats.<br>
+        <span class="example">Examples: <a href="https://github.com/google/brunsli">brunsli</a>, <a href="https://en.wikipedia.org/wiki/Brotli">brotli</a></span></p>
+      </section>
+
+      <section id="features_of_image_formats">
+        <h2>Features of image formats</h2>
+        <p>On top of the basic capacity of storing pixels in a universally specified way, image formats may possess other features:</p>
+        <ul>
+          <li><b>Transparency ("alpha"):</b> each pixel is either fully transparent, fully opaque, or in between.<br>
+          <span class="example">Example: <a href="https://en.wikipedia.org/wiki/GIF">GIF</a> (only supports fully transparent or fully opaque), <a href="https://en.wikipedia.org/wiki/PNG">PNG</a> (supports full translucency)</span></li>
+          <li><b>Animation:</b> the image moves over time.<br>
+          <span class="example">Example: <a href="https://en.wikipedia.org/wiki/GIF">GIF</a></span></li>
+          <li><b>Progressive:</b> the image is encoded in a way that at least one lower resolution of the image can be decoded and displayed before the full image file is available. This can be used to render a blurry preview of a large image before it is fully received from a distant server, or to show an icon of a local image without decoding the full file, saving resources. Some drawbacks are potentially worse compression rate, increased processing, memory and battery usage due to the multiple renders and buffers. Storing and serving a scaled down version of the image next to the original one are alternatives to that feature.<br>
+          <span class="example">Example: <a href="https://en.wikipedia.org/wiki/JPEG">JPEG</a></span></li>
+          <li><b>Incremental:</b> parts of the image can be decoded and displayed before the full image file is available. This is usually in row scan order. Some drawbacks are potentially increased processing, memory and battery usage.<br>
+          <span class="example">Example: <a href="https://en.wikipedia.org/wiki/WebP">WebP</a></span></li>
+          <li><b>Chroma subsampling (4:2:2, 4:2:0):</b> in some color spaces such as JPEG's <a href="https://en.wikipedia.org/wiki/YCbCr">YCbCr</a>, dropping some pixel values in the chroma planes allows for a better compression ratio with minimal visual distortion, because the human eye gives more importance to the luma plane (the "greyscale" version of an image).<ul><li><b>No chroma subsampling (4:4:4):</b> there are as many values in each chroma plane as in the luma plane.</li></ul></li>
+          <li><b>High bit depth:</b> RGB pixels traditionnally have a depth of 8 bits, meaning the value in each plane among red, green and blue is between 0 and 255 inclusive. Some formats offer a higher resolution per pixel.<br>
+          <span class="example">Example: <a href="https://en.wikipedia.org/wiki/PNG">PNG</a> (up to 16-bit)</span></li>
+          <li><b>Multithreading:</b> using multiple threads at encoding and/or at decoding can speed the process up. While this is more related to software implementations, some image formats may have been designed to permit or facilitate it.</li>
+        </ul>
+        <p><i>Further reading: <a href="https://en.wikipedia.org/wiki/Image_file_format">Image file format</a>, <a href="https://en.wikipedia.org/wiki/Transparency_(graphic)">Transparency</a>, <a href="https://en.wikipedia.org/wiki/Chroma_subsampling">Chroma subsampling</a> (Wikipedia), <a href="https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types">Image file type and format guide</a> (Mozilla), <a href="https://y-guyon.github.io/progressive-incremental-image-decoding/">Progressive and incremental image decoding demo</a></i></p>
+      </section>
+
+      <section id="how_to_compare_image_formats">
+        <h2>How to compare image formats?</h2>
+        <p>There are multiple domains where image file formats and software implementations compete:</p>
+        <ul>
+          <li><b>File size (compression ratio):</b> for the same image, the encoded file size may vary. When divided by the number of pixels, it is referred to as the compression ratio or bits-per-pixel.</li>
+          <li><b>Visual distortion:</b> lossy compression generates artifacts. The quality setting of an encoder will tune the trade-off between the fidelity of the decoded image compared to the original and the file size reduction. This is irrelevant for lossless formats.</li>
+          <li><b>Encoding duration:</b> the time spent compressing the original image into an encoded file size is often controlled by the effort setting of an encoder. It is sometimes called speed, preset or method. It is a trade-off between encoding latency and file size reduction. It makes sense to compare codecs on their default effort value because most users do not tune that setting.</li>
+          <li><b>Decoding duration:</b> the time spent decompressing the encoded file into pixels that can be directly rendered.</li>
+          <li><b>Feature completeness:</b> depending on the use case, the need for specific <a href="#features_of_image_formats">features</a> may orientate the choice of a format.</li>
+        </ul>
+        <p>Over the internet, there could be several "best" formats: servers may choose to send images in different formats depending on the end device. The decision is based on whether the format is supported by the user's operating system, browser or app, the bandwidth, the screen resolution etc.</p>
+
+        <h3>Estimating visual distortion</h3>
+        <p>There are two main ways of getting a sense on how distorted is a decoded image compared to the original asset (for lossy compression only):</p>
+        <ul>
+          <li><b>Subjective evaluation:</b> people look at images and rate them. This is a lengthy and tedious process. The results are non-deterministic because they depend on the precise viewing conditions and device, the person rating, their distance to the screen, their mental state at that time etc. This process can only be used if a statistically large enough sample is evaluated.</li>
+          <li><b>Objective evaluation:</b> an algorithm called <strong>distortion metric</strong> grades the loss between the original image and the decoded one. Our default view matches images based on SSIM, which is the most widely used metric in the scientific community. To try and be more fair, when JPEG XL images are included in the comparison we include Butteraugli metric, which JPEG XL codec is based on.</li>
+        </ul>
+
+        <h3>Choice of dataset</h3>
+        <p>Even if distortion evaluation of lossy compression was a settled matter, the open question of the corpus choice remains for both lossy and lossless compression. A lot of image datasets exist out there but assuming its license is permissive enough, there is no guarantee that a dataset:</p>
+        <ul>
+          <li>exhaustively represents the use case, meaning it contains at least one image of each kind that the use case covers (image dimensions, bit depth, content etc.),</li>
+          <li>shares the same distribution, meaning it contains the same proportion of each image kind as the use case.</li>
+        </ul>
+        <p>With all that said, one can still get an approximation of the overall performance of a codec compared to another. See the dedicated section <a href="#comparisons">"Comparison of image codecs"</a>.</p>
+      </section>
+
+      <section id="references">
+        <h2>References</h2>
+        <p>
+          <ol>
+            <li id="ref1"><a href="https://ieeexplore.ieee.org/document/11417613">"RC-Clouds for Lossy Image Compression Performance Comparison"</a>, <i>2025 Picture Coding Symposium (PCS)</i>, December 2025</li>
+            <li id="ref2"><a href="https://github.com/webmproject/codec-compare">"Codec-Compare: Static front-end framework presenting and aggregating codec performance data"</a>, <i>webmproject</i>, 2024-2026</li>
+            <li id="ref3"><a href="https://github.com/webmproject/codec-compare-gen">"Codec-Compare-Gen: Image codec performance data generation tool"</a>, <i>webmproject</i>, 2024-2026</li>
+            <li id="ref4">Data sets used for <a href="https://www.compression.cc">"CLIC: Challenge on Learned Image Compression"</a>, 2020-2024</li>
+            <li id="ref5"><a href="https://github.com/google-research-datasets/web-images">"web-images: Images gathered from the Internet in 2023 and some metadata"</a>, <i>Google Research Datasets</i>, 2023</li>
+          </ol>
+        </p>
+      </section>
+
+      <div id="footer">
+        This page is licensed under the <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a> license.<br>
+        <a href="https://github.com/webmproject/codec-compare/issues">Send feedback</a><br>
+        Author: Yannis Guyon - 2026
+      </div>
+    </div>
+  </body>
+</html>
