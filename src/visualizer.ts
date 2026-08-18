@@ -14,6 +14,8 @@
 
 import {css, html, LitElement} from 'lit';
 import {customElement, query} from 'lit/decorators.js';
+import {trustedResourceUrl, TrustedResourceUrl} from 'safevalues';
+import {objectUrlFromSafeSource, setScriptSrc} from 'safevalues/dom';
 
 import {getFilename} from './utils';
 
@@ -40,8 +42,10 @@ export class ImageVisualizer extends LitElement {
   @query('#leftText') private readonly leftText!: HTMLParagraphElement;
   @query('#rightText') private readonly rightText!: HTMLParagraphElement;
   @query('#bottomText') private readonly bottomText!: HTMLParagraphElement;
+  @query('#loadingOverlay') private readonly loadingOverlay?: HTMLElement;
 
   private sliderIsLocked = false;
+  private isLoaded = false;
 
   private renderBackground() {
     // Reuse the bottom image and blur it a lot to have a background with the
@@ -80,8 +84,20 @@ export class ImageVisualizer extends LitElement {
     </div>`;
   }
 
+  private renderLoading() {
+    if (this.isLoaded) {
+      return html``;
+    }
+    return html`
+      <div id="loadingOverlay">
+        <div class="spinner"></div>
+      </div>
+    `;
+  }
+
   override render() {
-    return html`${this.renderBackground()} ${this.renderSlider()}`;
+    return html`${this.renderBackground()} ${this.renderSlider()} ${
+        this.renderLoading()}`;
   }
 
   private onMouseMove(e: MouseEvent) {
@@ -102,20 +118,30 @@ export class ImageVisualizer extends LitElement {
     this.onMouseMove(e);
   }
 
-  override firstUpdated() {
+  override async firstUpdated() {
     const url = new URLSearchParams(window.location.search);
-    setImageText(this.bottomImage, this.bottomText, url, 'bimg', 'btxt');
-    setImageText(this.rightImage, this.rightText, url, 'rimg', 'rtxt');
-    setImageText(this.leftImage, this.leftText, url, 'limg', 'ltxt');
+    await Promise.all([
+      setImageText(
+          this.bottomImage, this.bottomText, url.get('bimg'), url.get('btxt')),
+      setImageText(
+          this.rightImage, this.rightText, url.get('rimg'), url.get('rtxt')),
+      setImageText(
+          this.leftImage, this.leftText, url.get('limg'), url.get('ltxt')),
+    ]);
     this.backgroundImage.src = this.bottomImage.src;
 
-    if (url.get('rimg') === url.get('limg') &&
+    if (url.has('rimg') && url.get('rimg') === url.get('limg') &&
         url.get('rtxt') === url.get('ltxt')) {
       // Only compare one image with the bottom image because left and right are
       // identical.
       this.horizontalImageWindow.hidden = true;
     }
     this.addEventListener('mousemove', this.onMouseMove);
+    this.isLoaded = true;
+    if (this.loadingOverlay) {
+      this.loadingOverlay.style.opacity = '0';
+      this.requestUpdate();
+    }
   }
 
   static override styles = css`
@@ -126,6 +152,39 @@ export class ImageVisualizer extends LitElement {
       width: 100%;
       height: 100%;
       background-color: #808080;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #808080;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      cursor: wait;
+      opacity: 1;
+      transition: opacity 0.3s;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #fff;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
     .slider img {
       background-color: #808080; /* fallback in case of image loading failure */
@@ -249,21 +308,203 @@ declare global {
   }
 }
 
+let wasmModulePromise: Promise<any>|undefined;
+
+async function loadScript(url: TrustedResourceUrl): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    setScriptSrc(script, url);
+    script.onload = () => resolve();
+    script.onerror = () =>
+        reject(new Error(`Failed to load script: ${url.toString()}`));
+    document.head.appendChild(script);
+  });
+}
+
+function findFactory(): any {
+  const win = window as any;
+  const glob = globalThis as any;
+  const parent = window.parent as any;
+  return win['loadCodecWasm'] || win['module']?.['exports']?.['default'] ||
+      win['module']?.['exports'] || win['exports']?.['loadCodecWasm'] ||
+      parent?.['loadCodecWasm'] ||
+      parent?.['module']?.['exports']?.['default'] ||
+      parent?.['module']?.['exports'] ||
+      parent?.['exports']?.['loadCodecWasm'] || glob['loadCodecWasm'] ||
+      glob['module']?.['exports']?.['default'] || glob['module']?.['exports'];
+}
+
+
+async function getWasmModule(): Promise<any> {
+  if (!wasmModulePromise) {
+    let factory = findFactory();
+    if (typeof factory !== 'function') {
+      const jsUrl = trustedResourceUrl`codec_wasm_bin.js`;
+      const win = window as any;
+      const glob = globalThis as any;
+      const oldDefine = win['define'] || glob['define'];
+      const oldModule = win['module'] || glob['module'];
+      const oldExports = win['exports'] || glob['exports'];
+      try {
+        win['define'] = undefined;
+        glob['define'] = undefined;
+      } catch (e) {
+      }
+      if (!win['module']) win['module'] = {'exports': {}};
+      if (!glob['module']) glob['module'] = win['module'];
+      if (!win['exports']) win['exports'] = win['module']['exports'];
+      if (!glob['exports']) glob['exports'] = glob['module']['exports'];
+
+      await loadScript(jsUrl);
+
+      const loadedFactory = findFactory();
+
+      if (oldDefine !== undefined) {
+        win['define'] = oldDefine;
+        glob['define'] = oldDefine;
+      } else {
+        delete win['define'];
+        delete glob['define'];
+      }
+
+      if (oldModule !== undefined) {
+        win['module'] = oldModule;
+        glob['module'] = oldModule;
+      } else {
+        delete win['module'];
+        delete glob['module'];
+      }
+
+      if (oldExports !== undefined) {
+        win['exports'] = oldExports;
+        glob['exports'] = oldExports;
+      } else {
+        delete win['exports'];
+        delete glob['exports'];
+      }
+
+      factory = loadedFactory;
+      if (typeof factory !== 'function') {
+        throw new Error(
+            'loadCodecWasm is not a function on window after loading script.');
+      }
+    }
+    wasmModulePromise = factory({
+      'locateFile': (path: string) => {
+        if (path.endsWith('.wasm')) {
+          return 'codec_wasm_bin.wasm';
+        }
+        return path;
+      }
+    });
+  }
+  return wasmModulePromise;
+}
+
+function toByteVector(module: any, bytes: Uint8Array): any {
+  const v = new module['ByteVector']();
+  for (let i = 0; i < bytes.length; i++) {
+    v['push_back'](bytes[i]);
+  }
+  return v;
+}
+
+function fromByteVector(vector: any): Uint8Array {
+  const bytes = new Uint8Array(vector['size']());
+  for (let i = 0; i < vector['size'](); i++) {
+    bytes[i] = vector['get'](i);
+  }
+  return bytes;
+}
+
+async function encodeDecode(
+    pngUrl: string, codecStr: string, effort: number, quality: number,
+    subsamplingStr: string): Promise<any> {
+  const module = await getWasmModule();
+  let codecEnum: any;
+  const codecs = module['Codec'];
+  for (const key of Object.keys(codecs)) {
+    if (key.toLowerCase() === codecStr.toLowerCase()) {
+      codecEnum = codecs[key];
+      break;
+    }
+  }
+  if (codecEnum === undefined) {
+    throw new Error(`Unknown codec: ${codecStr}`);
+  }
+
+  let subsamplingEnum: any;
+  const subsamplings = module['Subsampling'];
+  if (subsamplingStr !== undefined && subsamplingStr !== '') {
+    for (const key of Object.keys(subsamplings)) {
+      if (key.toLowerCase() === subsamplingStr.toLowerCase() ||
+          key.toLowerCase() === `yuv${subsamplingStr}`.toLowerCase()) {
+        subsamplingEnum = subsamplings[key];
+        break;
+      }
+    }
+  }
+  if (subsamplingEnum === undefined) {
+    subsamplingEnum = subsamplings['Default'];
+  }
+
+  const response = await fetch(pngUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${pngUrl}: ${response.statusText}`);
+  }
+  const pngBytes = new Uint8Array(await response.arrayBuffer());
+  const pngVector = toByteVector(module, pngBytes);
+  const stats = module['getEncodedBytesAndDecodeStats'](
+      pngVector, codecEnum, subsamplingEnum, effort, quality);
+  pngVector['delete']();
+  return stats;
+}
+
 /**
  * Sets the image source and the paragraph content depending on the values of
  * the arguments keyImage and keyText extracted from the given url.
  */
-function setImageText(
-    image: HTMLImageElement, text: HTMLParagraphElement, url: URLSearchParams,
-    keyImage: string, keyText: string) {
-  const valueImage = url.get(keyImage);
-  if (valueImage !== null) {
-    image.src = valueImage;
-    const valueText = url.get(keyText);
+async function setImageText(
+    image: HTMLImageElement, text: HTMLParagraphElement,
+    valueImage: string|null, valueText: string|null): Promise<void> {
+  if (valueImage === null) return;
+  if (image.src.startsWith('blob:')) {
+    URL.revokeObjectURL(image.src);
+    image.src = '';
+  }
+
+  if (valueImage.startsWith('ccgen')) {
+    const tokens = valueImage.split('-');
+    // Expect a string "ccgen-$codec-$effort-$quality-$subsampling-$pngUrl".
+    const codec = tokens[1];
+    const effort = Number(tokens[2]);
+    const quality = Number(tokens[3]);
+    const subsampling = tokens[4];
+    const pngUrl = tokens.slice(5).join('-');
+    const stats =
+        await encodeDecode(pngUrl, codec, effort, quality, subsampling);
+    const encodedBytes = fromByteVector(stats['encoded_bytes']);
+    stats['encoded_bytes']['delete']();
+    const blob =
+        new Blob([encodedBytes], {type: stats['encoded_bytes_mime_type']});
+    image.src = objectUrlFromSafeSource(blob);
     if (valueText !== null) {
       text.textContent = valueText;
     } else {
-      text.textContent = getFilename(image.src);
+      const numBytes = stats['encoded_size'];
+      const sizeStr = numBytes < 10000 ?
+          `${numBytes}B` :
+          numBytes < 1024 * 10000 ?
+          `${Math.round(numBytes / 1024).toFixed(2)}kB` :
+          `${Math.round(numBytes / 1024 / 1024).toFixed(2)}MB`;
+      text.textContent = stats['description'] + ` (${stats['encoded_size']}B)`;
+    }
+  } else {
+    image.src = valueImage;
+    if (valueText !== null) {
+      text.textContent = valueText;
+    } else {
+      text.textContent = getFilename(valueImage);
     }
   }
 }
