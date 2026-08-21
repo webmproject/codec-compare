@@ -40,6 +40,7 @@ From the project root directory, install the project's dependencies:
 
 ```sh
 npm install
+npm run prebuild_wasm
 ```
 
 ### Development

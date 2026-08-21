@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.0
+
+- Add support for WASM codec-compare-gen in-browser encoding in visualizer.html.
+
 ## v0.7.3
 
 - Fix RD-curve and two-batch view links.

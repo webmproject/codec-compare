@@ -19,6 +19,27 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  /* Removes Vite warning: "can't be bundled without type=module attribute" */
+  plugins: [
+    {
+      name: 'build-html',
+      apply: 'build',
+      transformIndexHtml: (html) => {
+        return {
+          html,
+          tags: [
+            {
+              tag: 'script',
+              attrs: {
+                src: 'codec_wasm_bin.js',
+              },
+              injectTo: 'head',
+            },
+          ],
+        };
+      },
+    },
+  ],
   build: {
     rollupOptions: {
       input: {
